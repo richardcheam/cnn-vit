@@ -1,0 +1,19 @@
+[project]
+name = "cnn-vit"
+version = "0.1.0"
+description = "Educational PyTorch project comparing CNNs and Vision Transformers on CIFAR-10 with robustness and interpretability experiments."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "matplotlib>=3.10.8",
+    "numpy>=2.2.6",
+    "opencv-python>=4.13.0.92",
+    "scikit-learn>=1.7.2",
+    "timm>=1.0.26",
+    "torch>=2.11.0",
+    "torchvision>=0.26.0",
+    "tqdm>=4.67.3",
+]
+
+[tool.uv]
+package = false
