@@ -16,11 +16,15 @@ from interpretability.vit_attention import generate_attention_maps, overlay_atte
 from models.cnn import CNN
 from models.vit import VisionTransformer
 from training.trainer import Trainer
-from utils.helpers import ensure_dir, format_seconds, save_csv, save_json
+from utils.helpers import ensure_dir, format_seconds, save_csv, save_json, save_torch_checkpoint
 
 
 def _log(message: str) -> None:
     print(message, flush=True)
+
+
+def _fraction_tag(fraction: float) -> str:
+    return f"{int(round(fraction * 100))}pct"
 
 
 PLOT_STYLE = {
@@ -146,6 +150,7 @@ def run_training(
     config: ProjectConfig,
     device: torch.device,
     train_fraction: float,
+    checkpoint_dir: Path,
 ) -> tuple[torch.nn.Module, Trainer, DataBundle, dict]:
     """Train one model under one data-budget setting and return its summary."""
     run_label = f"{model_name.upper()} | data={train_fraction:.0%}"
@@ -196,6 +201,24 @@ def run_training(
         "parameter_count": parameter_count,
         "history": history,
     }
+    checkpoint_path = checkpoint_dir / f"{model_name}_{_fraction_tag(train_fraction)}_best.pt"
+    checkpoint = {
+        "model_name": model_name,
+        "checkpoint_type": "best_validation_model",
+        "train_fraction": train_fraction,
+        "train_size": len(data_bundle.train_dataset),
+        "val_size": len(data_bundle.val_dataset),
+        "test_size": len(data_bundle.test_dataset),
+        "best_val_accuracy": history["best_val_accuracy"],
+        "test_accuracy": test_metrics["accuracy"],
+        "num_classes": config.data.num_classes,
+        "class_names": list(data_bundle.classes),
+        "config": config.to_dict(),
+        "model_state_dict": model.state_dict(),
+    }
+    save_torch_checkpoint(checkpoint, checkpoint_path)
+    summary["checkpoint_path"] = str(checkpoint_path)
+    _log(f"[{run_label}] Saved best checkpoint to {checkpoint_path}")
     _log(
         f"[{run_label}] Finished | test_acc={summary['test_accuracy']:.4f}, "
         f"best_val_acc={summary['best_val_accuracy']:.4f}, "
@@ -534,10 +557,12 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
     root_output_dir = ensure_dir(config.experiment.output_dir)
     plots_dir = ensure_dir(root_output_dir / "plots")
     interpretability_dir = ensure_dir(root_output_dir / "interpretability")
+    checkpoints_dir = ensure_dir(root_output_dir / "checkpoints")
 
     _log("=" * 80)
     _log(config.title)
     _log(f"Output directory: {root_output_dir}")
+    _log(f"Checkpoint directory: {checkpoints_dir}")
     _log(f"Device: {device}")
     _log(
         "Training fractions: "
@@ -569,6 +594,7 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
                 config=config,
                 device=device,
                 train_fraction=fraction,
+                checkpoint_dir=checkpoints_dir,
             )
             data_efficiency_rows.append(
                 {
@@ -663,6 +689,10 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
         "baseline": baseline_rows,
         "data_efficiency": data_efficiency_rows,
         "robustness": robustness_rows,
+        "checkpoints": {
+            model_name: result["checkpoint_path"]
+            for model_name, result in full_run_results.items()
+        },
         "full_run_histories": {
             model_name: result["history"]
             for model_name, result in full_run_results.items()

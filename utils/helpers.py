@@ -92,6 +92,13 @@ def save_csv(rows: list[dict[str, Any]], path: str | Path) -> None:
             handle.write(",".join(str(row[header]) for header in headers) + "\n")
 
 
+def save_torch_checkpoint(data: Any, path: str | Path) -> None:
+    """Save a torch checkpoint after moving tensors to CPU for portability."""
+    target = Path(path)
+    ensure_dir(target.parent)
+    torch.save(_move_to_cpu(data), target)
+
+
 def format_seconds(seconds: float) -> str:
     minutes, remaining = divmod(int(seconds), 60)
     hours, minutes = divmod(minutes, 60)
@@ -128,3 +135,15 @@ def _mps_available() -> bool:
 
 def _mps_built() -> bool:
     return hasattr(torch.backends, "mps") and torch.backends.mps.is_built()
+
+
+def _move_to_cpu(value: Any) -> Any:
+    if isinstance(value, torch.Tensor):
+        return value.detach().cpu().clone()
+    if isinstance(value, dict):
+        return {key: _move_to_cpu(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_move_to_cpu(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(_move_to_cpu(item) for item in value)
+    return value

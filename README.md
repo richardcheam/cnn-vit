@@ -20,6 +20,11 @@ The project studies not only which model is more accurate, but also how each mod
 
 In practice, this means we train both architectures under the same protocol and compare them across clean accuracy, robustness, data efficiency, and interpretability.
 
+The repository now supports two connected stages:
+
+1. Source-stage pretraining and controlled analysis on CIFAR-10.
+2. Downstream transfer to EuroSAT using either random initialization or the saved CIFAR checkpoints.
+
 ## Pipeline Overview
 
 ```mermaid
@@ -57,44 +62,112 @@ flowchart TD
 
 ## Experimental Setup
 
-### Dataset protocol
+### 1. Input data
 
-- Source dataset: CIFAR-10
-- Original training split: `50,000` images
-- Original test split: `10,000` images
-- Validation fraction: `10%` of the original training set
-- Validation set size: `5,000` images
-- Remaining training pool after validation split: `45,000` images
-- Clean test size: `10,000` images
-- Occluded test size: `10,000` images
-- Texture-modified test size: `10,000` images
+| Item | Value |
+| --- | --- |
+| Dataset | CIFAR-10 |
+| Number of classes | `10` |
+| Native image size | `32 x 32 x 3` |
+| Color format | RGB |
+| Resize step | None |
 
-### Data-efficiency protocol
+The project keeps CIFAR-10 at its native resolution. Images are not downscaled below `32 x 32`, and they are not resized to a larger training resolution either.
 
-The data-efficiency experiment does not change the validation or test sets. It changes only how much of the `45,000`-image training pool is used for fitting the model.
+### 2. Preprocessing and transforms
 
-| Train fraction | Training images used | Purpose |
+The training and evaluation pipelines are intentionally different.
+
+| Split | Transform sequence | Purpose |
+| --- | --- | --- |
+| Train | `RandomCrop(32, padding=4)` -> `RandomHorizontalFlip()` -> `ToTensor()` -> `Normalize(mean, std)` | Add light augmentation while keeping the task realistic |
+| Validation | `ToTensor()` -> `Normalize(mean, std)` | Deterministic validation |
+| Test | `ToTensor()` -> `Normalize(mean, std)` | Deterministic testing |
+
+Normalization uses the CIFAR-10 channel statistics:
+
+- Mean: `(0.4914, 0.4822, 0.4465)`
+- Std: `(0.2470, 0.2435, 0.2616)`
+
+Important design choice:
+
+- Augmentation is applied only to the training split.
+- Validation and test images are kept deterministic so CNN and ViT are compared on the same reference distribution.
+
+### 3. Dataset splits
+
+| Split | Size | Notes |
 | --- | ---: | --- |
-| `10%` | `4,500` | Stress-test learning under very limited supervision |
-| `25%` | `11,250` | Observe early scaling behavior |
-| `50%` | `22,500` | Measure mid-budget performance |
-| `100%` | `45,000` | Reference full-data run |
+| Original training set | `50,000` | Standard CIFAR-10 training split |
+| Validation set | `5,000` | `10%` of the original training set |
+| Remaining training pool | `45,000` | Used for data-efficiency experiments |
+| Clean test set | `10,000` | Standard CIFAR-10 test split |
+| Occluded test set | `10,000` | Clean test images with square masking |
+| Texture-modified test set | `10,000` | Clean test images with patch shuffling and noise |
 
-This setup makes the comparison fair: CNN and ViT always see the same validation set and the same test set, while only the training budget changes.
+The validation split is created once with a fixed random seed and reused across all experiments. This keeps the comparison controlled.
 
-### Distribution-shift protocol
+### 4. Data-efficiency design
 
-Both models are always trained on clean CIFAR-10. Robustness is measured by changing only the test distribution:
+The data-efficiency experiment changes only the size of the training subset. The validation set and test set do not change.
 
-- Occlusion shift: randomly masks a square patch in the image
-- Texture shift: shuffles local patches and adds mild noise while preserving the overall object layout
+| Train fraction | Training images used | Meaning |
+| --- | ---: | --- |
+| `10%` | `4,500` | Very low-data regime |
+| `25%` | `11,250` | Low-data regime |
+| `50%` | `22,500` | Medium-data regime |
+| `100%` | `45,000` | Full-data reference |
 
-This isolates generalization behavior from training-time corruption.
+This is not continuous training. Each fraction is a separate run trained from scratch.
 
-### Interpretability protocol
+For each architecture, the project performs:
 
-- CNN interpretability: Grad-CAM highlights which spatial regions most influenced the prediction
-- ViT interpretability: attention rollout visualizes how information flows from image patches toward the class token
+- 1 run at `10%`
+- 1 run at `25%`
+- 1 run at `50%`
+- 1 run at `100%`
+
+That means:
+
+- `4` independent CNN runs
+- `4` independent ViT runs
+- `8` independent training runs in total
+
+The purpose is to measure how quickly each architecture benefits from additional labeled data.
+
+### 5. Robustness design
+
+Both models are always trained on clean CIFAR-10. The robustness experiment modifies only the test distribution.
+
+| Test condition | Description | Goal |
+| --- | --- | --- |
+| Clean | Standard CIFAR-10 test set | Baseline accuracy |
+| Occluded | Random square region is masked | Test robustness to missing local evidence |
+| Texture-modified | Local patches are shuffled and mild noise is added | Test sensitivity to texture disruption |
+
+Only the full-data models from the `100%` training runs are reused for the robustness evaluation.
+
+### 6. Interpretability design
+
+| Model | Method | What it shows |
+| --- | --- | --- |
+| CNN | Grad-CAM | Which spatial image regions most influenced the prediction |
+| ViT | Attention rollout | How information flows from image patches toward the class token |
+
+Interpretability is also generated from the full-data models so the visualizations reflect the strongest trained version of each architecture.
+
+### 7. Model and optimization settings
+
+| Component | Setting |
+| --- | --- |
+| CNN | 3 convolutional stages with batch normalization, ReLU, pooling, dropout, and a classifier head |
+| ViT | Patch embedding, learnable class token, positional embeddings, transformer encoder blocks, classifier head |
+| Optimizer | AdamW |
+| Learning rate | `1e-3` |
+| Weight decay | `1e-4` |
+| Batch size | `128` by default |
+| Epochs | `5` by default, `20` with `--full` |
+| Random seed | `42` |
 
 ## What The Pipeline Measures
 
@@ -106,6 +179,62 @@ This isolates generalization behavior from training-time corruption.
 | Which model learns better from small datasets? | Accuracy as training fraction grows from `10%` to `100%` |
 | What drives the prediction? | Grad-CAM for CNN, attention rollout for ViT |
 
+## EuroSAT Transfer Setup
+
+The first downstream transfer stage uses EuroSAT as an out-of-distribution image-classification benchmark.
+
+### 1. Downstream dataset design
+
+| Item | Value |
+| --- | --- |
+| Dataset | EuroSAT RGB |
+| Number of classes | `10` |
+| Working image size | `64 x 64 x 3` |
+| Split strategy | Stratified random split with fixed seed |
+| Default split | `80%` train, `10%` validation, `10%` test |
+
+The EuroSAT pipeline uses a stratified split so every class stays represented across train, validation, and test.
+
+### 2. EuroSAT transforms
+
+| Split | Transform sequence |
+| --- | --- |
+| Train | `Resize(64, 64)` -> `RandomHorizontalFlip()` -> `RandomVerticalFlip()` -> `ToTensor()` -> `Normalize(mean, std)` |
+| Validation | `Resize(64, 64)` -> `ToTensor()` -> `Normalize(mean, std)` |
+| Test | `Resize(64, 64)` -> `ToTensor()` -> `Normalize(mean, std)` |
+
+The EuroSAT normalization defaults are standard RGB values:
+
+- Mean: `(0.485, 0.456, 0.406)`
+- Std: `(0.229, 0.224, 0.225)`
+
+### 3. EuroSAT comparison matrix
+
+For each architecture, the transfer runner compares:
+
+- `scratch`: train directly on EuroSAT from random initialization
+- `pretrained`: load the CIFAR-10 backbone checkpoint, keep a new EuroSAT classifier head, and fine-tune end to end
+
+So the EuroSAT transfer stage runs:
+
+- CNN scratch
+- CNN pretrained on CIFAR-10 then fine-tuned on EuroSAT
+- ViT scratch
+- ViT pretrained on CIFAR-10 then fine-tuned on EuroSAT
+
+### 4. Fine-tuning details
+
+| Setting | Value |
+| --- | --- |
+| Optimizer | AdamW |
+| Scratch learning rate | `1e-3` |
+| Pretrained backbone learning rate | `1e-4` |
+| Pretrained classifier-head learning rate | `1e-3` |
+| Weight decay | `1e-4` |
+| Epochs | `10` by default, `25` with `--full` |
+
+For the ViT transfer runs, the positional embeddings are automatically interpolated when moving from CIFAR-10 resolution to EuroSAT resolution.
+
 ## Project Structure
 
 ```text
@@ -114,12 +243,14 @@ project/
 │   └── config.py
 ├── datasets/
 │   ├── cifar_loader.py
+│   ├── eurosat_loader.py
 │   ├── occlusion.py
 │   └── texture_modification.py
 ├── evaluation/
 │   ├── metrics.py
 │   └── robustness.py
 ├── experiments/
+│   ├── run_eurosat_transfer.py
 │   └── run_experiments.py
 ├── interpretability/
 │   ├── gradcam.py
@@ -130,7 +261,8 @@ project/
 ├── training/
 │   └── trainer.py
 ├── utils/
-│   └── helpers.py
+│   ├── helpers.py
+│   └── transfer.py
 ├── main.py
 ├── pyproject.toml
 ├── uv.lock
@@ -153,6 +285,9 @@ project/
   - occlusion robustness
   - texture bias
   - data efficiency at 10%, 25%, 50%, 100%
+- EuroSAT transfer-learning experiments:
+  - scratch training
+  - CIFAR-pretrained fine-tuning
 - Interpretability outputs:
   - Grad-CAM for the CNN
   - attention rollout for the ViT
@@ -163,16 +298,30 @@ This project uses `uv` instead of `pip` or `requirements.txt`.
 
 ```bash
 uv sync
-uv run python main.py
+uv run python main.py --experiment cifar
 ```
 
 For a longer research-style run:
 
 ```bash
-uv run python main.py --full
+uv run python main.py --experiment cifar --full
 ```
 
-The default run is a lightweight protocol with 5 epochs per experiment for quick iteration. The `--full` flag switches to 20 epochs.
+To run the downstream EuroSAT stage after CIFAR checkpoints have been created:
+
+```bash
+uv run python main.py --experiment eurosat
+```
+
+Useful EuroSAT options:
+
+```bash
+uv run python main.py --experiment eurosat --transfer-mode pretrained
+uv run python main.py --experiment eurosat --checkpoint-dir outputs/checkpoints
+uv run python main.py --experiment eurosat --cnn-checkpoint /path/to/cnn_100pct_best.pt --vit-checkpoint /path/to/vit_100pct_best.pt
+```
+
+The default CIFAR run is a lightweight protocol with 5 epochs per experiment for quick iteration. The `--full` flag switches CIFAR to 20 epochs and EuroSAT to 25 epochs.
 
 ## CLI Execution Flow
 
@@ -192,6 +341,17 @@ When you run `uv run python main.py`, the project executes the following stages:
 9. Generate Grad-CAM for the CNN and attention maps for the ViT.
 10. Save summaries, CSV files, plots, and interpretability figures to `outputs/`.
 
+When you run `uv run python main.py --experiment eurosat`, the project executes the following stages:
+
+1. Load EuroSAT with a stratified train / validation / test split.
+2. Build one CNN and one ViT for EuroSAT resolution.
+3. Run the requested initialization modes:
+   - scratch
+   - pretrained from CIFAR checkpoints
+4. For pretrained runs, load only the transferable backbone weights and keep a fresh EuroSAT classifier head.
+5. Fine-tune on the EuroSAT training split and select the best validation checkpoint in memory.
+6. Save EuroSAT checkpoints, plots, CSV summaries, and `summary.json` into `outputs/eurosat_transfer/`.
+
 ## Why The Train Split Grows From 10% To 100%
 
 The increasing training split is the core of the data-efficiency experiment.
@@ -204,16 +364,37 @@ If a model performs strongly even at `10%`, it is more data-efficient. If it nee
 
 ## Outputs
 
-Running the project writes artifacts to `outputs/`:
+Running the CIFAR source-stage experiment writes artifacts to `outputs/`:
 
 - `summary.json`: experiment summary
 - `data_efficiency.csv`: accuracy across data fractions
 - `robustness.csv`: robustness drops for occlusion and texture shifts
+- `checkpoints/`: saved best-model checkpoints for each architecture and training fraction
 - `plots/`: per-model training curves, a combined CNN-vs-ViT learning-curve figure, data-efficiency plots, and robustness plots
 - `interpretability/`: Grad-CAM and ViT attention visualizations
+
+Checkpoint filenames follow the pattern:
+
+- `outputs/checkpoints/cnn_10pct_best.pt`
+- `outputs/checkpoints/cnn_100pct_best.pt`
+- `outputs/checkpoints/vit_50pct_best.pt`
+
+Each checkpoint stores the model `state_dict` together with basic metadata such as the model name, training fraction, class names, configuration, and validation/test accuracy.
+
+Running the EuroSAT transfer stage writes artifacts to `outputs/eurosat_transfer/`:
+
+- `summary.json`: transfer summary and split metadata
+- `eurosat_transfer_results.csv`: scratch vs pretrained transfer results
+- `checkpoints/`: saved best EuroSAT models for each run
+- `plots/eurosat_transfer_accuracy.png`: final test-accuracy comparison
+- `plots/eurosat_transfer_validation_curves.png`: validation learning curves across transfer runs
 
 ## Notes
 
 - CIFAR-10 is downloaded automatically the first time you run the project.
+- EuroSAT is also downloaded automatically the first time you run the transfer stage.
 - CPU runs are supported, but GPU is recommended for the full experiment schedule.
+- Checkpoints are saved in `outputs/checkpoints/` in a portable CPU-friendly format so they can be loaded later on another machine with `torch.load(..., map_location="cpu")`.
+- EuroSAT fine-tuning also saves downstream checkpoints in `outputs/eurosat_transfer/checkpoints/`.
+- The repo keeps both checkpoint folders trackable: `outputs/checkpoints/` and `outputs/eurosat_transfer/checkpoints/`. Other generated output folders remain ignored. If you plan to version many checkpoints, Git LFS is recommended.
 - `timm` is included as a dependency so the project can be extended with pretrained reference models later without changing the environment setup.

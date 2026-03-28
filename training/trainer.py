@@ -16,12 +16,14 @@ class Trainer:
         learning_rate: float,
         weight_decay: float,
         device: torch.device,
+        parameter_groups: list[dict] | None = None,
     ) -> None:
         self.model = model.to(device)
         self.device = device
         self.criterion = nn.CrossEntropyLoss()
+        optimizer_parameters = parameter_groups or self.model.parameters()
         self.optimizer = torch.optim.AdamW(
-            self.model.parameters(),
+            optimizer_parameters,
             lr=learning_rate,
             weight_decay=weight_decay,
         )
