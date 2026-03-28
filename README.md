@@ -1,4 +1,4 @@
-# Understanding CNN vs Vision Transformer
+# Transfer Learning and Interpretable AI: Understanding CNN vs Vision Transformer
 
 Research-oriented PyTorch project for comparing Convolutional Neural Networks (CNNs) and Vision Transformers (ViTs) on CIFAR-10 with a focus on:
 
