@@ -118,7 +118,7 @@ def _save_transfer_accuracy_plot(rows: list[dict], output_dir: Path) -> None:
             )
         _style_axis(
             axis,
-            title="EuroSAT Transfer Accuracy",
+            title=f"{rows[0]['dataset']} Transfer Accuracy" if rows else "Transfer Accuracy",
             xlabel="Model and initialization",
             ylabel="Test accuracy",
             percent_y=True,
@@ -131,6 +131,8 @@ def _save_transfer_validation_curves(results: list[dict], output_dir: Path) -> N
     ensure_dir(output_dir)
     with plt.rc_context(PLOT_STYLE):
         figure, axes = plt.subplots(1, 2, figsize=(13, 5))
+        dataset_name = results[0]["dataset"] if results else "Downstream"
+        source_dataset = results[0].get("source_dataset", "source-stage") if results else "source-stage"
 
         for result in results:
             history = result["history"]
@@ -144,9 +146,7 @@ def _save_transfer_validation_curves(results: list[dict], output_dir: Path) -> N
                 history["val_loss"],
                 color=color,
                 linestyle=linestyle,
-                marker="o",
                 linewidth=2.1,
-                markersize=4.2,
                 label=label,
             )
             axes[1].plot(
@@ -154,18 +154,20 @@ def _save_transfer_validation_curves(results: list[dict], output_dir: Path) -> N
                 history["val_accuracy"],
                 color=color,
                 linestyle=linestyle,
-                marker="o",
                 linewidth=2.1,
-                markersize=4.2,
                 label=label,
             )
 
-        _style_axis(axes[0], "EuroSAT Validation Loss", "Epoch", "Cross-Entropy Loss")
-        _style_axis(axes[1], "EuroSAT Validation Accuracy", "Epoch", "Accuracy", percent_y=True)
+        _style_axis(axes[0], f"{dataset_name} Validation Loss", "Epoch", "Cross-Entropy Loss")
+        _style_axis(axes[1], f"{dataset_name} Validation Accuracy", "Epoch", "Accuracy", percent_y=True)
         axes[1].set_ylim(0.0, 1.0)
         axes[0].legend(loc="upper right")
         axes[1].legend(loc="lower right")
-        figure.suptitle("Scratch vs CIFAR-Pretrained Fine-Tuning on EuroSAT", fontsize=14, fontweight="semibold")
+        figure.suptitle(
+            f"Scratch vs {source_dataset}-Pretrained Fine-Tuning on {dataset_name}",
+            fontsize=14,
+            fontweight="semibold",
+        )
         _save_figure(figure, output_dir / "eurosat_transfer_validation_curves.png")
 
 
@@ -178,13 +180,17 @@ def _save_downstream_checkpoint(
     summary: dict,
     classes: tuple[str, ...],
 ) -> Path:
-    checkpoint_path = output_dir / f"{model_name}_{initialization}_eurosat_best.pt"
+    checkpoint_path = output_dir / f"{model_name}_{initialization}_{config.eurosat.slug}_best.pt"
     checkpoint = {
         "model_name": model_name,
-        "dataset": "EuroSAT",
+        "dataset": config.eurosat.name,
+        "dataset_slug": config.eurosat.slug,
+        "source_dataset": config.data.name,
+        "source_dataset_slug": config.data.slug,
         "initialization": initialization,
         "config": config.to_dict(),
         "class_names": list(classes),
+        "history": summary["history"],
         "model_state_dict": model.state_dict(),
         "summary": {
             key: value
@@ -202,10 +208,12 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
     checkpoints_dir = ensure_dir(root_output_dir / "checkpoints")
 
     _log("=" * 80)
-    _log("EuroSAT transfer-learning study")
+    _log(f"{config.eurosat.name} transfer-learning study")
     _log(f"Output directory: {root_output_dir}")
     _log(f"Checkpoint directory: {checkpoints_dir}")
     _log(f"Device: {device}")
+    _log(f"Source dataset: {config.data.name}")
+    _log(f"Downstream dataset: {config.eurosat.name}")
     _log(
         f"Downstream epochs: {config.transfer.epochs} | "
         f"batch_size={config.eurosat.batch_size} | "
@@ -214,8 +222,8 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
     _log("Model families: " + ", ".join(model_name.upper() for model_name in config.transfer.model_names))
     protocol = describe_eurosat_protocol(config)
     _log(
-        f"EuroSAT overview | images={protocol.dataset_size:,} | classes={protocol.num_classes} | "
-        f"image_size={config.eurosat.image_size}x{config.eurosat.image_size}x3"
+        f"{protocol.dataset_name} overview | images={protocol.dataset_size:,} | classes={protocol.num_classes} | "
+        f"image_size={protocol.image_size}x{protocol.image_size}x{protocol.channels}"
     )
     _log(
         f"Split sizes | train={protocol.train_size:,}, val={protocol.val_size:,}, test={protocol.test_size:,}"
@@ -240,22 +248,23 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
                 model_name=model_name,
                 checkpoint_dir=config.transfer.checkpoint_dir,
                 explicit_path=explicit_checkpoint_paths.get(model_name),
+                dataset_slug=config.data.slug,
             )
         for model_name, checkpoint_path in checkpoint_paths.items():
             if not checkpoint_path.exists():
                 raise FileNotFoundError(
                     f"Missing pretrained checkpoint for {model_name.upper()}: {checkpoint_path}. "
-                    "Run the CIFAR-10 experiment first or pass an explicit checkpoint path."
+                    f"Run the {config.data.name} experiment first or pass an explicit checkpoint path."
                 )
 
     rows: list[dict] = []
     detailed_results: list[dict] = []
 
     for model_name in selected_models:
-        _log(f"\n===== EuroSAT model family: {model_name.upper()} =====")
+        _log(f"\n===== {config.eurosat.name} model family: {model_name.upper()} =====")
         for initialization in run_modes:
-            run_label = f"{model_name.upper()} | EuroSAT | {initialization}"
-            _log(f"[{run_label}] Preparing EuroSAT dataloaders.")
+            run_label = f"{model_name.upper()} | {config.eurosat.name} | {initialization}"
+            _log(f"[{run_label}] Preparing {config.eurosat.name} dataloaders.")
             data_bundle = build_eurosat_dataloaders(config)
             _log(
                 f"[{run_label}] Dataset sizes | "
@@ -277,7 +286,7 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
                 )
                 learning_rate = config.transfer.head_learning_rate
                 _log(
-                    f"[{run_label}] Loaded CIFAR checkpoint: {checkpoint_path} | "
+                    f"[{run_label}] Loaded {config.data.name} checkpoint: {checkpoint_path} | "
                     f"missing={len(preload_info['missing_keys'])}, unexpected={len(preload_info['unexpected_keys'])}"
                 )
             else:
@@ -305,7 +314,10 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
             test_metrics = trainer.evaluate(data_bundle.test, label=f"{run_label} test")
 
             summary = {
-                "dataset": "EuroSAT",
+                "dataset": config.eurosat.name,
+                "dataset_slug": config.eurosat.slug,
+                "source_dataset": config.data.name,
+                "source_dataset_slug": config.data.slug,
                 "model": model_name,
                 "initialization": initialization,
                 "train_size": len(data_bundle.train_dataset),
@@ -353,7 +365,10 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
 
     summary = {
         "config": config.to_dict(),
+        "dataset": config.eurosat.name,
+        "source_dataset": config.data.name,
         "protocol": {
+            "dataset_name": protocol.dataset_name,
             "dataset_size": protocol.dataset_size,
             "train_size": protocol.train_size,
             "val_size": protocol.val_size,
@@ -361,6 +376,7 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
             "class_names": list(protocol.class_names),
         },
         "runs": rows,
+        "detailed_runs": detailed_results,
         "histories": {
             f"{result['model']}_{result['initialization']}": result["history"]
             for result in detailed_results
@@ -371,7 +387,8 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
         },
     }
     save_json(summary, root_output_dir / "summary.json")
+    save_json(detailed_results, root_output_dir / "transfer_runs.json")
     save_csv(rows, root_output_dir / "eurosat_transfer_results.csv")
-    _log(f"[Artifacts] Saved EuroSAT results to {root_output_dir}")
+    _log(f"[Artifacts] Saved {config.eurosat.name} results to {root_output_dir}")
     _log("=" * 80)
     return summary

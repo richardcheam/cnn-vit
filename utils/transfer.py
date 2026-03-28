@@ -52,10 +52,19 @@ def resolve_checkpoint_path(
     model_name: str,
     checkpoint_dir: str | Path,
     explicit_path: str | Path | None = None,
+    dataset_slug: str | None = None,
 ) -> Path:
     if explicit_path is not None:
         return Path(explicit_path)
-    return Path(checkpoint_dir) / f"{model_name}_100pct_best.pt"
+    checkpoint_dir = Path(checkpoint_dir)
+    candidates = []
+    if dataset_slug:
+        candidates.append(checkpoint_dir / f"{model_name}_{dataset_slug}_100pct_best.pt")
+    candidates.append(checkpoint_dir / f"{model_name}_100pct_best.pt")
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0]
 
 
 def load_pretrained_backbone(

@@ -340,6 +340,25 @@ uv run python main.py --experiment eurosat --models cnn
 uv run python main.py --experiment eurosat --models vit
 ```
 
+To regenerate plots later from saved artifacts without retraining:
+
+```bash
+uv run python experiments/regenerate_plots.py --experiment cifar --source-dir outputs
+uv run python experiments/regenerate_plots.py --experiment eurosat --source-dir outputs/eurosat_transfer
+```
+
+This is useful when you want to change labels, update styles, or rebuild figures on another machine after copying back the saved outputs and checkpoints.
+
+To evaluate pulled checkpoints directly and generate confusion matrices plus interpretability figures without retraining:
+
+```bash
+uv run python experiments/evaluate_checkpoints.py --checkpoint-dir outputs/checkpoints
+uv run python experiments/evaluate_checkpoints.py --checkpoint-paths outputs/checkpoints/cnn_100pct_best.pt outputs/checkpoints/vit_100pct_best.pt
+```
+
+This checkpoint-only workflow saves per-checkpoint summaries, classification reports, confusion matrices, and Grad-CAM or ViT attention figures into `outputs/checkpoint_evaluation/`.
+It also saves normalized confusion matrices, class-wise prediction analysis, and grids of correct and misclassified examples so you can inspect behavior from pulled weights before deciding whether retraining is necessary.
+
 ## CLI Execution Flow
 
 When you run `uv run python main.py`, the project executes the following stages:
@@ -384,10 +403,11 @@ If a model performs strongly even at `10%`, it is more data-efficient. If it nee
 Running the CIFAR source-stage experiment writes artifacts to `outputs/`:
 
 - `summary.json`: experiment summary
+- `data_efficiency_runs.json`: detailed per-run metadata with saved training histories
 - `data_efficiency.csv`: accuracy across data fractions
 - `robustness.csv`: robustness drops for occlusion and texture shifts
 - `checkpoints/`: saved best-model checkpoints for each architecture and training fraction
-- `plots/`: per-model training curves, a combined CNN-vs-ViT learning-curve figure, data-efficiency plots, and robustness plots
+- `plots/`: per-model training curves, a combined CNN-vs-ViT learning-curve figure, per-model data-fraction learning-curve figures, data-efficiency plots, and robustness plots
 - `interpretability/`: Grad-CAM and ViT attention visualizations
 
 Checkpoint filenames follow the pattern:
@@ -397,10 +417,12 @@ Checkpoint filenames follow the pattern:
 - `outputs/checkpoints/vit_50pct_best.pt`
 
 Each checkpoint stores the model `state_dict` together with basic metadata such as the model name, training fraction, class names, configuration, and validation/test accuracy.
+Newer checkpoints also store the per-epoch training history so plots can be regenerated later without retraining.
 
 Running the EuroSAT transfer stage writes artifacts to `outputs/eurosat_transfer/`:
 
 - `summary.json`: transfer summary and split metadata
+- `transfer_runs.json`: detailed scratch / pretrained runs with saved histories
 - `eurosat_transfer_results.csv`: scratch vs pretrained transfer results
 - `checkpoints/`: saved best EuroSAT models for each run
 - `plots/eurosat_transfer_accuracy.png`: final test-accuracy comparison

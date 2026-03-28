@@ -14,12 +14,15 @@ from datasets.cifar_loader import DataBundle
 
 @dataclass
 class EuroSATProtocol:
+    dataset_name: str
     dataset_size: int
     train_size: int
     val_size: int
     test_size: int
     num_classes: int
     class_names: tuple[str, ...]
+    image_size: int
+    channels: int
 
 
 def build_eurosat_train_transform(config: ProjectConfig) -> transforms.Compose:
@@ -59,12 +62,15 @@ def describe_eurosat_protocol(config: ProjectConfig) -> EuroSATProtocol:
         seed=config.training.seed,
     )
     return EuroSATProtocol(
+        dataset_name=config.eurosat.name,
         dataset_size=len(eval_dataset),
         train_size=len(train_indices),
         val_size=len(val_indices),
         test_size=len(test_indices),
         num_classes=len(eval_dataset.classes),
         class_names=tuple(eval_dataset.classes),
+        image_size=config.eurosat.image_size,
+        channels=config.eurosat.channels,
     )
 
 
@@ -141,7 +147,7 @@ def _load_eurosat_dataset(config: ProjectConfig, train_transform: bool) -> datas
         )
     except Exception as error:
         message = (
-            "Unable to access EuroSAT. If the dataset is not cached locally, "
+            f"Unable to access {config.eurosat.name}. If the dataset is not cached locally, "
             "please ensure the machine can download it once and rerun the project."
         )
         raise RuntimeError(message) from error

@@ -13,8 +13,11 @@ AVAILABLE_MODELS = ("cnn", "vit")
 
 @dataclass
 class DataConfig:
+    name: str = "CIFAR-10"
+    slug: str = "cifar10"
     data_dir: Path = Path("data")
     image_size: int = 32
+    channels: int = 3
     num_classes: int = 10
     batch_size: int = 128
     num_workers: int = 2
@@ -25,8 +28,11 @@ class DataConfig:
 
 @dataclass
 class EuroSATDataConfig:
+    name: str = "EuroSAT"
+    slug: str = "eurosat"
     data_dir: Path = Path("data")
     image_size: int = 64
+    channels: int = 3
     num_classes: int = 10
     batch_size: int = 64
     num_workers: int = 2

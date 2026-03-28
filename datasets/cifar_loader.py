@@ -32,7 +32,7 @@ def describe_cifar_protocol(
     config: ProjectConfig,
     fractions: tuple[float, ...] | None = None,
 ) -> dict:
-    """Describe the planned CIFAR-10 split sizes without touching the dataset."""
+    """Describe the planned source-dataset split sizes without touching the dataset."""
     fractions = fractions or (1.0,)
     val_size = int(CIFAR10_TRAINSET_SIZE * config.data.val_fraction)
     train_pool_size = CIFAR10_TRAINSET_SIZE - val_size
@@ -52,6 +52,9 @@ def describe_cifar_protocol(
         )
 
     return {
+        "dataset_name": config.data.name,
+        "image_size": config.data.image_size,
+        "channels": config.data.channels,
         "source_train_size": CIFAR10_TRAINSET_SIZE,
         "source_test_size": CIFAR10_TESTSET_SIZE,
         "val_fraction": config.data.val_fraction,
@@ -62,7 +65,7 @@ def describe_cifar_protocol(
 
 
 def build_train_transform(config: ProjectConfig) -> transforms.Compose:
-    """Training uses light augmentation to improve generalization on CIFAR-10."""
+    """Training uses light augmentation to improve generalization on the source dataset."""
     return transforms.Compose(
         [
             transforms.RandomCrop(config.data.image_size, padding=4),
@@ -166,7 +169,7 @@ def build_cifar_datasets(
         )
     except Exception as error:
         message = (
-            "Unable to access CIFAR-10. If the dataset is not cached locally, "
+            f"Unable to access {config.data.name}. If the dataset is not cached locally, "
             "please ensure the machine can download it once and rerun the project."
         )
         raise RuntimeError(message) from error

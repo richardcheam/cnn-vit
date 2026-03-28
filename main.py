@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 from configs.config import AVAILABLE_MODELS, build_config
 from experiments.run_eurosat_transfer import run_eurosat_transfer
@@ -11,20 +12,20 @@ from utils.helpers import get_device, runtime_diagnostics, set_seed
 def parse_args() -> argparse.Namespace:
     """Expose the main knobs so the same code supports quick and longer runs."""
     parser = argparse.ArgumentParser(
-        description="Compare CNNs and Vision Transformers on CIFAR-10 and transfer the learned weights to EuroSAT.",
+        description="Compare CNNs and Vision Transformers on the source study and downstream transfer stages.",
     )
     parser.add_argument(
         "--experiment",
         choices=("cifar", "eurosat"),
         default="cifar",
-        help="Choose between the CIFAR-10 source study and the EuroSAT transfer stage.",
+        help="Choose between the source-stage study and the EuroSAT transfer stage.",
     )
     parser.add_argument("--full", action="store_true", help="Run the longer 20-epoch protocol.")
     parser.add_argument("--epochs", type=int, default=None, help="Override the number of training epochs.")
     parser.add_argument("--batch-size", type=int, default=None, help="Override the mini-batch size.")
     parser.add_argument("--num-workers", type=int, default=None, help="Override DataLoader worker count.")
     parser.add_argument("--device", type=str, default=None, help="Choose a device such as cpu, cuda, or mps.")
-    parser.add_argument("--output-dir", type=str, default=None, help="Directory where results are saved.")
+    parser.add_argument("--output-dir", type=Path, default=None, help="Directory where results are saved.")
     parser.add_argument(
         "--models",
         nargs="+",
@@ -36,25 +37,25 @@ def parse_args() -> argparse.Namespace:
         "--transfer-mode",
         choices=("both", "scratch", "pretrained"),
         default=None,
-        help="When running EuroSAT, compare scratch, pretrained, or both.",
+        help="When running the downstream transfer stage, compare scratch, pretrained, or both.",
     )
     parser.add_argument(
         "--checkpoint-dir",
-        type=str,
+        type=Path,
         default=None,
-        help="Directory containing the CIFAR checkpoints used for EuroSAT fine-tuning.",
+        help="Directory containing the source-stage checkpoints used for downstream fine-tuning.",
     )
     parser.add_argument(
         "--cnn-checkpoint",
-        type=str,
+        type=Path,
         default=None,
-        help="Explicit CNN checkpoint path for EuroSAT transfer. Overrides --checkpoint-dir.",
+        help="Explicit CNN checkpoint path for downstream transfer. Overrides --checkpoint-dir.",
     )
     parser.add_argument(
         "--vit-checkpoint",
-        type=str,
+        type=Path,
         default=None,
-        help="Explicit ViT checkpoint path for EuroSAT transfer. Overrides --checkpoint-dir.",
+        help="Explicit ViT checkpoint path for downstream transfer. Overrides --checkpoint-dir.",
     )
     return parser.parse_args()
 
@@ -105,7 +106,10 @@ def main() -> None:
     set_seed(config.training.seed)
     device = get_device(config.training.device)
     print("Launching experiment runner...", flush=True)
-    print(f"Selected experiment: {args.experiment}", flush=True)
+    if args.experiment == "cifar":
+        print(f"Selected experiment: source-stage study on {config.data.name}", flush=True)
+    else:
+        print(f"Selected experiment: downstream transfer on {config.eurosat.name}", flush=True)
     print(
         "Selected models: "
         + ", ".join(config.experiment.model_names if args.experiment == "cifar" else config.transfer.model_names),
@@ -130,7 +134,7 @@ def main() -> None:
             )
         print(f"Artifacts saved to: {config.experiment.output_dir}", flush=True)
     else:
-        print("EuroSAT transfer results:")
+        print(f"{config.eurosat.name} transfer results:")
         for row in summary["runs"]:
             print(
                 f"  {row['model'].upper()} ({row['initialization']}): "

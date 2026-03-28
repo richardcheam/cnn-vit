@@ -67,7 +67,7 @@ class TransformerEncoderBlock(nn.Module):
 
 
 class VisionTransformer(nn.Module):
-    """Compact ViT tailored to 32x32 CIFAR-10 images."""
+    """Compact ViT tailored to small image-classification benchmarks."""
     def __init__(
         self,
         image_size: int = 32,

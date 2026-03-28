@@ -56,9 +56,21 @@ ARCHITECTURE_COLORS = {
     "vit": "#b85c38",
 }
 
+ARCHITECTURE_LINESTYLES = {
+    "cnn": "-",
+    "vit": "--",
+}
+
 SPLIT_STYLES = {
-    "train": {"linestyle": "-", "marker": "o"},
-    "val": {"linestyle": "--", "marker": "s"},
+    "train": {"linestyle": "-"},
+    "val": {"linestyle": "--"},
+}
+
+FRACTION_COLORS = {
+    0.1: "#9fb3c8",
+    0.25: "#6b8ba4",
+    0.5: "#355c7d",
+    1.0: "#b85c38",
 }
 
 
@@ -100,9 +112,10 @@ def _log_dataset_protocol(config: ProjectConfig) -> None:
     protocol = describe_cifar_protocol(config, fractions=config.experiment.data_fractions)
     _log("Dataset protocol overview:")
     _log(
-        f"  Source dataset: CIFAR-10 | "
+        f"  Source dataset: {protocol['dataset_name']} | "
         f"train_images={protocol['source_train_size']:,} | "
-        f"test_images={protocol['source_test_size']:,}"
+        f"test_images={protocol['source_test_size']:,} | "
+        f"image_size={protocol['image_size']}x{protocol['image_size']}x{protocol['channels']}"
     )
     _log(
         f"  Validation split: {protocol['val_fraction']:.0%} | "
@@ -153,8 +166,9 @@ def run_training(
     checkpoint_dir: Path,
 ) -> tuple[torch.nn.Module, Trainer, DataBundle, dict]:
     """Train one model under one data-budget setting and return its summary."""
-    run_label = f"{model_name.upper()} | data={train_fraction:.0%}"
-    _log(f"\n[{run_label}] Preparing CIFAR-10 dataloaders.")
+    dataset_name = config.data.name
+    run_label = f"{model_name.upper()} | {dataset_name} | data={train_fraction:.0%}"
+    _log(f"\n[{run_label}] Preparing {dataset_name} dataloaders.")
     data_bundle = build_dataloaders(config=config, train_fraction=train_fraction, test_variant="clean")
     _log(
         f"[{run_label}] Loader config | batch_size={config.data.batch_size}, "
@@ -204,6 +218,8 @@ def run_training(
     checkpoint_path = checkpoint_dir / f"{model_name}_{_fraction_tag(train_fraction)}_best.pt"
     checkpoint = {
         "model_name": model_name,
+        "dataset": dataset_name,
+        "dataset_slug": config.data.slug,
         "checkpoint_type": "best_validation_model",
         "train_fraction": train_fraction,
         "train_size": len(data_bundle.train_dataset),
@@ -214,6 +230,7 @@ def run_training(
         "num_classes": config.data.num_classes,
         "class_names": list(data_bundle.classes),
         "config": config.to_dict(),
+        "history": history,
         "model_state_dict": model.state_dict(),
     }
     save_torch_checkpoint(checkpoint, checkpoint_path)
@@ -242,7 +259,6 @@ def _save_training_curves(full_run_results: dict[str, dict], output_dir: Path) -
                 history["train_loss"],
                 color=color,
                 linewidth=2.2,
-                markersize=4.5,
                 label="Train",
                 **SPLIT_STYLES["train"],
             )
@@ -251,7 +267,6 @@ def _save_training_curves(full_run_results: dict[str, dict], output_dir: Path) -
                 history["val_loss"],
                 color=color,
                 linewidth=2.2,
-                markersize=4.5,
                 alpha=0.9,
                 label="Validation",
                 **SPLIT_STYLES["val"],
@@ -269,7 +284,6 @@ def _save_training_curves(full_run_results: dict[str, dict], output_dir: Path) -
                 history["train_accuracy"],
                 color=color,
                 linewidth=2.2,
-                markersize=4.5,
                 label="Train",
                 **SPLIT_STYLES["train"],
             )
@@ -278,7 +292,6 @@ def _save_training_curves(full_run_results: dict[str, dict], output_dir: Path) -
                 history["val_accuracy"],
                 color=color,
                 linewidth=2.2,
-                markersize=4.5,
                 alpha=0.9,
                 label="Validation",
                 **SPLIT_STYLES["val"],
@@ -321,7 +334,6 @@ def _save_combined_training_curves(full_run_results: dict[str, dict], output_dir
                 history["train_loss"],
                 color=color,
                 linewidth=2.3,
-                markersize=4.3,
                 label=f"{label_prefix} train",
                 **SPLIT_STYLES["train"],
             )
@@ -330,7 +342,6 @@ def _save_combined_training_curves(full_run_results: dict[str, dict], output_dir
                 history["val_loss"],
                 color=color,
                 linewidth=2.3,
-                markersize=4.3,
                 alpha=0.9,
                 label=f"{label_prefix} val",
                 **SPLIT_STYLES["val"],
@@ -341,7 +352,6 @@ def _save_combined_training_curves(full_run_results: dict[str, dict], output_dir
                 history["train_accuracy"],
                 color=color,
                 linewidth=2.3,
-                markersize=4.3,
                 label=f"{label_prefix} train",
                 **SPLIT_STYLES["train"],
             )
@@ -350,7 +360,6 @@ def _save_combined_training_curves(full_run_results: dict[str, dict], output_dir
                 history["val_accuracy"],
                 color=color,
                 linewidth=2.3,
-                markersize=4.3,
                 alpha=0.9,
                 label=f"{label_prefix} val",
                 **SPLIT_STYLES["val"],
@@ -382,7 +391,73 @@ def _save_combined_training_curves(full_run_results: dict[str, dict], output_dir
         _save_figure(figure, output_dir / "cnn_vit_training_comparison.png")
 
 
-def _save_data_efficiency_plot(rows: list[dict], output_dir: Path) -> None:
+def _save_fraction_learning_curves(data_efficiency_rows: list[dict], output_dir: Path) -> None:
+    """Show how each model's learning dynamics change with the available data budget."""
+    ensure_dir(output_dir)
+    model_names = list(dict.fromkeys(row["model"] for row in data_efficiency_rows))
+
+    with plt.rc_context(PLOT_STYLE):
+        for model_name in model_names:
+            model_rows = sorted(
+                [row for row in data_efficiency_rows if row["model"] == model_name],
+                key=lambda row: row["train_fraction"],
+            )
+            if not model_rows:
+                continue
+
+            figure, axes = plt.subplots(1, 2, figsize=(13, 5))
+
+            for row in model_rows:
+                history = row.get("history")
+                if not history:
+                    continue
+
+                fraction = row["train_fraction"]
+                epochs = range(1, len(history["val_loss"]) + 1)
+                color = FRACTION_COLORS.get(fraction, ARCHITECTURE_COLORS[model_name])
+                label = f"{fraction:.0%} of train pool"
+
+                axes[0].plot(
+                    epochs,
+                    history["val_loss"],
+                    color=color,
+                    linewidth=2.2,
+                    label=label,
+                )
+                axes[1].plot(
+                    epochs,
+                    history["val_accuracy"],
+                    color=color,
+                    linewidth=2.2,
+                    label=label,
+                )
+
+            _style_axis(
+                axes[0],
+                title=f"{model_name.upper()} Validation Loss by Data Fraction",
+                xlabel="Epoch",
+                ylabel="Cross-Entropy Loss",
+            )
+            _style_axis(
+                axes[1],
+                title=f"{model_name.upper()} Validation Accuracy by Data Fraction",
+                xlabel="Epoch",
+                ylabel="Accuracy",
+                percent_y=True,
+            )
+            axes[1].set_ylim(0.0, 1.0)
+            axes[0].legend(loc="upper right", title="Training data")
+            axes[1].legend(loc="lower right", title="Training data")
+            figure.suptitle(
+                f"{model_name.upper()} Learning Curves Across Data Budgets",
+                fontsize=14,
+                fontweight="semibold",
+                y=1.03,
+            )
+            _save_figure(figure, output_dir / f"{model_name}_data_fraction_curves.png")
+
+
+def _save_data_efficiency_plot(config: ProjectConfig, rows: list[dict], output_dir: Path) -> None:
     """Plot how accuracy changes as the training set gets smaller."""
     ensure_dir(output_dir)
     with plt.rc_context(PLOT_STYLE):
@@ -399,15 +474,14 @@ def _save_data_efficiency_plot(rows: list[dict], output_dir: Path) -> None:
                 fractions,
                 accuracies,
                 color=ARCHITECTURE_COLORS[model_name],
+                linestyle=ARCHITECTURE_LINESTYLES[model_name],
                 linewidth=2.4,
-                marker="o",
-                markersize=5.2,
                 label=model_name.upper(),
             )
 
         _style_axis(
             axis,
-            title="Data Efficiency on CIFAR-10",
+            title=f"Data Efficiency on {config.data.name}",
             xlabel="Training Fraction",
             ylabel="Test Accuracy",
             percent_y=True,
@@ -418,7 +492,7 @@ def _save_data_efficiency_plot(rows: list[dict], output_dir: Path) -> None:
         _save_figure(figure, output_dir / "data_efficiency.png")
 
 
-def _save_robustness_plot(rows: list[dict], output_dir: Path) -> None:
+def _save_robustness_plot(config: ProjectConfig, rows: list[dict], output_dir: Path) -> None:
     """Visualize the clean-to-shift accuracy drop for each architecture."""
     if not rows:
         return
@@ -454,7 +528,7 @@ def _save_robustness_plot(rows: list[dict], output_dir: Path) -> None:
 
         _style_axis(
             axis,
-            title="Robustness Drop Relative to Clean CIFAR-10",
+            title=f"Robustness Drop Relative to Clean {config.data.name}",
             xlabel="Distribution Shift",
             ylabel="Accuracy Drop",
             percent_y=True,
@@ -583,6 +657,7 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
     _log(f"Output directory: {root_output_dir}")
     _log(f"Checkpoint directory: {checkpoints_dir}")
     _log(f"Device: {device}")
+    _log(f"Source dataset: {config.data.name}")
     _log(
         "Training fractions: "
         + ", ".join(f"{fraction:.0%}" for fraction in config.experiment.data_fractions)
@@ -598,6 +673,7 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
     _log("=" * 80)
 
     data_efficiency_rows: list[dict] = []
+    data_efficiency_runs: list[dict] = []
     robustness_rows: list[dict] = []
     full_run_results: dict[str, dict] = {}
     trainers: dict[str, Trainer] = {}
@@ -624,6 +700,7 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
                     if key != "history"
                 }
             )
+            data_efficiency_runs.append(summary)
 
             if fraction == 1.0:
                 full_run_results[model_name] = summary
@@ -705,14 +782,17 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
         _save_combined_training_curves(full_run_results=full_run_results, output_dir=plots_dir)
     else:
         _log("[Artifacts] Skipping combined training-curve plot because only one model family was selected.")
-    _save_data_efficiency_plot(rows=data_efficiency_rows, output_dir=plots_dir)
-    _save_robustness_plot(rows=robustness_rows, output_dir=plots_dir)
+    _save_fraction_learning_curves(data_efficiency_rows=data_efficiency_rows, output_dir=plots_dir)
+    _save_data_efficiency_plot(config=config, rows=data_efficiency_rows, output_dir=plots_dir)
+    _save_robustness_plot(config=config, rows=robustness_rows, output_dir=plots_dir)
     _log(f"[Artifacts] Saved plots to {plots_dir}")
 
     summary = {
         "config": config.to_dict(),
+        "dataset": config.data.name,
         "baseline": baseline_rows,
         "data_efficiency": data_efficiency_rows,
+        "data_efficiency_runs": data_efficiency_runs,
         "robustness": robustness_rows,
         "checkpoints": {
             model_name: result["checkpoint_path"]
@@ -726,6 +806,7 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
     }
 
     save_json(summary, root_output_dir / "summary.json")
+    save_json(data_efficiency_runs, root_output_dir / "data_efficiency_runs.json")
     save_csv(data_efficiency_rows, root_output_dir / "data_efficiency.csv")
     save_csv(robustness_rows, root_output_dir / "robustness.csv")
     _log(
