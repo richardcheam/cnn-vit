@@ -7,6 +7,7 @@ from torch import nn
 
 
 class MLP(nn.Module):
+    """Feed-forward sublayer used inside each transformer encoder block."""
     def __init__(self, embed_dim: int, hidden_dim: int, dropout: float) -> None:
         super().__init__()
         self.layers = nn.Sequential(
@@ -22,6 +23,7 @@ class MLP(nn.Module):
 
 
 class TransformerEncoderBlock(nn.Module):
+    """Pre-norm self-attention block with a standard residual MLP."""
     def __init__(
         self,
         embed_dim: int,
@@ -47,6 +49,8 @@ class TransformerEncoderBlock(nn.Module):
         x: torch.Tensor,
         return_attention: bool = False,
     ):
+        # Returning attention is optional because we only need those tensors for
+        # interpretability, not for ordinary training.
         normalized = self.norm1(x)
         attended, attention_weights = self.attention(
             normalized,
@@ -63,6 +67,7 @@ class TransformerEncoderBlock(nn.Module):
 
 
 class VisionTransformer(nn.Module):
+    """Compact ViT tailored to 32x32 CIFAR-10 images."""
     def __init__(
         self,
         image_size: int = 32,
@@ -120,6 +125,8 @@ class VisionTransformer(nn.Module):
         nn.init.zeros_(self.head.bias)
 
     def _embed_patches(self, x: torch.Tensor) -> torch.Tensor:
+        # The convolution acts as the patch extractor and linear projection in
+        # one operation, producing one token per non-overlapping image patch.
         patches = self.patch_embed(x).flatten(2).transpose(1, 2)
         cls_tokens = self.cls_token.expand(x.size(0), -1, -1)
         tokens = torch.cat([cls_tokens, patches], dim=1)
@@ -131,6 +138,8 @@ class VisionTransformer(nn.Module):
         x: torch.Tensor,
         return_attentions: bool = False,
     ) -> tuple[torch.Tensor, list[torch.Tensor]]:
+        # `tokens[:, 0]` is the class token, while the remaining tokens represent
+        # spatial patches. We keep the full sequence for attention visualization.
         tokens = self._embed_patches(x)
         attentions: list[torch.Tensor] = []
         for block in self.blocks:
@@ -144,6 +153,7 @@ class VisionTransformer(nn.Module):
 
     def forward(self, x: torch.Tensor, return_attentions: bool = False):
         tokens, attentions = self.forward_features(x, return_attentions=return_attentions)
+        # Classification is done from the class token after the encoder stack.
         logits = self.head(tokens[:, 0])
         if return_attentions:
             return logits, attentions, tokens

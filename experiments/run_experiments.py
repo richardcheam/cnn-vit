@@ -12,15 +12,20 @@ from evaluation.metrics import model_summary
 from evaluation.robustness import summarize_shift
 from interpretability.gradcam import GradCAM, overlay_heatmap
 from interpretability.vit_attention import generate_attention_maps, overlay_attention_map
-from models.cnn import SimpleCNN
+from models.cnn import CNN
 from models.vit import VisionTransformer
 from training.trainer import Trainer
 from utils.helpers import ensure_dir, format_seconds, save_csv, save_json
 
 
+def _log(message: str) -> None:
+    print(message, flush=True)
+
+
 def build_model(model_name: str, config: ProjectConfig) -> torch.nn.Module:
+    """Factory so every experiment uses the same model construction path."""
     if model_name == "cnn":
-        return SimpleCNN(
+        return CNN(
             num_classes=config.data.num_classes,
             channels=config.cnn.channels,
             dropout=config.cnn.dropout,
@@ -46,35 +51,65 @@ def run_training(
     device: torch.device,
     train_fraction: float,
 ) -> tuple[torch.nn.Module, Trainer, DataBundle, dict]:
+    """Train one model under one data-budget setting and return its summary."""
+    run_label = f"{model_name.upper()} | data={train_fraction:.0%}"
+    _log(f"\n[{run_label}] Preparing CIFAR-10 dataloaders.")
     data_bundle = build_dataloaders(config=config, train_fraction=train_fraction, test_variant="clean")
+    _log(
+        f"[{run_label}] Loader config | batch_size={config.data.batch_size}, "
+        f"num_workers={config.data.num_workers}, pin_memory={data_bundle.train.pin_memory}"
+    )
+    _log(
+        f"[{run_label}] Dataset sizes | "
+        f"train={len(data_bundle.train_dataset)}, val={len(data_bundle.val_dataset)}, "
+        f"test={len(data_bundle.test_dataset)}"
+    )
+    _log(f"[{run_label}] Building model.")
     model = build_model(model_name=model_name, config=config)
+    parameter_count = model_summary(model)["parameter_count"]
+    _log(f"[{run_label}] Model ready | trainable_parameters={parameter_count:,}")
     trainer = Trainer(
         model=model,
         learning_rate=config.training.learning_rate,
         weight_decay=config.training.weight_decay,
         device=device,
     )
+    _log(
+        f"[{run_label}] Starting training on {device} | "
+        f"epochs={config.training.epochs}, batch_size={config.data.batch_size}"
+    )
     history = trainer.fit(
         train_loader=data_bundle.train,
         val_loader=data_bundle.val,
         epochs=config.training.epochs,
+        run_name=run_label,
     )
-    test_metrics = trainer.evaluate(data_bundle.test)
+    _log(f"[{run_label}] Running clean test evaluation.")
+    test_metrics = trainer.evaluate(data_bundle.test, label=f"{run_label} test")
     summary = {
         "model": model_name,
         "train_fraction": train_fraction,
+        "train_size": len(data_bundle.train_dataset),
+        "val_size": len(data_bundle.val_dataset),
+        "test_size": len(data_bundle.test_dataset),
         "test_accuracy": round(test_metrics["accuracy"], 4),
         "test_loss": round(test_metrics["loss"], 4),
         "best_val_accuracy": round(history["best_val_accuracy"], 4),
         "training_time_seconds": round(history["training_time_seconds"], 2),
         "training_time_readable": format_seconds(history["training_time_seconds"]),
-        **model_summary(model),
+        "parameter_count": parameter_count,
         "history": history,
     }
+    _log(
+        f"[{run_label}] Finished | test_acc={summary['test_accuracy']:.4f}, "
+        f"best_val_acc={summary['best_val_accuracy']:.4f}, "
+        f"time={summary['training_time_readable']}"
+    )
     return model, trainer, data_bundle, summary
 
 
 def _save_training_curves(full_run_results: dict[str, dict], output_dir: Path) -> None:
+    """Persist loss/accuracy trajectories for the full-data runs."""
     ensure_dir(output_dir)
     for model_name, result in full_run_results.items():
         history = result["history"]
@@ -101,6 +136,7 @@ def _save_training_curves(full_run_results: dict[str, dict], output_dir: Path) -
 
 
 def _save_data_efficiency_plot(rows: list[dict], output_dir: Path) -> None:
+    """Plot how accuracy changes as the training set gets smaller."""
     ensure_dir(output_dir)
     figure, axis = plt.subplots(figsize=(7, 4))
     for model_name in ("cnn", "vit"):
@@ -120,6 +156,7 @@ def _save_data_efficiency_plot(rows: list[dict], output_dir: Path) -> None:
 
 
 def _save_robustness_plot(rows: list[dict], output_dir: Path) -> None:
+    """Visualize the clean-to-shift accuracy drop for each architecture."""
     ensure_dir(output_dir)
     figure, axis = plt.subplots(figsize=(8, 4))
     positions = [0, 1]
@@ -141,6 +178,7 @@ def _save_robustness_plot(rows: list[dict], output_dir: Path) -> None:
 
 
 def _sample_batch(dataset, batch_size: int) -> tuple[torch.Tensor, torch.Tensor]:
+    """Grab a deterministic batch for qualitative visualization."""
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     return next(iter(loader))
 
@@ -154,19 +192,27 @@ def _save_interpretability_examples(
     device: torch.device,
     output_dir: Path,
 ) -> dict[str, str]:
+    """Generate one qualitative figure for each interpretability method."""
     ensure_dir(output_dir)
+    _log("[Interpretability] Sampling examples and generating visual explanations.")
     images, labels = _sample_batch(test_dataset, batch_size=config.experiment.interpretability_samples)
     images = images.to(device)
     labels = labels.to(device)
+    _log(
+        f"[Interpretability] Batch moved to {device} | "
+        f"images_shape={tuple(images.shape)} | labels_shape={tuple(labels.shape)}"
+    )
 
     cnn_model.eval()
     vit_model.eval()
+    _log("[Interpretability] CNN Grad-CAM running.")
 
     gradcam = GradCAM(cnn_model, cnn_model.conv3)
     gradcam_maps = gradcam.generate(images)
     gradcam.close()
 
     with torch.no_grad():
+        _log("[Interpretability] ViT attention rollout running.")
         cnn_predictions = cnn_model(images).argmax(dim=1)
         vit_logits, vit_maps = generate_attention_maps(vit_model, images)
         vit_predictions = vit_logits.argmax(dim=1)
@@ -224,9 +270,26 @@ def _save_interpretability_examples(
 
 
 def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
+    """Run the complete comparison protocol and save all resulting artifacts."""
     root_output_dir = ensure_dir(config.experiment.output_dir)
     plots_dir = ensure_dir(root_output_dir / "plots")
     interpretability_dir = ensure_dir(root_output_dir / "interpretability")
+
+    _log("=" * 80)
+    _log(config.title)
+    _log(f"Output directory: {root_output_dir}")
+    _log(f"Device: {device}")
+    _log(
+        "Training fractions: "
+        + ", ".join(f"{fraction:.0%}" for fraction in config.experiment.data_fractions)
+    )
+    _log(
+        f"Epochs per run: {config.training.epochs} | "
+        f"Batch size: {config.data.batch_size} | "
+        f"Learning rate: {config.training.learning_rate}"
+    )
+    _log("Planned stages: data-efficiency training, robustness evaluation, interpretability, artifact export")
+    _log("=" * 80)
 
     data_efficiency_rows: list[dict] = []
     robustness_rows: list[dict] = []
@@ -235,7 +298,10 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
     clean_bundles: dict[str, DataBundle] = {}
     trained_models: dict[str, torch.nn.Module] = {}
 
+    # First, train both architectures at each data fraction. The full-data runs
+    # are kept for later robustness and interpretability analyses.
     for model_name in ("cnn", "vit"):
+        _log(f"\n===== Training family: {model_name.upper()} =====")
         for fraction in config.experiment.data_fractions:
             model, trainer, bundle, summary = run_training(
                 model_name=model_name,
@@ -256,6 +322,7 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
                 trainers[model_name] = trainer
                 clean_bundles[model_name] = bundle
                 trained_models[model_name] = model
+                _log(f"[{model_name.upper()}] Stored full-data model for later robustness and interpretability analysis.")
 
     baseline_rows = [
         {
@@ -266,12 +333,22 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
         for result in full_run_results.values()
     ]
 
+    # Robustness is measured by testing the already-trained clean models on
+    # shifted test sets, not by retraining on corrupted data.
+    _log("\n===== Robustness evaluation =====")
     for model_name, trainer in trainers.items():
         clean_accuracy = full_run_results[model_name]["test_accuracy"]
+        _log(f"[{model_name.upper()}] Building occluded and texture-shifted test sets.")
         occluded_bundle = build_dataloaders(config=config, train_fraction=1.0, test_variant="occluded")
         texture_bundle = build_dataloaders(config=config, train_fraction=1.0, test_variant="texture")
-        occluded_metrics = trainer.evaluate(occluded_bundle.test)
-        texture_metrics = trainer.evaluate(texture_bundle.test)
+        occluded_metrics = trainer.evaluate(
+            occluded_bundle.test,
+            label=f"{model_name.upper()} occluded test",
+        )
+        texture_metrics = trainer.evaluate(
+            texture_bundle.test,
+            label=f"{model_name.upper()} texture test",
+        )
 
         robustness_rows.append(
             summarize_shift(
@@ -289,7 +366,15 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
                 shifted_accuracy=round(texture_metrics["accuracy"], 4),
             )
         )
+        _log(
+            f"[{model_name.upper()}] Robustness summary | "
+            f"clean={clean_accuracy:.4f}, occluded={occluded_metrics['accuracy']:.4f}, "
+            f"texture={texture_metrics['accuracy']:.4f}"
+        )
 
+    # Qualitative explanations are saved only for the full-data models because
+    # they are the clearest reference point for comparison.
+    _log("\n===== Interpretability =====")
     interpretability_paths = _save_interpretability_examples(
         config=config,
         cnn_model=trained_models["cnn"],
@@ -299,10 +384,17 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
         device=device,
         output_dir=interpretability_dir,
     )
+    _log(
+        "[Interpretability] Saved visualizations | "
+        f"Grad-CAM={interpretability_paths['cnn_gradcam']} | "
+        f"ViT attention={interpretability_paths['vit_attention']}"
+    )
 
+    _log("\n===== Saving plots and tables =====")
     _save_training_curves(full_run_results=full_run_results, output_dir=plots_dir)
     _save_data_efficiency_plot(rows=data_efficiency_rows, output_dir=plots_dir)
     _save_robustness_plot(rows=robustness_rows, output_dir=plots_dir)
+    _log(f"[Artifacts] Saved plots to {plots_dir}")
 
     summary = {
         "config": config.to_dict(),
@@ -315,4 +407,9 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
     save_json(summary, root_output_dir / "summary.json")
     save_csv(data_efficiency_rows, root_output_dir / "data_efficiency.csv")
     save_csv(robustness_rows, root_output_dir / "robustness.csv")
+    _log(
+        f"[Artifacts] Saved summary files to {root_output_dir} | "
+        "summary.json, data_efficiency.csv, robustness.csv"
+    )
+    _log("\nExperiment suite complete.")
     return summary

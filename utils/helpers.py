@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import platform
 import random
 from pathlib import Path
 from typing import Any
@@ -28,7 +29,7 @@ def get_device(device: str = "auto") -> torch.device:
     if device == "auto":
         if torch.cuda.is_available():
             return torch.device("cuda")
-        if torch.backends.mps.is_available():
+        if _mps_available():
             return torch.device("mps")
         return torch.device("cpu")
     return torch.device(device)
@@ -36,6 +37,40 @@ def get_device(device: str = "auto") -> torch.device:
 
 def count_parameters(model: torch.nn.Module) -> int:
     return sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad)
+
+
+def runtime_diagnostics(selected_device: torch.device) -> list[str]:
+    lines = [
+        f"Python version: {platform.python_version()}",
+        f"PyTorch version: {torch.__version__}",
+        f"Selected execution device: {selected_device}",
+        f"CUDA available: {torch.cuda.is_available()}",
+        f"MPS available: {_mps_available()}",
+        f"MPS built: {_mps_built()}",
+    ]
+
+    if torch.cuda.is_available():
+        lines.append(f"CUDA device count: {torch.cuda.device_count()}")
+        for index in range(torch.cuda.device_count()):
+            properties = torch.cuda.get_device_properties(index)
+            total_memory_gb = properties.total_memory / (1024**3)
+            lines.append(
+                f"CUDA device {index}: {properties.name} | "
+                f"compute_capability={properties.major}.{properties.minor} | "
+                f"memory={total_memory_gb:.2f} GB"
+            )
+
+    if selected_device.type == "cuda" and torch.cuda.is_available():
+        current_index = torch.cuda.current_device()
+        lines.append(f"Current CUDA device index: {current_index}")
+        lines.append(f"Current CUDA device name: {torch.cuda.get_device_name(current_index)}")
+
+    if selected_device.type == "mps":
+        lines.append("Using Apple Metal Performance Shaders backend.")
+    if selected_device.type == "cpu":
+        lines.append("Using CPU execution path.")
+
+    return lines
 
 
 def save_json(data: Any, path: str | Path) -> None:
@@ -85,3 +120,11 @@ def to_numpy_image(
     image = denormalize_image(image.detach().cpu(), mean, std)
     image = image.clamp(0.0, 1.0).permute(1, 2, 0).numpy()
     return image
+
+
+def _mps_available() -> bool:
+    return hasattr(torch.backends, "mps") and torch.backends.mps.is_available()
+
+
+def _mps_built() -> bool:
+    return hasattr(torch.backends, "mps") and torch.backends.mps.is_built()

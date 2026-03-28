@@ -1,1 +1,29 @@
 /.venv/
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+
+# uv and local caches
+.uv-cache/
+.cache/
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Notebook artifacts
+.ipynb_checkpoints/
+
+# Project-generated data and results
+data/
+outputs/
+
+# Coverage and logs
+.coverage
+htmlcov/
+*.log
+
+# macOS
+.DS_Store

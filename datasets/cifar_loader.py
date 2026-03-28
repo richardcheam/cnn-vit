@@ -14,6 +14,7 @@ from datasets.texture_modification import TextureModifiedDataset
 
 @dataclass
 class DataBundle:
+    """Small container so downstream code can pass around all splits together."""
     train: DataLoader
     val: DataLoader
     test: DataLoader
@@ -24,6 +25,7 @@ class DataBundle:
 
 
 def build_train_transform(config: ProjectConfig) -> transforms.Compose:
+    """Training uses light augmentation to improve generalization on CIFAR-10."""
     return transforms.Compose(
         [
             transforms.RandomCrop(config.data.image_size, padding=4),
@@ -35,6 +37,7 @@ def build_train_transform(config: ProjectConfig) -> transforms.Compose:
 
 
 def build_eval_transform(config: ProjectConfig) -> transforms.Compose:
+    """Validation and test stay deterministic so comparisons remain controlled."""
     return transforms.Compose(
         [
             transforms.ToTensor(),
@@ -44,6 +47,8 @@ def build_eval_transform(config: ProjectConfig) -> transforms.Compose:
 
 
 def _split_indices(dataset_size: int, val_fraction: float, seed: int) -> tuple[list[int], list[int]]:
+    # We split indices once with a fixed seed so CNN and ViT see the same
+    # train/validation partition.
     indices = np.arange(dataset_size)
     rng = np.random.default_rng(seed)
     rng.shuffle(indices)
@@ -54,6 +59,8 @@ def _split_indices(dataset_size: int, val_fraction: float, seed: int) -> tuple[l
 
 
 def _fraction_indices(indices: list[int], fraction: float, seed: int) -> list[int]:
+    # Data-efficiency experiments reuse the same sampling procedure at each
+    # fraction, which keeps the comparison reproducible.
     if fraction >= 1.0:
         return indices
     subset_size = max(1, int(len(indices) * fraction))
@@ -67,6 +74,7 @@ def _apply_test_variant(
     variant: str,
     config: ProjectConfig,
 ) -> Dataset:
+    """Wrap the clean test set with the requested corruption at evaluation time."""
     if variant == "clean":
         return dataset
     if variant == "occluded":
@@ -92,6 +100,11 @@ def build_cifar_datasets(
     train_fraction: float = 1.0,
     test_variant: str = "clean",
 ) -> tuple[Dataset, Dataset, Dataset, tuple[str, ...]]:
+    """Build clean training data and optionally shifted test data.
+
+    The project always trains on the clean distribution. Robustness is measured
+    by replacing only the test set with an occluded or texture-modified view.
+    """
     train_transform = build_train_transform(config)
     eval_transform = build_eval_transform(config)
 
@@ -126,6 +139,8 @@ def build_cifar_datasets(
         val_fraction=config.data.val_fraction,
         seed=config.training.seed,
     )
+    # The training subset is applied after the train/val split so the validation
+    # set remains a consistent reference across data-efficiency runs.
     train_indices = _fraction_indices(train_indices, fraction=train_fraction, seed=config.training.seed)
 
     train_subset = Subset(train_dataset_augmented, train_indices)
@@ -140,6 +155,7 @@ def build_dataloaders(
     train_fraction: float = 1.0,
     test_variant: str = "clean",
 ) -> DataBundle:
+    """Create the three loaders used throughout training and evaluation."""
     train_dataset, val_dataset, test_dataset, classes = build_cifar_datasets(
         config=config,
         train_fraction=train_fraction,

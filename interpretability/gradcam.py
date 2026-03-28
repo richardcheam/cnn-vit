@@ -9,6 +9,7 @@ from utils.helpers import to_numpy_image
 
 
 class GradCAM:
+    """Collect activations and gradients from a CNN layer to build a heatmap."""
     def __init__(self, model: torch.nn.Module, target_layer: torch.nn.Module) -> None:
         self.model = model
         self.target_layer = target_layer
@@ -32,6 +33,8 @@ class GradCAM:
         images: torch.Tensor,
         target_classes: torch.Tensor | None = None,
     ) -> torch.Tensor:
+        # Grad-CAM uses the gradient of the chosen class score with respect to
+        # the selected feature map to estimate spatial importance.
         self.model.zero_grad(set_to_none=True)
         logits = self.model(images)
 
@@ -44,6 +47,7 @@ class GradCAM:
         if self.activations is None or self.gradients is None:
             raise RuntimeError("Grad-CAM hooks did not capture activations or gradients.")
 
+        # Channel-wise gradient averages become weights for the stored feature maps.
         weights = self.gradients.mean(dim=(2, 3), keepdim=True)
         heatmaps = (weights * self.activations).sum(dim=1)
         heatmaps = F.relu(heatmaps)
@@ -66,6 +70,7 @@ def overlay_heatmap(
     std: tuple[float, float, float],
     alpha: float = 0.4,
 ) -> np.ndarray:
+    """Blend a normalized heatmap with the original image for visualization."""
     base_image = to_numpy_image(image, mean=mean, std=std)
     heatmap_uint8 = np.uint8(255 * heatmap.detach().cpu().numpy())
     colored_heatmap = cv2.applyColorMap(heatmap_uint8, cv2.COLORMAP_JET)

@@ -9,6 +9,7 @@ from utils.helpers import to_numpy_image
 
 
 def attention_rollout(attentions: list[torch.Tensor], image_size: int) -> torch.Tensor:
+    """Aggregate attention across layers into a single class-to-patch map."""
     if not attentions:
         raise ValueError("Attention rollout requires at least one attention tensor.")
 
@@ -17,6 +18,8 @@ def attention_rollout(attentions: list[torch.Tensor], image_size: int) -> torch.
     result = torch.eye(num_tokens, device=attentions[0].device).unsqueeze(0).repeat(batch_size, 1, 1)
 
     for attention in attentions:
+        # Mean over heads, add the identity residual path, and propagate the
+        # connectivity matrix through the encoder stack.
         fused_attention = attention.mean(dim=1)
         identity = torch.eye(num_tokens, device=attention.device).unsqueeze(0)
         fused_attention = fused_attention + identity
@@ -40,6 +43,7 @@ def attention_rollout(attentions: list[torch.Tensor], image_size: int) -> torch.
 
 @torch.no_grad()
 def generate_attention_maps(model, images: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    """Run the ViT once and convert per-layer attentions into image-sized maps."""
     logits, attentions, _ = model(images, return_attentions=True)
     return logits, attention_rollout(attentions, image_size=images.shape[-1])
 
@@ -51,6 +55,7 @@ def overlay_attention_map(
     std: tuple[float, float, float],
     alpha: float = 0.4,
 ) -> np.ndarray:
+    """Overlay the rollout map on top of the denormalized image."""
     base_image = to_numpy_image(image, mean=mean, std=std)
     heatmap_uint8 = np.uint8(255 * attention_map.detach().cpu().numpy())
     colored_heatmap = cv2.applyColorMap(heatmap_uint8, cv2.COLORMAP_VIRIDIS)
