@@ -8,6 +8,7 @@ CIFAR10_MEAN = (0.4914, 0.4822, 0.4465)
 CIFAR10_STD = (0.2470, 0.2435, 0.2616)
 RGB_DEFAULT_MEAN = (0.485, 0.456, 0.406)
 RGB_DEFAULT_STD = (0.229, 0.224, 0.225)
+AVAILABLE_MODELS = ("cnn", "vit")
 
 
 @dataclass
@@ -78,6 +79,7 @@ class TransferConfig:
     checkpoint_dir: Path = Path("outputs/checkpoints")
     cnn_checkpoint: Path | None = None
     vit_checkpoint: Path | None = None
+    model_names: tuple[str, ...] = AVAILABLE_MODELS
     run_mode: str = "both"
     epochs: int = 10
     scratch_learning_rate: float = 1e-3
@@ -90,6 +92,7 @@ class TransferConfig:
 class ExperimentSettings:
     output_dir: Path = Path("outputs")
     data_fractions: tuple[float, ...] = (0.1, 0.25, 0.5, 1.0)
+    model_names: tuple[str, ...] = AVAILABLE_MODELS
     full_run: bool = False
     interpretability_samples: int = 4
 

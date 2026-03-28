@@ -211,6 +211,7 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
         f"batch_size={config.eurosat.batch_size} | "
         f"train_fraction={config.eurosat.train_fraction:.0%}"
     )
+    _log("Model families: " + ", ".join(model_name.upper() for model_name in config.transfer.model_names))
     protocol = describe_eurosat_protocol(config)
     _log(
         f"EuroSAT overview | images={protocol.dataset_size:,} | classes={protocol.num_classes} | "
@@ -226,19 +227,20 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
         run_modes = ("scratch",)
     if config.transfer.run_mode == "pretrained":
         run_modes = ("pretrained",)
+    selected_models = config.transfer.model_names
 
     checkpoint_paths = {}
     if "pretrained" in run_modes:
-        checkpoint_paths["cnn"] = resolve_checkpoint_path(
-            model_name="cnn",
-            checkpoint_dir=config.transfer.checkpoint_dir,
-            explicit_path=config.transfer.cnn_checkpoint,
-        )
-        checkpoint_paths["vit"] = resolve_checkpoint_path(
-            model_name="vit",
-            checkpoint_dir=config.transfer.checkpoint_dir,
-            explicit_path=config.transfer.vit_checkpoint,
-        )
+        explicit_checkpoint_paths = {
+            "cnn": config.transfer.cnn_checkpoint,
+            "vit": config.transfer.vit_checkpoint,
+        }
+        for model_name in selected_models:
+            checkpoint_paths[model_name] = resolve_checkpoint_path(
+                model_name=model_name,
+                checkpoint_dir=config.transfer.checkpoint_dir,
+                explicit_path=explicit_checkpoint_paths.get(model_name),
+            )
         for model_name, checkpoint_path in checkpoint_paths.items():
             if not checkpoint_path.exists():
                 raise FileNotFoundError(
@@ -249,7 +251,7 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
     rows: list[dict] = []
     detailed_results: list[dict] = []
 
-    for model_name in ("cnn", "vit"):
+    for model_name in selected_models:
         _log(f"\n===== EuroSAT model family: {model_name.upper()} =====")
         for initialization in run_modes:
             run_label = f"{model_name.upper()} | EuroSAT | {initialization}"

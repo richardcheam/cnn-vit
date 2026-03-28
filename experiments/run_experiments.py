@@ -304,11 +304,13 @@ def _save_training_curves(full_run_results: dict[str, dict], output_dir: Path) -
 
 def _save_combined_training_curves(full_run_results: dict[str, dict], output_dir: Path) -> None:
     """Save a shared CNN-vs-ViT comparison figure for loss and accuracy."""
+    if len(full_run_results) < 2:
+        return
     ensure_dir(output_dir)
     with plt.rc_context(PLOT_STYLE):
         figure, axes = plt.subplots(1, 2, figsize=(13.5, 5.2))
 
-        for model_name in ("cnn", "vit"):
+        for model_name in full_run_results:
             history = full_run_results[model_name]["history"]
             epochs = range(1, len(history["train_loss"]) + 1)
             color = ARCHITECTURE_COLORS[model_name]
@@ -385,7 +387,8 @@ def _save_data_efficiency_plot(rows: list[dict], output_dir: Path) -> None:
     ensure_dir(output_dir)
     with plt.rc_context(PLOT_STYLE):
         figure, axis = plt.subplots(figsize=(8.2, 4.8))
-        for model_name in ("cnn", "vit"):
+        model_names = list(dict.fromkeys(row["model"] for row in rows))
+        for model_name in model_names:
             model_rows = sorted(
                 [row for row in rows if row["model"] == model_name],
                 key=lambda row: row["train_fraction"],
@@ -417,6 +420,8 @@ def _save_data_efficiency_plot(rows: list[dict], output_dir: Path) -> None:
 
 def _save_robustness_plot(rows: list[dict], output_dir: Path) -> None:
     """Visualize the clean-to-shift accuracy drop for each architecture."""
+    if not rows:
+        return
     ensure_dir(output_dir)
     with plt.rc_context(PLOT_STYLE):
         figure, axis = plt.subplots(figsize=(8.6, 4.8))
@@ -428,8 +433,10 @@ def _save_robustness_plot(rows: list[dict], output_dir: Path) -> None:
         positions = [0, 1]
         bar_width = 0.34
 
-        for index, model_name in enumerate(("cnn", "vit")):
-            offsets = [position + (index - 0.5) * bar_width for position in positions]
+        model_names = list(dict.fromkeys(row["model"] for row in rows))
+        center_offset = (len(model_names) - 1) / 2
+        for index, model_name in enumerate(model_names):
+            offsets = [position + (index - center_offset) * bar_width for position in positions]
             values = []
             for shift in shifts:
                 row = next(item for item in rows if item["model"] == model_name and item["shift"] == shift)
@@ -468,8 +475,7 @@ def _sample_batch(dataset, batch_size: int) -> tuple[torch.Tensor, torch.Tensor]
 
 def _save_interpretability_examples(
     config: ProjectConfig,
-    cnn_model: torch.nn.Module,
-    vit_model: torch.nn.Module,
+    models: dict[str, torch.nn.Module],
     test_dataset,
     class_names: tuple[str, ...],
     device: torch.device,
@@ -477,6 +483,9 @@ def _save_interpretability_examples(
 ) -> dict[str, str]:
     """Generate one qualitative figure for each interpretability method."""
     ensure_dir(output_dir)
+    if not models:
+        return {}
+
     _log("[Interpretability] Sampling examples and generating visual explanations.")
     images, labels = _sample_batch(test_dataset, batch_size=config.experiment.interpretability_samples)
     images = images.to(device)
@@ -486,70 +495,80 @@ def _save_interpretability_examples(
         f"images_shape={tuple(images.shape)} | labels_shape={tuple(labels.shape)}"
     )
 
-    cnn_model.eval()
-    vit_model.eval()
-    _log("[Interpretability] CNN Grad-CAM running.")
+    interpretability_paths: dict[str, str] = {}
 
-    gradcam = GradCAM(cnn_model, cnn_model.conv3)
-    gradcam_maps = gradcam.generate(images)
-    gradcam.close()
+    if "cnn" in models:
+        cnn_model = models["cnn"]
+        cnn_model.eval()
+        _log("[Interpretability] CNN Grad-CAM running.")
+        gradcam = GradCAM(cnn_model, cnn_model.conv3)
+        gradcam_maps = gradcam.generate(images)
+        gradcam.close()
 
-    with torch.no_grad():
-        _log("[Interpretability] ViT attention rollout running.")
-        cnn_predictions = cnn_model(images).argmax(dim=1)
-        vit_logits, vit_maps = generate_attention_maps(vit_model, images)
-        vit_predictions = vit_logits.argmax(dim=1)
+        with torch.no_grad():
+            cnn_predictions = cnn_model(images).argmax(dim=1)
 
-    gradcam_figure, gradcam_axes = plt.subplots(len(images), 2, figsize=(6, 3 * len(images)))
-    vit_figure, vit_axes = plt.subplots(len(images), 2, figsize=(6, 3 * len(images)))
+        gradcam_figure, gradcam_axes = plt.subplots(len(images), 2, figsize=(6, 3 * len(images)))
+        if len(images) == 1:
+            gradcam_axes = [gradcam_axes]
 
-    if len(images) == 1:
-        gradcam_axes = [gradcam_axes]
-        vit_axes = [vit_axes]
+        for index in range(len(images)):
+            base_image = images[index].detach().cpu()
+            gradcam_overlay = overlay_heatmap(
+                base_image,
+                gradcam_maps[index].detach().cpu(),
+                mean=config.data.mean,
+                std=config.data.std,
+            )
+            title = f"true={class_names[labels[index].item()]}"
+            gradcam_axes[index][0].imshow(gradcam_overlay)
+            gradcam_axes[index][0].set_title(title)
+            gradcam_axes[index][0].axis("off")
+            gradcam_axes[index][1].imshow(gradcam_maps[index].detach().cpu(), cmap="inferno")
+            gradcam_axes[index][1].set_title(f"pred={class_names[cnn_predictions[index].item()]}")
+            gradcam_axes[index][1].axis("off")
 
-    for index in range(len(images)):
-        base_image = images[index].detach().cpu()
-        gradcam_overlay = overlay_heatmap(
-            base_image,
-            gradcam_maps[index].detach().cpu(),
-            mean=config.data.mean,
-            std=config.data.std,
-        )
-        vit_overlay = overlay_attention_map(
-            base_image,
-            vit_maps[index].detach().cpu(),
-            mean=config.data.mean,
-            std=config.data.std,
-        )
+        gradcam_figure.tight_layout()
+        gradcam_path = output_dir / "cnn_gradcam.png"
+        gradcam_figure.savefig(gradcam_path, dpi=200)
+        plt.close(gradcam_figure)
+        interpretability_paths["cnn_gradcam"] = str(gradcam_path)
 
-        title = f"true={class_names[labels[index].item()]}"
-        gradcam_axes[index][0].imshow(gradcam_overlay)
-        gradcam_axes[index][0].set_title(title)
-        gradcam_axes[index][0].axis("off")
-        gradcam_axes[index][1].imshow(gradcam_maps[index].detach().cpu(), cmap="inferno")
-        gradcam_axes[index][1].set_title(f"pred={class_names[cnn_predictions[index].item()]}")
-        gradcam_axes[index][1].axis("off")
+    if "vit" in models:
+        vit_model = models["vit"]
+        vit_model.eval()
+        with torch.no_grad():
+            _log("[Interpretability] ViT attention rollout running.")
+            vit_logits, vit_maps = generate_attention_maps(vit_model, images)
+            vit_predictions = vit_logits.argmax(dim=1)
 
-        vit_axes[index][0].imshow(vit_overlay)
-        vit_axes[index][0].set_title(title)
-        vit_axes[index][0].axis("off")
-        vit_axes[index][1].imshow(vit_maps[index].detach().cpu(), cmap="viridis")
-        vit_axes[index][1].set_title(f"pred={class_names[vit_predictions[index].item()]}")
-        vit_axes[index][1].axis("off")
+        vit_figure, vit_axes = plt.subplots(len(images), 2, figsize=(6, 3 * len(images)))
+        if len(images) == 1:
+            vit_axes = [vit_axes]
 
-    gradcam_figure.tight_layout()
-    vit_figure.tight_layout()
-    gradcam_path = output_dir / "cnn_gradcam.png"
-    vit_path = output_dir / "vit_attention.png"
-    gradcam_figure.savefig(gradcam_path, dpi=200)
-    vit_figure.savefig(vit_path, dpi=200)
-    plt.close(gradcam_figure)
-    plt.close(vit_figure)
+        for index in range(len(images)):
+            base_image = images[index].detach().cpu()
+            vit_overlay = overlay_attention_map(
+                base_image,
+                vit_maps[index].detach().cpu(),
+                mean=config.data.mean,
+                std=config.data.std,
+            )
+            title = f"true={class_names[labels[index].item()]}"
+            vit_axes[index][0].imshow(vit_overlay)
+            vit_axes[index][0].set_title(title)
+            vit_axes[index][0].axis("off")
+            vit_axes[index][1].imshow(vit_maps[index].detach().cpu(), cmap="viridis")
+            vit_axes[index][1].set_title(f"pred={class_names[vit_predictions[index].item()]}")
+            vit_axes[index][1].axis("off")
 
-    return {
-        "cnn_gradcam": str(gradcam_path),
-        "vit_attention": str(vit_path),
-    }
+        vit_figure.tight_layout()
+        vit_path = output_dir / "vit_attention.png"
+        vit_figure.savefig(vit_path, dpi=200)
+        plt.close(vit_figure)
+        interpretability_paths["vit_attention"] = str(vit_path)
+
+    return interpretability_paths
 
 
 def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
@@ -573,6 +592,7 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
         f"Batch size: {config.data.batch_size} | "
         f"Learning rate: {config.training.learning_rate}"
     )
+    _log("Model families: " + ", ".join(model_name.upper() for model_name in config.experiment.model_names))
     _log("Planned stages: data-efficiency training, robustness evaluation, interpretability, artifact export")
     _log_dataset_protocol(config)
     _log("=" * 80)
@@ -583,10 +603,11 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
     trainers: dict[str, Trainer] = {}
     clean_bundles: dict[str, DataBundle] = {}
     trained_models: dict[str, torch.nn.Module] = {}
+    selected_models = config.experiment.model_names
 
     # First, train both architectures at each data fraction. The full-data runs
     # are kept for later robustness and interpretability analyses.
-    for model_name in ("cnn", "vit"):
+    for model_name in selected_models:
         _log(f"\n===== Training family: {model_name.upper()} =====")
         for fraction in config.experiment.data_fractions:
             model, trainer, bundle, summary = run_training(
@@ -664,22 +685,26 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
     _log("\n===== Interpretability =====")
     interpretability_paths = _save_interpretability_examples(
         config=config,
-        cnn_model=trained_models["cnn"],
-        vit_model=trained_models["vit"],
-        test_dataset=clean_bundles["cnn"].test_dataset,
-        class_names=clean_bundles["cnn"].classes,
+        models=trained_models,
+        test_dataset=clean_bundles[selected_models[0]].test_dataset,
+        class_names=clean_bundles[selected_models[0]].classes,
         device=device,
         output_dir=interpretability_dir,
     )
-    _log(
-        "[Interpretability] Saved visualizations | "
-        f"Grad-CAM={interpretability_paths['cnn_gradcam']} | "
-        f"ViT attention={interpretability_paths['vit_attention']}"
-    )
+    if interpretability_paths:
+        _log(
+            "[Interpretability] Saved visualizations | "
+            + " | ".join(f"{name}={path}" for name, path in interpretability_paths.items())
+        )
+    else:
+        _log("[Interpretability] No interpretability artifacts were generated.")
 
     _log("\n===== Saving plots and tables =====")
     _save_training_curves(full_run_results=full_run_results, output_dir=plots_dir)
-    _save_combined_training_curves(full_run_results=full_run_results, output_dir=plots_dir)
+    if len(full_run_results) >= 2:
+        _save_combined_training_curves(full_run_results=full_run_results, output_dir=plots_dir)
+    else:
+        _log("[Artifacts] Skipping combined training-curve plot because only one model family was selected.")
     _save_data_efficiency_plot(rows=data_efficiency_rows, output_dir=plots_dir)
     _save_robustness_plot(rows=robustness_rows, output_dir=plots_dir)
     _log(f"[Artifacts] Saved plots to {plots_dir}")

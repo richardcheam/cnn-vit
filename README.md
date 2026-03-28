@@ -301,6 +301,13 @@ uv sync
 uv run python main.py --experiment cifar
 ```
 
+PyTorch is pinned to a CUDA 12.8-compatible stack for Linux and Windows:
+
+- `torch==2.9.1`
+- `torchvision==0.24.1`
+- Linux/Windows GPU installs use the official PyTorch `cu128` index
+- macOS falls back to the default CPU wheels
+
 For a longer research-style run:
 
 ```bash
@@ -319,9 +326,19 @@ Useful EuroSAT options:
 uv run python main.py --experiment eurosat --transfer-mode pretrained
 uv run python main.py --experiment eurosat --checkpoint-dir outputs/checkpoints
 uv run python main.py --experiment eurosat --cnn-checkpoint /path/to/cnn_100pct_best.pt --vit-checkpoint /path/to/vit_100pct_best.pt
+uv run python main.py --experiment eurosat --models cnn
 ```
 
 The default CIFAR run is a lightweight protocol with 5 epochs per experiment for quick iteration. The `--full` flag switches CIFAR to 20 epochs and EuroSAT to 25 epochs.
+
+If you want to run only one architecture, use `--models`:
+
+```bash
+uv run python main.py --experiment cifar --models cnn
+uv run python main.py --experiment cifar --models vit
+uv run python main.py --experiment eurosat --models cnn
+uv run python main.py --experiment eurosat --models vit
+```
 
 ## CLI Execution Flow
 

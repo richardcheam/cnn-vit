@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from configs.config import build_config
+from configs.config import AVAILABLE_MODELS, build_config
 from experiments.run_eurosat_transfer import run_eurosat_transfer
 from experiments.run_experiments import run_experiments
 from utils.helpers import get_device, runtime_diagnostics, set_seed
@@ -25,6 +25,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--num-workers", type=int, default=None, help="Override DataLoader worker count.")
     parser.add_argument("--device", type=str, default=None, help="Choose a device such as cpu, cuda, or mps.")
     parser.add_argument("--output-dir", type=str, default=None, help="Directory where results are saved.")
+    parser.add_argument(
+        "--models",
+        nargs="+",
+        choices=AVAILABLE_MODELS,
+        default=None,
+        help="Run only the selected model families, for example `--models cnn` or `--models cnn vit`.",
+    )
     parser.add_argument(
         "--transfer-mode",
         choices=("both", "scratch", "pretrained"),
@@ -80,6 +87,10 @@ def main() -> None:
             config.transfer.output_dir = args.output_dir
     if args.device is not None:
         config.training.device = args.device
+    if args.models is not None:
+        selected_models = tuple(args.models)
+        config.experiment.model_names = selected_models
+        config.transfer.model_names = selected_models
     if args.transfer_mode is not None:
         config.transfer.run_mode = args.transfer_mode
     if args.checkpoint_dir is not None:
@@ -95,6 +106,11 @@ def main() -> None:
     device = get_device(config.training.device)
     print("Launching experiment runner...", flush=True)
     print(f"Selected experiment: {args.experiment}", flush=True)
+    print(
+        "Selected models: "
+        + ", ".join(config.experiment.model_names if args.experiment == "cifar" else config.transfer.model_names),
+        flush=True,
+    )
     print("\nRuntime diagnostics:", flush=True)
     for line in runtime_diagnostics(device):
         print(f"  - {line}", flush=True)
