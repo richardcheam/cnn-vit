@@ -84,7 +84,7 @@ Running the project writes artifacts to `outputs/`:
 - `summary.json`: experiment summary
 - `data_efficiency.csv`: accuracy across data fractions
 - `robustness.csv`: robustness drops for occlusion and texture shifts
-- `plots/`: training curves, data-efficiency plots, robustness plots
+- `plots/`: per-model training curves, a combined CNN-vs-ViT learning-curve figure, data-efficiency plots, and robustness plots
 - `interpretability/`: Grad-CAM and ViT attention visualizations
 
 ## Notes

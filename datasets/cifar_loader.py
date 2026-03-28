@@ -12,6 +12,10 @@ from datasets.occlusion import OcclusionWrapperDataset
 from datasets.texture_modification import TextureModifiedDataset
 
 
+CIFAR10_TRAINSET_SIZE = 50_000
+CIFAR10_TESTSET_SIZE = 10_000
+
+
 @dataclass
 class DataBundle:
     """Small container so downstream code can pass around all splits together."""
@@ -22,6 +26,39 @@ class DataBundle:
     val_dataset: Dataset
     test_dataset: Dataset
     classes: tuple[str, ...]
+
+
+def describe_cifar_protocol(
+    config: ProjectConfig,
+    fractions: tuple[float, ...] | None = None,
+) -> dict:
+    """Describe the planned CIFAR-10 split sizes without touching the dataset."""
+    fractions = fractions or (1.0,)
+    val_size = int(CIFAR10_TRAINSET_SIZE * config.data.val_fraction)
+    train_pool_size = CIFAR10_TRAINSET_SIZE - val_size
+    runs = []
+
+    for fraction in fractions:
+        train_size = train_pool_size if fraction >= 1.0 else max(1, int(train_pool_size * fraction))
+        runs.append(
+            {
+                "train_fraction": fraction,
+                "train_size": train_size,
+                "val_size": val_size,
+                "clean_test_size": CIFAR10_TESTSET_SIZE,
+                "occluded_test_size": CIFAR10_TESTSET_SIZE,
+                "texture_test_size": CIFAR10_TESTSET_SIZE,
+            }
+        )
+
+    return {
+        "source_train_size": CIFAR10_TRAINSET_SIZE,
+        "source_test_size": CIFAR10_TESTSET_SIZE,
+        "val_fraction": config.data.val_fraction,
+        "val_size": val_size,
+        "train_pool_size": train_pool_size,
+        "runs": runs,
+    }
 
 
 def build_train_transform(config: ProjectConfig) -> transforms.Compose:

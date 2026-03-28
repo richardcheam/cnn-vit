@@ -4,10 +4,11 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import torch
+from matplotlib.ticker import PercentFormatter
 from torch.utils.data import DataLoader
 
 from configs.config import ProjectConfig
-from datasets.cifar_loader import DataBundle, build_dataloaders
+from datasets.cifar_loader import DataBundle, build_dataloaders, describe_cifar_protocol
 from evaluation.metrics import model_summary
 from evaluation.robustness import summarize_shift
 from interpretability.gradcam import GradCAM, overlay_heatmap
@@ -20,6 +21,101 @@ from utils.helpers import ensure_dir, format_seconds, save_csv, save_json
 
 def _log(message: str) -> None:
     print(message, flush=True)
+
+
+PLOT_STYLE = {
+    "figure.facecolor": "white",
+    "axes.facecolor": "#fbfcfe",
+    "axes.edgecolor": "#667085",
+    "axes.labelcolor": "#1f2937",
+    "axes.titlecolor": "#111827",
+    "axes.titlesize": 13,
+    "axes.titleweight": "semibold",
+    "axes.labelsize": 11,
+    "xtick.color": "#344054",
+    "ytick.color": "#344054",
+    "grid.color": "#d0d7e2",
+    "grid.linestyle": "--",
+    "grid.linewidth": 0.8,
+    "font.family": "serif",
+    "font.serif": ["DejaVu Serif", "Times New Roman", "Times"],
+    "legend.frameon": True,
+    "legend.facecolor": "white",
+    "legend.edgecolor": "#d0d7e2",
+    "legend.fancybox": False,
+    "savefig.facecolor": "white",
+    "savefig.bbox": "tight",
+}
+
+ARCHITECTURE_COLORS = {
+    "cnn": "#1f4e79",
+    "vit": "#b85c38",
+}
+
+SPLIT_STYLES = {
+    "train": {"linestyle": "-", "marker": "o"},
+    "val": {"linestyle": "--", "marker": "s"},
+}
+
+
+def _style_axis(axis, title: str, xlabel: str, ylabel: str, *, percent_y: bool = False) -> None:
+    axis.set_title(title, pad=10)
+    axis.set_xlabel(xlabel)
+    axis.set_ylabel(ylabel)
+    axis.grid(True, axis="y", alpha=0.85)
+    axis.spines["top"].set_visible(False)
+    axis.spines["right"].set_visible(False)
+    axis.spines["left"].set_linewidth(0.9)
+    axis.spines["bottom"].set_linewidth(0.9)
+    axis.tick_params(axis="both", labelsize=10)
+    if percent_y:
+        axis.yaxis.set_major_formatter(PercentFormatter(1.0, decimals=0))
+
+
+def _save_figure(figure, path: Path) -> None:
+    figure.tight_layout(rect=(0, 0, 1, 0.98))
+    figure.savefig(path, dpi=240)
+    plt.close(figure)
+
+
+def _add_bar_labels(axis, bars) -> None:
+    for bar in bars:
+        height = bar.get_height()
+        axis.text(
+            bar.get_x() + bar.get_width() / 2,
+            height + 0.01,
+            f"{height:.1%}",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+            color="#344054",
+        )
+
+
+def _log_dataset_protocol(config: ProjectConfig) -> None:
+    protocol = describe_cifar_protocol(config, fractions=config.experiment.data_fractions)
+    _log("Dataset protocol overview:")
+    _log(
+        f"  Source dataset: CIFAR-10 | "
+        f"train_images={protocol['source_train_size']:,} | "
+        f"test_images={protocol['source_test_size']:,}"
+    )
+    _log(
+        f"  Validation split: {protocol['val_fraction']:.0%} | "
+        f"validation_images={protocol['val_size']:,} | "
+        f"remaining_train_pool={protocol['train_pool_size']:,}"
+    )
+    _log("  Planned data-efficiency runs:")
+    for run in protocol["runs"]:
+        _log(
+            f"    - fraction={run['train_fraction']:.0%} | "
+            f"train={run['train_size']:,} | "
+            f"val={run['val_size']:,} | "
+            f"clean_test={run['clean_test_size']:,}"
+        )
+    _log("  Robustness evaluation after full-data training:")
+    _log(f"    - occluded_test={protocol['source_test_size']:,}")
+    _log(f"    - texture_modified_test={protocol['source_test_size']:,}")
 
 
 def build_model(model_name: str, config: ProjectConfig) -> torch.nn.Module:
@@ -111,70 +207,234 @@ def run_training(
 def _save_training_curves(full_run_results: dict[str, dict], output_dir: Path) -> None:
     """Persist loss/accuracy trajectories for the full-data runs."""
     ensure_dir(output_dir)
-    for model_name, result in full_run_results.items():
-        history = result["history"]
-        epochs = range(1, len(history["train_loss"]) + 1)
+    with plt.rc_context(PLOT_STYLE):
+        for model_name, result in full_run_results.items():
+            history = result["history"]
+            epochs = range(1, len(history["train_loss"]) + 1)
+            color = ARCHITECTURE_COLORS[model_name]
 
-        figure, axes = plt.subplots(1, 2, figsize=(12, 4))
-        axes[0].plot(epochs, history["train_loss"], label="train")
-        axes[0].plot(epochs, history["val_loss"], label="val")
-        axes[0].set_title(f"{model_name.upper()} loss")
-        axes[0].set_xlabel("Epoch")
-        axes[0].set_ylabel("Cross-entropy")
-        axes[0].legend()
+            figure, axes = plt.subplots(1, 2, figsize=(12, 4.8))
+            axes[0].plot(
+                epochs,
+                history["train_loss"],
+                color=color,
+                linewidth=2.2,
+                markersize=4.5,
+                label="Train",
+                **SPLIT_STYLES["train"],
+            )
+            axes[0].plot(
+                epochs,
+                history["val_loss"],
+                color=color,
+                linewidth=2.2,
+                markersize=4.5,
+                alpha=0.9,
+                label="Validation",
+                **SPLIT_STYLES["val"],
+            )
+            _style_axis(
+                axes[0],
+                title=f"{model_name.upper()} Loss",
+                xlabel="Epoch",
+                ylabel="Cross-Entropy Loss",
+            )
+            axes[0].legend(loc="upper right")
 
-        axes[1].plot(epochs, history["train_accuracy"], label="train")
-        axes[1].plot(epochs, history["val_accuracy"], label="val")
-        axes[1].set_title(f"{model_name.upper()} accuracy")
-        axes[1].set_xlabel("Epoch")
-        axes[1].set_ylabel("Accuracy")
-        axes[1].legend()
+            axes[1].plot(
+                epochs,
+                history["train_accuracy"],
+                color=color,
+                linewidth=2.2,
+                markersize=4.5,
+                label="Train",
+                **SPLIT_STYLES["train"],
+            )
+            axes[1].plot(
+                epochs,
+                history["val_accuracy"],
+                color=color,
+                linewidth=2.2,
+                markersize=4.5,
+                alpha=0.9,
+                label="Validation",
+                **SPLIT_STYLES["val"],
+            )
+            _style_axis(
+                axes[1],
+                title=f"{model_name.upper()} Accuracy",
+                xlabel="Epoch",
+                ylabel="Accuracy",
+                percent_y=True,
+            )
+            axes[1].set_ylim(0.0, 1.0)
+            axes[1].legend(loc="lower right")
 
-        figure.tight_layout()
-        figure.savefig(output_dir / f"{model_name}_training_curves.png", dpi=200)
-        plt.close(figure)
+            figure.suptitle(
+                f"{model_name.upper()} Learning Curves",
+                fontsize=14,
+                fontweight="semibold",
+                y=1.03,
+            )
+            _save_figure(figure, output_dir / f"{model_name}_training_curves.png")
+
+
+def _save_combined_training_curves(full_run_results: dict[str, dict], output_dir: Path) -> None:
+    """Save a shared CNN-vs-ViT comparison figure for loss and accuracy."""
+    ensure_dir(output_dir)
+    with plt.rc_context(PLOT_STYLE):
+        figure, axes = plt.subplots(1, 2, figsize=(13.5, 5.2))
+
+        for model_name in ("cnn", "vit"):
+            history = full_run_results[model_name]["history"]
+            epochs = range(1, len(history["train_loss"]) + 1)
+            color = ARCHITECTURE_COLORS[model_name]
+            label_prefix = model_name.upper()
+
+            axes[0].plot(
+                epochs,
+                history["train_loss"],
+                color=color,
+                linewidth=2.3,
+                markersize=4.3,
+                label=f"{label_prefix} train",
+                **SPLIT_STYLES["train"],
+            )
+            axes[0].plot(
+                epochs,
+                history["val_loss"],
+                color=color,
+                linewidth=2.3,
+                markersize=4.3,
+                alpha=0.9,
+                label=f"{label_prefix} val",
+                **SPLIT_STYLES["val"],
+            )
+
+            axes[1].plot(
+                epochs,
+                history["train_accuracy"],
+                color=color,
+                linewidth=2.3,
+                markersize=4.3,
+                label=f"{label_prefix} train",
+                **SPLIT_STYLES["train"],
+            )
+            axes[1].plot(
+                epochs,
+                history["val_accuracy"],
+                color=color,
+                linewidth=2.3,
+                markersize=4.3,
+                alpha=0.9,
+                label=f"{label_prefix} val",
+                **SPLIT_STYLES["val"],
+            )
+
+        _style_axis(
+            axes[0],
+            title="Loss Comparison",
+            xlabel="Epoch",
+            ylabel="Cross-Entropy Loss",
+        )
+        _style_axis(
+            axes[1],
+            title="Accuracy Comparison",
+            xlabel="Epoch",
+            ylabel="Accuracy",
+            percent_y=True,
+        )
+        axes[1].set_ylim(0.0, 1.0)
+        axes[0].legend(loc="upper right", ncol=2)
+        axes[1].legend(loc="lower right", ncol=2)
+
+        figure.suptitle(
+            "CNN vs ViT Learning Curves",
+            fontsize=14,
+            fontweight="semibold",
+            y=1.03,
+        )
+        _save_figure(figure, output_dir / "cnn_vit_training_comparison.png")
 
 
 def _save_data_efficiency_plot(rows: list[dict], output_dir: Path) -> None:
     """Plot how accuracy changes as the training set gets smaller."""
     ensure_dir(output_dir)
-    figure, axis = plt.subplots(figsize=(7, 4))
-    for model_name in ("cnn", "vit"):
-        model_rows = [row for row in rows if row["model"] == model_name]
-        fractions = [row["train_fraction"] for row in model_rows]
-        accuracies = [row["test_accuracy"] for row in model_rows]
-        axis.plot(fractions, accuracies, marker="o", label=model_name.upper())
+    with plt.rc_context(PLOT_STYLE):
+        figure, axis = plt.subplots(figsize=(8.2, 4.8))
+        for model_name in ("cnn", "vit"):
+            model_rows = sorted(
+                [row for row in rows if row["model"] == model_name],
+                key=lambda row: row["train_fraction"],
+            )
+            fractions = [row["train_fraction"] for row in model_rows]
+            accuracies = [row["test_accuracy"] for row in model_rows]
+            axis.plot(
+                fractions,
+                accuracies,
+                color=ARCHITECTURE_COLORS[model_name],
+                linewidth=2.4,
+                marker="o",
+                markersize=5.2,
+                label=model_name.upper(),
+            )
 
-    axis.set_title("Data efficiency on CIFAR-10")
-    axis.set_xlabel("Training fraction")
-    axis.set_ylabel("Test accuracy")
-    axis.legend()
-    axis.grid(alpha=0.3)
-    figure.tight_layout()
-    figure.savefig(output_dir / "data_efficiency.png", dpi=200)
-    plt.close(figure)
+        _style_axis(
+            axis,
+            title="Data Efficiency on CIFAR-10",
+            xlabel="Training Fraction",
+            ylabel="Test Accuracy",
+            percent_y=True,
+        )
+        axis.xaxis.set_major_formatter(PercentFormatter(1.0, decimals=0))
+        axis.set_ylim(0.0, 1.0)
+        axis.legend(loc="lower right")
+        _save_figure(figure, output_dir / "data_efficiency.png")
 
 
 def _save_robustness_plot(rows: list[dict], output_dir: Path) -> None:
     """Visualize the clean-to-shift accuracy drop for each architecture."""
     ensure_dir(output_dir)
-    figure, axis = plt.subplots(figsize=(8, 4))
-    positions = [0, 1]
-    bar_width = 0.35
-    occlusion_drops = [row["robustness_drop"] for row in rows if row["shift"] == "occluded"]
-    texture_drops = [row["robustness_drop"] for row in rows if row["shift"] == "texture"]
+    with plt.rc_context(PLOT_STYLE):
+        figure, axis = plt.subplots(figsize=(8.6, 4.8))
+        shifts = ("occluded", "texture")
+        shift_labels = {
+            "occluded": "Occlusion",
+            "texture": "Texture Shift",
+        }
+        positions = [0, 1]
+        bar_width = 0.34
 
-    axis.bar([position - bar_width / 2 for position in positions], occlusion_drops, bar_width, label="Occlusion")
-    axis.bar([position + bar_width / 2 for position in positions], texture_drops, bar_width, label="Texture")
-    axis.set_xticks(positions)
-    axis.set_xticklabels([row["model"].upper() for row in rows if row["shift"] == "occluded"])
-    axis.set_ylabel("Accuracy drop")
-    axis.set_title("Robustness drop relative to clean CIFAR-10")
-    axis.legend()
-    axis.grid(axis="y", alpha=0.3)
-    figure.tight_layout()
-    figure.savefig(output_dir / "robustness_drop.png", dpi=200)
-    plt.close(figure)
+        for index, model_name in enumerate(("cnn", "vit")):
+            offsets = [position + (index - 0.5) * bar_width for position in positions]
+            values = []
+            for shift in shifts:
+                row = next(item for item in rows if item["model"] == model_name and item["shift"] == shift)
+                values.append(row["robustness_drop"])
+
+            bars = axis.bar(
+                offsets,
+                values,
+                width=bar_width,
+                color=ARCHITECTURE_COLORS[model_name],
+                alpha=0.92,
+                label=model_name.upper(),
+            )
+            _add_bar_labels(axis, bars)
+
+        _style_axis(
+            axis,
+            title="Robustness Drop Relative to Clean CIFAR-10",
+            xlabel="Distribution Shift",
+            ylabel="Accuracy Drop",
+            percent_y=True,
+        )
+        axis.set_xticks(positions)
+        axis.set_xticklabels([shift_labels[shift] for shift in shifts])
+        max_drop = max(row["robustness_drop"] for row in rows)
+        axis.set_ylim(0.0, max(0.08, max_drop * 1.25))
+        axis.legend(loc="upper left")
+        _save_figure(figure, output_dir / "robustness_drop.png")
 
 
 def _sample_batch(dataset, batch_size: int) -> tuple[torch.Tensor, torch.Tensor]:
@@ -289,6 +549,7 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
         f"Learning rate: {config.training.learning_rate}"
     )
     _log("Planned stages: data-efficiency training, robustness evaluation, interpretability, artifact export")
+    _log_dataset_protocol(config)
     _log("=" * 80)
 
     data_efficiency_rows: list[dict] = []
@@ -392,6 +653,7 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
 
     _log("\n===== Saving plots and tables =====")
     _save_training_curves(full_run_results=full_run_results, output_dir=plots_dir)
+    _save_combined_training_curves(full_run_results=full_run_results, output_dir=plots_dir)
     _save_data_efficiency_plot(rows=data_efficiency_rows, output_dir=plots_dir)
     _save_robustness_plot(rows=robustness_rows, output_dir=plots_dir)
     _log(f"[Artifacts] Saved plots to {plots_dir}")
@@ -401,6 +663,10 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
         "baseline": baseline_rows,
         "data_efficiency": data_efficiency_rows,
         "robustness": robustness_rows,
+        "full_run_histories": {
+            model_name: result["history"]
+            for model_name, result in full_run_results.items()
+        },
         "interpretability": interpretability_paths,
     }
 
