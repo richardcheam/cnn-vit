@@ -120,7 +120,9 @@ def _save_transfer_accuracy_plot(rows: list[dict], output_dir: Path) -> None:
 
     with plt.rc_context(PLOT_STYLE):
         figure, axis = plt.subplots(figsize=(9, 5.2))
-        bars = axis.bar(labels, accuracies, color=colors, alpha=alphas, edgecolor="#344054", linewidth=0.8)
+        bars = axis.bar(labels, accuracies, color=colors, edgecolor="#344054", linewidth=0.8)
+        for bar, alpha in zip(bars, alphas):
+            bar.set_alpha(alpha)
         for bar, accuracy in zip(bars, accuracies):
             axis.text(
                 bar.get_x() + bar.get_width() / 2,
@@ -381,9 +383,6 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
                 f"checkpoint={checkpoint_path}"
             )
 
-    _save_transfer_accuracy_plot(rows=rows, output_dir=plots_dir)
-    _save_transfer_validation_curves(results=detailed_results, output_dir=plots_dir)
-
     summary = {
         "config": config.to_dict(),
         "dataset": config.eurosat.name,
@@ -410,6 +409,9 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
     save_json(summary, root_output_dir / "summary.json")
     save_json(detailed_results, root_output_dir / "transfer_runs.json")
     save_csv(rows, root_output_dir / "eurosat_transfer_results.csv")
+
+    _save_transfer_accuracy_plot(rows=rows, output_dir=plots_dir)
+    _save_transfer_validation_curves(results=detailed_results, output_dir=plots_dir)
     _log(f"[Artifacts] Saved {config.eurosat.name} results to {root_output_dir}")
     _log("=" * 80)
     return summary

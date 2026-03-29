@@ -21,7 +21,7 @@ from experiments.run_experiments import (
     _save_training_curves,
 )
 from utils.artifacts import load_cifar_runs_with_histories, load_eurosat_runs_with_histories, load_json
-from utils.helpers import ensure_dir
+from utils.helpers import ensure_dir, save_csv, save_json
 
 
 def parse_args() -> argparse.Namespace:
@@ -114,9 +114,28 @@ def regenerate_eurosat_plots(source_dir: Path, output_dir: Path) -> None:
         }
         for row in detailed_runs
     ]
+    summary = {
+        "dataset": detailed_runs[0].get("dataset", "EuroSAT"),
+        "source_dataset": detailed_runs[0].get("source_dataset", "CIFAR-10"),
+        "runs": rows,
+        "detailed_runs": detailed_runs,
+        "histories": {
+            f"{result['model']}_{result['initialization']}": result["history"]
+            for result in detailed_runs
+        },
+        "checkpoints": {
+            f"{result['model']}_{result['initialization']}": result["checkpoint_path"]
+            for result in detailed_runs
+            if result.get("checkpoint_path")
+        },
+    }
+    save_json(summary, source_dir / "summary.json")
+    save_json(detailed_runs, source_dir / "transfer_runs.json")
+    save_csv(rows, source_dir / "eurosat_transfer_results.csv")
     _save_transfer_accuracy_plot(rows=rows, output_dir=output_dir)
     _save_transfer_validation_curves(results=detailed_runs, output_dir=output_dir)
     print(f"Regenerated EuroSAT plots in {output_dir}")
+    print(f"Recovered EuroSAT summary artifacts in {source_dir}")
 
 
 if __name__ == "__main__":
