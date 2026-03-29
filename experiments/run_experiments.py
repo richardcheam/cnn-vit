@@ -391,15 +391,15 @@ def _save_combined_training_curves(full_run_results: dict[str, dict], output_dir
         _save_figure(figure, output_dir / "cnn_vit_training_comparison.png")
 
 
-def _save_fraction_learning_curves(data_efficiency_rows: list[dict], output_dir: Path) -> None:
+def _save_fraction_learning_curves(data_efficiency_runs: list[dict], output_dir: Path) -> None:
     """Show how each model's learning dynamics change with the available data budget."""
     ensure_dir(output_dir)
-    model_names = list(dict.fromkeys(row["model"] for row in data_efficiency_rows))
+    model_names = list(dict.fromkeys(row["model"] for row in data_efficiency_runs))
 
     with plt.rc_context(PLOT_STYLE):
         for model_name in model_names:
             model_rows = sorted(
-                [row for row in data_efficiency_rows if row["model"] == model_name],
+                [row for row in data_efficiency_runs if row["model"] == model_name],
                 key=lambda row: row["train_fraction"],
             )
             if not model_rows:
@@ -782,7 +782,7 @@ def run_experiments(config: ProjectConfig, device: torch.device) -> dict:
         _save_combined_training_curves(full_run_results=full_run_results, output_dir=plots_dir)
     else:
         _log("[Artifacts] Skipping combined training-curve plot because only one model family was selected.")
-    _save_fraction_learning_curves(data_efficiency_rows=data_efficiency_rows, output_dir=plots_dir)
+    _save_fraction_learning_curves(data_efficiency_runs=data_efficiency_runs, output_dir=plots_dir)
     _save_data_efficiency_plot(config=config, rows=data_efficiency_rows, output_dir=plots_dir)
     _save_robustness_plot(config=config, rows=robustness_rows, output_dir=plots_dir)
     _log(f"[Artifacts] Saved plots to {plots_dir}")

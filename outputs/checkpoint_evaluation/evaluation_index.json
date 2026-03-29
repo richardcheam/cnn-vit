@@ -1,0 +1,1858 @@
+[
+  {
+    "dataset": "CIFAR-10",
+    "dataset_slug": "cifar10",
+    "model": "cnn",
+    "train_fraction": 1.0,
+    "parameter_count": 374282,
+    "classification": {
+      "macro_avg": {
+        "precision": 0.8611,
+        "recall": 0.857,
+        "f1_score": 0.858
+      },
+      "weighted_avg": {
+        "precision": 0.8611,
+        "recall": 0.857,
+        "f1_score": 0.858
+      },
+      "confidence": {
+        "mean": 0.8893,
+        "mean_correct": 0.9243,
+        "mean_incorrect": 0.6797
+      },
+      "per_class": [
+        {
+          "class_index": 0,
+          "class_name": "airplane",
+          "support": 1000,
+          "correct": 881,
+          "accuracy": 0.881,
+          "precision": 0.8471,
+          "recall": 0.881,
+          "f1_score": 0.8637,
+          "predicted_count": 1040
+        },
+        {
+          "class_index": 1,
+          "class_name": "automobile",
+          "support": 1000,
+          "correct": 915,
+          "accuracy": 0.915,
+          "precision": 0.9308,
+          "recall": 0.915,
+          "f1_score": 0.9228,
+          "predicted_count": 983
+        },
+        {
+          "class_index": 2,
+          "class_name": "bird",
+          "support": 1000,
+          "correct": 777,
+          "accuracy": 0.777,
+          "precision": 0.8418,
+          "recall": 0.777,
+          "f1_score": 0.8081,
+          "predicted_count": 923
+        },
+        {
+          "class_index": 3,
+          "class_name": "cat",
+          "support": 1000,
+          "correct": 806,
+          "accuracy": 0.806,
+          "precision": 0.665,
+          "recall": 0.806,
+          "f1_score": 0.7288,
+          "predicted_count": 1212
+        },
+        {
+          "class_index": 4,
+          "class_name": "deer",
+          "support": 1000,
+          "correct": 846,
+          "accuracy": 0.846,
+          "precision": 0.8749,
+          "recall": 0.846,
+          "f1_score": 0.8602,
+          "predicted_count": 967
+        },
+        {
+          "class_index": 5,
+          "class_name": "dog",
+          "support": 1000,
+          "correct": 756,
+          "accuracy": 0.756,
+          "precision": 0.8354,
+          "recall": 0.756,
+          "f1_score": 0.7937,
+          "predicted_count": 905
+        },
+        {
+          "class_index": 6,
+          "class_name": "frog",
+          "support": 1000,
+          "correct": 900,
+          "accuracy": 0.9,
+          "precision": 0.8955,
+          "recall": 0.9,
+          "f1_score": 0.8978,
+          "predicted_count": 1005
+        },
+        {
+          "class_index": 7,
+          "class_name": "horse",
+          "support": 1000,
+          "correct": 870,
+          "accuracy": 0.87,
+          "precision": 0.8896,
+          "recall": 0.87,
+          "f1_score": 0.8797,
+          "predicted_count": 978
+        },
+        {
+          "class_index": 8,
+          "class_name": "ship",
+          "support": 1000,
+          "correct": 914,
+          "accuracy": 0.914,
+          "precision": 0.9204,
+          "recall": 0.914,
+          "f1_score": 0.9172,
+          "predicted_count": 993
+        },
+        {
+          "class_index": 9,
+          "class_name": "truck",
+          "support": 1000,
+          "correct": 905,
+          "accuracy": 0.905,
+          "precision": 0.9105,
+          "recall": 0.905,
+          "f1_score": 0.9077,
+          "predicted_count": 994
+        }
+      ],
+      "top_confusions": [
+        {
+          "true_class": "dog",
+          "predicted_class": "cat",
+          "count": 156
+        },
+        {
+          "true_class": "bird",
+          "predicted_class": "cat",
+          "count": 74
+        },
+        {
+          "true_class": "cat",
+          "predicted_class": "dog",
+          "count": 63
+        },
+        {
+          "true_class": "frog",
+          "predicted_class": "cat",
+          "count": 54
+        },
+        {
+          "true_class": "deer",
+          "predicted_class": "cat",
+          "count": 42
+        },
+        {
+          "true_class": "ship",
+          "predicted_class": "airplane",
+          "count": 42
+        },
+        {
+          "true_class": "automobile",
+          "predicted_class": "truck",
+          "count": 40
+        },
+        {
+          "true_class": "bird",
+          "predicted_class": "deer",
+          "count": 39
+        },
+        {
+          "true_class": "horse",
+          "predicted_class": "cat",
+          "count": 39
+        },
+        {
+          "true_class": "horse",
+          "predicted_class": "dog",
+          "count": 38
+        }
+      ]
+    },
+    "clean": {
+      "loss": 0.4464,
+      "accuracy": 0.857
+    },
+    "occluded": {
+      "loss": 0.6112,
+      "accuracy": 0.8032
+    },
+    "texture": {
+      "loss": 3.8096,
+      "accuracy": 0.3298
+    },
+    "robustness": [
+      {
+        "model": "cnn",
+        "shift": "occluded",
+        "clean_accuracy": 0.857,
+        "shifted_accuracy": 0.8032,
+        "robustness_drop": 0.05379999999999996
+      },
+      {
+        "model": "cnn",
+        "shift": "texture",
+        "clean_accuracy": 0.857,
+        "shifted_accuracy": 0.3298,
+        "robustness_drop": 0.5272
+      }
+    ],
+    "artifacts": {
+      "classification_report": "outputs/checkpoint_evaluation/cnn_100pct_best/classification_report.json",
+      "prediction_analysis": "outputs/checkpoint_evaluation/cnn_100pct_best/prediction_analysis.json",
+      "confusion_matrix": "outputs/checkpoint_evaluation/cnn_100pct_best/confusion_matrix.png",
+      "confusion_matrix_normalized": "outputs/checkpoint_evaluation/cnn_100pct_best/confusion_matrix_normalized.png",
+      "interpretability": [
+        "outputs/checkpoint_evaluation/cnn_100pct_best/interpretability/cnn_gradcam.png"
+      ],
+      "misclassified_examples": "outputs/checkpoint_evaluation/cnn_100pct_best/examples/misclassified_examples.png",
+      "correct_examples": "outputs/checkpoint_evaluation/cnn_100pct_best/examples/correct_examples.png"
+    },
+    "checkpoint_path": "/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/outputs/checkpoints/cnn_100pct_best.pt",
+    "load_info": {
+      "missing_keys": [],
+      "unexpected_keys": []
+    }
+  },
+  {
+    "dataset": "CIFAR-10",
+    "dataset_slug": "cifar10",
+    "model": "cnn",
+    "train_fraction": 0.1,
+    "parameter_count": 374282,
+    "classification": {
+      "macro_avg": {
+        "precision": 0.6587,
+        "recall": 0.657,
+        "f1_score": 0.6501
+      },
+      "weighted_avg": {
+        "precision": 0.6587,
+        "recall": 0.657,
+        "f1_score": 0.6501
+      },
+      "confidence": {
+        "mean": 0.7334,
+        "mean_correct": 0.8057,
+        "mean_incorrect": 0.595
+      },
+      "per_class": [
+        {
+          "class_index": 0,
+          "class_name": "airplane",
+          "support": 1000,
+          "correct": 628,
+          "accuracy": 0.628,
+          "precision": 0.7441,
+          "recall": 0.628,
+          "f1_score": 0.6811,
+          "predicted_count": 844
+        },
+        {
+          "class_index": 1,
+          "class_name": "automobile",
+          "support": 1000,
+          "correct": 810,
+          "accuracy": 0.81,
+          "precision": 0.7649,
+          "recall": 0.81,
+          "f1_score": 0.7868,
+          "predicted_count": 1059
+        },
+        {
+          "class_index": 2,
+          "class_name": "bird",
+          "support": 1000,
+          "correct": 563,
+          "accuracy": 0.563,
+          "precision": 0.5377,
+          "recall": 0.563,
+          "f1_score": 0.5501,
+          "predicted_count": 1047
+        },
+        {
+          "class_index": 3,
+          "class_name": "cat",
+          "support": 1000,
+          "correct": 393,
+          "accuracy": 0.393,
+          "precision": 0.5144,
+          "recall": 0.393,
+          "f1_score": 0.4456,
+          "predicted_count": 764
+        },
+        {
+          "class_index": 4,
+          "class_name": "deer",
+          "support": 1000,
+          "correct": 561,
+          "accuracy": 0.561,
+          "precision": 0.6104,
+          "recall": 0.561,
+          "f1_score": 0.5847,
+          "predicted_count": 919
+        },
+        {
+          "class_index": 5,
+          "class_name": "dog",
+          "support": 1000,
+          "correct": 441,
+          "accuracy": 0.441,
+          "precision": 0.6858,
+          "recall": 0.441,
+          "f1_score": 0.5368,
+          "predicted_count": 643
+        },
+        {
+          "class_index": 6,
+          "class_name": "frog",
+          "support": 1000,
+          "correct": 790,
+          "accuracy": 0.79,
+          "precision": 0.6196,
+          "recall": 0.79,
+          "f1_score": 0.6945,
+          "predicted_count": 1275
+        },
+        {
+          "class_index": 7,
+          "class_name": "horse",
+          "support": 1000,
+          "correct": 766,
+          "accuracy": 0.766,
+          "precision": 0.6492,
+          "recall": 0.766,
+          "f1_score": 0.7028,
+          "predicted_count": 1180
+        },
+        {
+          "class_index": 8,
+          "class_name": "ship",
+          "support": 1000,
+          "correct": 888,
+          "accuracy": 0.888,
+          "precision": 0.6472,
+          "recall": 0.888,
+          "f1_score": 0.7487,
+          "predicted_count": 1372
+        },
+        {
+          "class_index": 9,
+          "class_name": "truck",
+          "support": 1000,
+          "correct": 730,
+          "accuracy": 0.73,
+          "precision": 0.8138,
+          "recall": 0.73,
+          "f1_score": 0.7696,
+          "predicted_count": 897
+        }
+      ],
+      "top_confusions": [
+        {
+          "true_class": "dog",
+          "predicted_class": "cat",
+          "count": 202
+        },
+        {
+          "true_class": "airplane",
+          "predicted_class": "ship",
+          "count": 168
+        },
+        {
+          "true_class": "deer",
+          "predicted_class": "frog",
+          "count": 143
+        },
+        {
+          "true_class": "cat",
+          "predicted_class": "frog",
+          "count": 129
+        },
+        {
+          "true_class": "bird",
+          "predicted_class": "frog",
+          "count": 118
+        },
+        {
+          "true_class": "truck",
+          "predicted_class": "automobile",
+          "count": 118
+        },
+        {
+          "true_class": "cat",
+          "predicted_class": "dog",
+          "count": 117
+        },
+        {
+          "true_class": "cat",
+          "predicted_class": "bird",
+          "count": 109
+        },
+        {
+          "true_class": "dog",
+          "predicted_class": "horse",
+          "count": 108
+        },
+        {
+          "true_class": "deer",
+          "predicted_class": "horse",
+          "count": 106
+        }
+      ]
+    },
+    "clean": {
+      "loss": 1.0158,
+      "accuracy": 0.657
+    },
+    "occluded": {
+      "loss": 1.0834,
+      "accuracy": 0.6376
+    },
+    "texture": {
+      "loss": 4.3788,
+      "accuracy": 0.2843
+    },
+    "robustness": [
+      {
+        "model": "cnn",
+        "shift": "occluded",
+        "clean_accuracy": 0.657,
+        "shifted_accuracy": 0.6376,
+        "robustness_drop": 0.019400000000000084
+      },
+      {
+        "model": "cnn",
+        "shift": "texture",
+        "clean_accuracy": 0.657,
+        "shifted_accuracy": 0.2843,
+        "robustness_drop": 0.37270000000000003
+      }
+    ],
+    "artifacts": {
+      "classification_report": "outputs/checkpoint_evaluation/cnn_10pct_best/classification_report.json",
+      "prediction_analysis": "outputs/checkpoint_evaluation/cnn_10pct_best/prediction_analysis.json",
+      "confusion_matrix": "outputs/checkpoint_evaluation/cnn_10pct_best/confusion_matrix.png",
+      "confusion_matrix_normalized": "outputs/checkpoint_evaluation/cnn_10pct_best/confusion_matrix_normalized.png",
+      "interpretability": [
+        "outputs/checkpoint_evaluation/cnn_10pct_best/interpretability/cnn_gradcam.png"
+      ],
+      "misclassified_examples": "outputs/checkpoint_evaluation/cnn_10pct_best/examples/misclassified_examples.png",
+      "correct_examples": "outputs/checkpoint_evaluation/cnn_10pct_best/examples/correct_examples.png"
+    },
+    "checkpoint_path": "/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/outputs/checkpoints/cnn_10pct_best.pt",
+    "load_info": {
+      "missing_keys": [],
+      "unexpected_keys": []
+    }
+  },
+  {
+    "dataset": "CIFAR-10",
+    "dataset_slug": "cifar10",
+    "model": "cnn",
+    "train_fraction": 0.25,
+    "parameter_count": 374282,
+    "classification": {
+      "macro_avg": {
+        "precision": 0.756,
+        "recall": 0.7508,
+        "f1_score": 0.7466
+      },
+      "weighted_avg": {
+        "precision": 0.756,
+        "recall": 0.7508,
+        "f1_score": 0.7466
+      },
+      "confidence": {
+        "mean": 0.8352,
+        "mean_correct": 0.8879,
+        "mean_incorrect": 0.6766
+      },
+      "per_class": [
+        {
+          "class_index": 0,
+          "class_name": "airplane",
+          "support": 1000,
+          "correct": 838,
+          "accuracy": 0.838,
+          "precision": 0.6677,
+          "recall": 0.838,
+          "f1_score": 0.7432,
+          "predicted_count": 1255
+        },
+        {
+          "class_index": 1,
+          "class_name": "automobile",
+          "support": 1000,
+          "correct": 762,
+          "accuracy": 0.762,
+          "precision": 0.9315,
+          "recall": 0.762,
+          "f1_score": 0.8383,
+          "predicted_count": 818
+        },
+        {
+          "class_index": 2,
+          "class_name": "bird",
+          "support": 1000,
+          "correct": 714,
+          "accuracy": 0.714,
+          "precision": 0.6302,
+          "recall": 0.714,
+          "f1_score": 0.6695,
+          "predicted_count": 1133
+        },
+        {
+          "class_index": 3,
+          "class_name": "cat",
+          "support": 1000,
+          "correct": 423,
+          "accuracy": 0.423,
+          "precision": 0.705,
+          "recall": 0.423,
+          "f1_score": 0.5288,
+          "predicted_count": 600
+        },
+        {
+          "class_index": 4,
+          "class_name": "deer",
+          "support": 1000,
+          "correct": 737,
+          "accuracy": 0.737,
+          "precision": 0.7582,
+          "recall": 0.737,
+          "f1_score": 0.7475,
+          "predicted_count": 972
+        },
+        {
+          "class_index": 5,
+          "class_name": "dog",
+          "support": 1000,
+          "correct": 663,
+          "accuracy": 0.663,
+          "precision": 0.7466,
+          "recall": 0.663,
+          "f1_score": 0.7023,
+          "predicted_count": 888
+        },
+        {
+          "class_index": 6,
+          "class_name": "frog",
+          "support": 1000,
+          "correct": 861,
+          "accuracy": 0.861,
+          "precision": 0.7193,
+          "recall": 0.861,
+          "f1_score": 0.7838,
+          "predicted_count": 1197
+        },
+        {
+          "class_index": 7,
+          "class_name": "horse",
+          "support": 1000,
+          "correct": 781,
+          "accuracy": 0.781,
+          "precision": 0.811,
+          "recall": 0.781,
+          "f1_score": 0.7957,
+          "predicted_count": 963
+        },
+        {
+          "class_index": 8,
+          "class_name": "ship",
+          "support": 1000,
+          "correct": 866,
+          "accuracy": 0.866,
+          "precision": 0.7945,
+          "recall": 0.866,
+          "f1_score": 0.8287,
+          "predicted_count": 1090
+        },
+        {
+          "class_index": 9,
+          "class_name": "truck",
+          "support": 1000,
+          "correct": 863,
+          "accuracy": 0.863,
+          "precision": 0.7961,
+          "recall": 0.863,
+          "f1_score": 0.8282,
+          "predicted_count": 1084
+        }
+      ],
+      "top_confusions": [
+        {
+          "true_class": "cat",
+          "predicted_class": "dog",
+          "count": 145
+        },
+        {
+          "true_class": "automobile",
+          "predicted_class": "truck",
+          "count": 125
+        },
+        {
+          "true_class": "cat",
+          "predicted_class": "frog",
+          "count": 124
+        },
+        {
+          "true_class": "cat",
+          "predicted_class": "bird",
+          "count": 99
+        },
+        {
+          "true_class": "ship",
+          "predicted_class": "airplane",
+          "count": 90
+        },
+        {
+          "true_class": "dog",
+          "predicted_class": "cat",
+          "count": 89
+        },
+        {
+          "true_class": "deer",
+          "predicted_class": "bird",
+          "count": 77
+        },
+        {
+          "true_class": "deer",
+          "predicted_class": "frog",
+          "count": 70
+        },
+        {
+          "true_class": "bird",
+          "predicted_class": "airplane",
+          "count": 65
+        },
+        {
+          "true_class": "cat",
+          "predicted_class": "deer",
+          "count": 65
+        }
+      ]
+    },
+    "clean": {
+      "loss": 0.8186,
+      "accuracy": 0.7508
+    },
+    "occluded": {
+      "loss": 0.9717,
+      "accuracy": 0.7077
+    },
+    "texture": {
+      "loss": 4.2188,
+      "accuracy": 0.3329
+    },
+    "robustness": [
+      {
+        "model": "cnn",
+        "shift": "occluded",
+        "clean_accuracy": 0.7508,
+        "shifted_accuracy": 0.7077,
+        "robustness_drop": 0.04310000000000003
+      },
+      {
+        "model": "cnn",
+        "shift": "texture",
+        "clean_accuracy": 0.7508,
+        "shifted_accuracy": 0.3329,
+        "robustness_drop": 0.41790000000000005
+      }
+    ],
+    "artifacts": {
+      "classification_report": "outputs/checkpoint_evaluation/cnn_25pct_best/classification_report.json",
+      "prediction_analysis": "outputs/checkpoint_evaluation/cnn_25pct_best/prediction_analysis.json",
+      "confusion_matrix": "outputs/checkpoint_evaluation/cnn_25pct_best/confusion_matrix.png",
+      "confusion_matrix_normalized": "outputs/checkpoint_evaluation/cnn_25pct_best/confusion_matrix_normalized.png",
+      "interpretability": [
+        "outputs/checkpoint_evaluation/cnn_25pct_best/interpretability/cnn_gradcam.png"
+      ],
+      "misclassified_examples": "outputs/checkpoint_evaluation/cnn_25pct_best/examples/misclassified_examples.png",
+      "correct_examples": "outputs/checkpoint_evaluation/cnn_25pct_best/examples/correct_examples.png"
+    },
+    "checkpoint_path": "/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/outputs/checkpoints/cnn_25pct_best.pt",
+    "load_info": {
+      "missing_keys": [],
+      "unexpected_keys": []
+    }
+  },
+  {
+    "dataset": "CIFAR-10",
+    "dataset_slug": "cifar10",
+    "model": "cnn",
+    "train_fraction": 0.5,
+    "parameter_count": 374282,
+    "classification": {
+      "macro_avg": {
+        "precision": 0.8193,
+        "recall": 0.8148,
+        "f1_score": 0.8134
+      },
+      "weighted_avg": {
+        "precision": 0.8193,
+        "recall": 0.8148,
+        "f1_score": 0.8134
+      },
+      "confidence": {
+        "mean": 0.8765,
+        "mean_correct": 0.9164,
+        "mean_incorrect": 0.7012
+      },
+      "per_class": [
+        {
+          "class_index": 0,
+          "class_name": "airplane",
+          "support": 1000,
+          "correct": 870,
+          "accuracy": 0.87,
+          "precision": 0.7699,
+          "recall": 0.87,
+          "f1_score": 0.8169,
+          "predicted_count": 1130
+        },
+        {
+          "class_index": 1,
+          "class_name": "automobile",
+          "support": 1000,
+          "correct": 847,
+          "accuracy": 0.847,
+          "precision": 0.938,
+          "recall": 0.847,
+          "f1_score": 0.8902,
+          "predicted_count": 903
+        },
+        {
+          "class_index": 2,
+          "class_name": "bird",
+          "support": 1000,
+          "correct": 710,
+          "accuracy": 0.71,
+          "precision": 0.7692,
+          "recall": 0.71,
+          "f1_score": 0.7384,
+          "predicted_count": 923
+        },
+        {
+          "class_index": 3,
+          "class_name": "cat",
+          "support": 1000,
+          "correct": 697,
+          "accuracy": 0.697,
+          "precision": 0.6741,
+          "recall": 0.697,
+          "f1_score": 0.6853,
+          "predicted_count": 1034
+        },
+        {
+          "class_index": 4,
+          "class_name": "deer",
+          "support": 1000,
+          "correct": 840,
+          "accuracy": 0.84,
+          "precision": 0.7728,
+          "recall": 0.84,
+          "f1_score": 0.805,
+          "predicted_count": 1087
+        },
+        {
+          "class_index": 5,
+          "class_name": "dog",
+          "support": 1000,
+          "correct": 633,
+          "accuracy": 0.633,
+          "precision": 0.8779,
+          "recall": 0.633,
+          "f1_score": 0.7356,
+          "predicted_count": 721
+        },
+        {
+          "class_index": 6,
+          "class_name": "frog",
+          "support": 1000,
+          "correct": 921,
+          "accuracy": 0.921,
+          "precision": 0.7912,
+          "recall": 0.921,
+          "f1_score": 0.8512,
+          "predicted_count": 1164
+        },
+        {
+          "class_index": 7,
+          "class_name": "horse",
+          "support": 1000,
+          "correct": 809,
+          "accuracy": 0.809,
+          "precision": 0.8793,
+          "recall": 0.809,
+          "f1_score": 0.8427,
+          "predicted_count": 920
+        },
+        {
+          "class_index": 8,
+          "class_name": "ship",
+          "support": 1000,
+          "correct": 908,
+          "accuracy": 0.908,
+          "precision": 0.879,
+          "recall": 0.908,
+          "f1_score": 0.8933,
+          "predicted_count": 1033
+        },
+        {
+          "class_index": 9,
+          "class_name": "truck",
+          "support": 1000,
+          "correct": 913,
+          "accuracy": 0.913,
+          "precision": 0.8415,
+          "recall": 0.913,
+          "f1_score": 0.8758,
+          "predicted_count": 1085
+        }
+      ],
+      "top_confusions": [
+        {
+          "true_class": "dog",
+          "predicted_class": "cat",
+          "count": 182
+        },
+        {
+          "true_class": "automobile",
+          "predicted_class": "truck",
+          "count": 95
+        },
+        {
+          "true_class": "bird",
+          "predicted_class": "frog",
+          "count": 77
+        },
+        {
+          "true_class": "horse",
+          "predicted_class": "deer",
+          "count": 69
+        },
+        {
+          "true_class": "bird",
+          "predicted_class": "deer",
+          "count": 67
+        },
+        {
+          "true_class": "cat",
+          "predicted_class": "bird",
+          "count": 64
+        },
+        {
+          "true_class": "bird",
+          "predicted_class": "airplane",
+          "count": 62
+        },
+        {
+          "true_class": "cat",
+          "predicted_class": "frog",
+          "count": 57
+        },
+        {
+          "true_class": "ship",
+          "predicted_class": "airplane",
+          "count": 54
+        },
+        {
+          "true_class": "cat",
+          "predicted_class": "dog",
+          "count": 51
+        }
+      ]
+    },
+    "clean": {
+      "loss": 0.6189,
+      "accuracy": 0.8148
+    },
+    "occluded": {
+      "loss": 0.7695,
+      "accuracy": 0.7697
+    },
+    "texture": {
+      "loss": 5.8345,
+      "accuracy": 0.2826
+    },
+    "robustness": [
+      {
+        "model": "cnn",
+        "shift": "occluded",
+        "clean_accuracy": 0.8148,
+        "shifted_accuracy": 0.7697,
+        "robustness_drop": 0.04509999999999992
+      },
+      {
+        "model": "cnn",
+        "shift": "texture",
+        "clean_accuracy": 0.8148,
+        "shifted_accuracy": 0.2826,
+        "robustness_drop": 0.5322
+      }
+    ],
+    "artifacts": {
+      "classification_report": "outputs/checkpoint_evaluation/cnn_50pct_best/classification_report.json",
+      "prediction_analysis": "outputs/checkpoint_evaluation/cnn_50pct_best/prediction_analysis.json",
+      "confusion_matrix": "outputs/checkpoint_evaluation/cnn_50pct_best/confusion_matrix.png",
+      "confusion_matrix_normalized": "outputs/checkpoint_evaluation/cnn_50pct_best/confusion_matrix_normalized.png",
+      "interpretability": [
+        "outputs/checkpoint_evaluation/cnn_50pct_best/interpretability/cnn_gradcam.png"
+      ],
+      "misclassified_examples": "outputs/checkpoint_evaluation/cnn_50pct_best/examples/misclassified_examples.png",
+      "correct_examples": "outputs/checkpoint_evaluation/cnn_50pct_best/examples/correct_examples.png"
+    },
+    "checkpoint_path": "/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/outputs/checkpoints/cnn_50pct_best.pt",
+    "load_info": {
+      "missing_keys": [],
+      "unexpected_keys": []
+    }
+  },
+  {
+    "dataset": "CIFAR-10",
+    "dataset_slug": "cifar10",
+    "model": "vit",
+    "train_fraction": 1.0,
+    "parameter_count": 1803850,
+    "classification": {
+      "macro_avg": {
+        "precision": 0.733,
+        "recall": 0.7336,
+        "f1_score": 0.733
+      },
+      "weighted_avg": {
+        "precision": 0.733,
+        "recall": 0.7336,
+        "f1_score": 0.733
+      },
+      "confidence": {
+        "mean": 0.8423,
+        "mean_correct": 0.8964,
+        "mean_incorrect": 0.6932
+      },
+      "per_class": [
+        {
+          "class_index": 0,
+          "class_name": "airplane",
+          "support": 1000,
+          "correct": 751,
+          "accuracy": 0.751,
+          "precision": 0.7363,
+          "recall": 0.751,
+          "f1_score": 0.7436,
+          "predicted_count": 1020
+        },
+        {
+          "class_index": 1,
+          "class_name": "automobile",
+          "support": 1000,
+          "correct": 836,
+          "accuracy": 0.836,
+          "precision": 0.8069,
+          "recall": 0.836,
+          "f1_score": 0.8212,
+          "predicted_count": 1036
+        },
+        {
+          "class_index": 2,
+          "class_name": "bird",
+          "support": 1000,
+          "correct": 673,
+          "accuracy": 0.673,
+          "precision": 0.6798,
+          "recall": 0.673,
+          "f1_score": 0.6764,
+          "predicted_count": 990
+        },
+        {
+          "class_index": 3,
+          "class_name": "cat",
+          "support": 1000,
+          "correct": 569,
+          "accuracy": 0.569,
+          "precision": 0.5667,
+          "recall": 0.569,
+          "f1_score": 0.5679,
+          "predicted_count": 1004
+        },
+        {
+          "class_index": 4,
+          "class_name": "deer",
+          "support": 1000,
+          "correct": 686,
+          "accuracy": 0.686,
+          "precision": 0.6943,
+          "recall": 0.686,
+          "f1_score": 0.6901,
+          "predicted_count": 988
+        },
+        {
+          "class_index": 5,
+          "class_name": "dog",
+          "support": 1000,
+          "correct": 631,
+          "accuracy": 0.631,
+          "precision": 0.6635,
+          "recall": 0.631,
+          "f1_score": 0.6468,
+          "predicted_count": 951
+        },
+        {
+          "class_index": 6,
+          "class_name": "frog",
+          "support": 1000,
+          "correct": 806,
+          "accuracy": 0.806,
+          "precision": 0.7662,
+          "recall": 0.806,
+          "f1_score": 0.7856,
+          "predicted_count": 1052
+        },
+        {
+          "class_index": 7,
+          "class_name": "horse",
+          "support": 1000,
+          "correct": 737,
+          "accuracy": 0.737,
+          "precision": 0.7968,
+          "recall": 0.737,
+          "f1_score": 0.7657,
+          "predicted_count": 925
+        },
+        {
+          "class_index": 8,
+          "class_name": "ship",
+          "support": 1000,
+          "correct": 853,
+          "accuracy": 0.853,
+          "precision": 0.8178,
+          "recall": 0.853,
+          "f1_score": 0.835,
+          "predicted_count": 1043
+        },
+        {
+          "class_index": 9,
+          "class_name": "truck",
+          "support": 1000,
+          "correct": 794,
+          "accuracy": 0.794,
+          "precision": 0.8012,
+          "recall": 0.794,
+          "f1_score": 0.7976,
+          "predicted_count": 991
+        }
+      ],
+      "top_confusions": [
+        {
+          "true_class": "dog",
+          "predicted_class": "cat",
+          "count": 196
+        },
+        {
+          "true_class": "cat",
+          "predicted_class": "dog",
+          "count": 168
+        },
+        {
+          "true_class": "automobile",
+          "predicted_class": "truck",
+          "count": 96
+        },
+        {
+          "true_class": "truck",
+          "predicted_class": "automobile",
+          "count": 96
+        },
+        {
+          "true_class": "airplane",
+          "predicted_class": "ship",
+          "count": 91
+        },
+        {
+          "true_class": "horse",
+          "predicted_class": "deer",
+          "count": 80
+        },
+        {
+          "true_class": "deer",
+          "predicted_class": "bird",
+          "count": 77
+        },
+        {
+          "true_class": "bird",
+          "predicted_class": "deer",
+          "count": 72
+        },
+        {
+          "true_class": "cat",
+          "predicted_class": "frog",
+          "count": 66
+        },
+        {
+          "true_class": "deer",
+          "predicted_class": "frog",
+          "count": 66
+        }
+      ]
+    },
+    "clean": {
+      "loss": 0.8605,
+      "accuracy": 0.7336
+    },
+    "occluded": {
+      "loss": 1.0096,
+      "accuracy": 0.6881
+    },
+    "texture": {
+      "loss": 1.9798,
+      "accuracy": 0.5026
+    },
+    "robustness": [
+      {
+        "model": "vit",
+        "shift": "occluded",
+        "clean_accuracy": 0.7336,
+        "shifted_accuracy": 0.6881,
+        "robustness_drop": 0.045499999999999985
+      },
+      {
+        "model": "vit",
+        "shift": "texture",
+        "clean_accuracy": 0.7336,
+        "shifted_accuracy": 0.5026,
+        "robustness_drop": 0.23099999999999998
+      }
+    ],
+    "artifacts": {
+      "classification_report": "outputs/checkpoint_evaluation/vit_100pct_best/classification_report.json",
+      "prediction_analysis": "outputs/checkpoint_evaluation/vit_100pct_best/prediction_analysis.json",
+      "confusion_matrix": "outputs/checkpoint_evaluation/vit_100pct_best/confusion_matrix.png",
+      "confusion_matrix_normalized": "outputs/checkpoint_evaluation/vit_100pct_best/confusion_matrix_normalized.png",
+      "interpretability": [
+        "outputs/checkpoint_evaluation/vit_100pct_best/interpretability/vit_attention.png"
+      ],
+      "misclassified_examples": "outputs/checkpoint_evaluation/vit_100pct_best/examples/misclassified_examples.png",
+      "correct_examples": "outputs/checkpoint_evaluation/vit_100pct_best/examples/correct_examples.png"
+    },
+    "checkpoint_path": "/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/outputs/checkpoints/vit_100pct_best.pt",
+    "load_info": {
+      "missing_keys": [],
+      "unexpected_keys": []
+    }
+  },
+  {
+    "dataset": "CIFAR-10",
+    "dataset_slug": "cifar10",
+    "model": "vit",
+    "train_fraction": 0.1,
+    "parameter_count": 1803850,
+    "classification": {
+      "macro_avg": {
+        "precision": 0.5276,
+        "recall": 0.5353,
+        "f1_score": 0.5251
+      },
+      "weighted_avg": {
+        "precision": 0.5276,
+        "recall": 0.5353,
+        "f1_score": 0.5251
+      },
+      "confidence": {
+        "mean": 0.6605,
+        "mean_correct": 0.7396,
+        "mean_incorrect": 0.5694
+      },
+      "per_class": [
+        {
+          "class_index": 0,
+          "class_name": "airplane",
+          "support": 1000,
+          "correct": 639,
+          "accuracy": 0.639,
+          "precision": 0.5133,
+          "recall": 0.639,
+          "f1_score": 0.5693,
+          "predicted_count": 1245
+        },
+        {
+          "class_index": 1,
+          "class_name": "automobile",
+          "support": 1000,
+          "correct": 666,
+          "accuracy": 0.666,
+          "precision": 0.5644,
+          "recall": 0.666,
+          "f1_score": 0.611,
+          "predicted_count": 1180
+        },
+        {
+          "class_index": 2,
+          "class_name": "bird",
+          "support": 1000,
+          "correct": 362,
+          "accuracy": 0.362,
+          "precision": 0.431,
+          "recall": 0.362,
+          "f1_score": 0.3935,
+          "predicted_count": 840
+        },
+        {
+          "class_index": 3,
+          "class_name": "cat",
+          "support": 1000,
+          "correct": 282,
+          "accuracy": 0.282,
+          "precision": 0.4292,
+          "recall": 0.282,
+          "f1_score": 0.3404,
+          "predicted_count": 657
+        },
+        {
+          "class_index": 4,
+          "class_name": "deer",
+          "support": 1000,
+          "correct": 394,
+          "accuracy": 0.394,
+          "precision": 0.5339,
+          "recall": 0.394,
+          "f1_score": 0.4534,
+          "predicted_count": 738
+        },
+        {
+          "class_index": 5,
+          "class_name": "dog",
+          "support": 1000,
+          "correct": 424,
+          "accuracy": 0.424,
+          "precision": 0.4857,
+          "recall": 0.424,
+          "f1_score": 0.4527,
+          "predicted_count": 873
+        },
+        {
+          "class_index": 6,
+          "class_name": "frog",
+          "support": 1000,
+          "correct": 752,
+          "accuracy": 0.752,
+          "precision": 0.5633,
+          "recall": 0.752,
+          "f1_score": 0.6441,
+          "predicted_count": 1335
+        },
+        {
+          "class_index": 7,
+          "class_name": "horse",
+          "support": 1000,
+          "correct": 619,
+          "accuracy": 0.619,
+          "precision": 0.5758,
+          "recall": 0.619,
+          "f1_score": 0.5966,
+          "predicted_count": 1075
+        },
+        {
+          "class_index": 8,
+          "class_name": "ship",
+          "support": 1000,
+          "correct": 705,
+          "accuracy": 0.705,
+          "precision": 0.5964,
+          "recall": 0.705,
+          "f1_score": 0.6462,
+          "predicted_count": 1182
+        },
+        {
+          "class_index": 9,
+          "class_name": "truck",
+          "support": 1000,
+          "correct": 510,
+          "accuracy": 0.51,
+          "precision": 0.5829,
+          "recall": 0.51,
+          "f1_score": 0.544,
+          "predicted_count": 875
+        }
+      ],
+      "top_confusions": [
+        {
+          "true_class": "truck",
+          "predicted_class": "automobile",
+          "count": 267
+        },
+        {
+          "true_class": "cat",
+          "predicted_class": "dog",
+          "count": 199
+        },
+        {
+          "true_class": "dog",
+          "predicted_class": "cat",
+          "count": 186
+        },
+        {
+          "true_class": "ship",
+          "predicted_class": "airplane",
+          "count": 154
+        },
+        {
+          "true_class": "cat",
+          "predicted_class": "frog",
+          "count": 153
+        },
+        {
+          "true_class": "airplane",
+          "predicted_class": "ship",
+          "count": 141
+        },
+        {
+          "true_class": "deer",
+          "predicted_class": "bird",
+          "count": 140
+        },
+        {
+          "true_class": "bird",
+          "predicted_class": "frog",
+          "count": 132
+        },
+        {
+          "true_class": "deer",
+          "predicted_class": "horse",
+          "count": 132
+        },
+        {
+          "true_class": "automobile",
+          "predicted_class": "truck",
+          "count": 128
+        }
+      ]
+    },
+    "clean": {
+      "loss": 1.377,
+      "accuracy": 0.5353
+    },
+    "occluded": {
+      "loss": 1.4827,
+      "accuracy": 0.5051
+    },
+    "texture": {
+      "loss": 1.8601,
+      "accuracy": 0.4316
+    },
+    "robustness": [
+      {
+        "model": "vit",
+        "shift": "occluded",
+        "clean_accuracy": 0.5353,
+        "shifted_accuracy": 0.5051,
+        "robustness_drop": 0.030200000000000005
+      },
+      {
+        "model": "vit",
+        "shift": "texture",
+        "clean_accuracy": 0.5353,
+        "shifted_accuracy": 0.4316,
+        "robustness_drop": 0.10370000000000001
+      }
+    ],
+    "artifacts": {
+      "classification_report": "outputs/checkpoint_evaluation/vit_10pct_best/classification_report.json",
+      "prediction_analysis": "outputs/checkpoint_evaluation/vit_10pct_best/prediction_analysis.json",
+      "confusion_matrix": "outputs/checkpoint_evaluation/vit_10pct_best/confusion_matrix.png",
+      "confusion_matrix_normalized": "outputs/checkpoint_evaluation/vit_10pct_best/confusion_matrix_normalized.png",
+      "interpretability": [
+        "outputs/checkpoint_evaluation/vit_10pct_best/interpretability/vit_attention.png"
+      ],
+      "misclassified_examples": "outputs/checkpoint_evaluation/vit_10pct_best/examples/misclassified_examples.png",
+      "correct_examples": "outputs/checkpoint_evaluation/vit_10pct_best/examples/correct_examples.png"
+    },
+    "checkpoint_path": "/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/outputs/checkpoints/vit_10pct_best.pt",
+    "load_info": {
+      "missing_keys": [],
+      "unexpected_keys": []
+    }
+  },
+  {
+    "dataset": "CIFAR-10",
+    "dataset_slug": "cifar10",
+    "model": "vit",
+    "train_fraction": 0.25,
+    "parameter_count": 1803850,
+    "classification": {
+      "macro_avg": {
+        "precision": 0.6042,
+        "recall": 0.6027,
+        "f1_score": 0.5959
+      },
+      "weighted_avg": {
+        "precision": 0.6042,
+        "recall": 0.6027,
+        "f1_score": 0.5959
+      },
+      "confidence": {
+        "mean": 0.7113,
+        "mean_correct": 0.7844,
+        "mean_incorrect": 0.6005
+      },
+      "per_class": [
+        {
+          "class_index": 0,
+          "class_name": "airplane",
+          "support": 1000,
+          "correct": 641,
+          "accuracy": 0.641,
+          "precision": 0.6309,
+          "recall": 0.641,
+          "f1_score": 0.6359,
+          "predicted_count": 1016
+        },
+        {
+          "class_index": 1,
+          "class_name": "automobile",
+          "support": 1000,
+          "correct": 622,
+          "accuracy": 0.622,
+          "precision": 0.7028,
+          "recall": 0.622,
+          "f1_score": 0.6599,
+          "predicted_count": 885
+        },
+        {
+          "class_index": 2,
+          "class_name": "bird",
+          "support": 1000,
+          "correct": 505,
+          "accuracy": 0.505,
+          "precision": 0.4975,
+          "recall": 0.505,
+          "f1_score": 0.5012,
+          "predicted_count": 1015
+        },
+        {
+          "class_index": 3,
+          "class_name": "cat",
+          "support": 1000,
+          "correct": 254,
+          "accuracy": 0.254,
+          "precision": 0.504,
+          "recall": 0.254,
+          "f1_score": 0.3378,
+          "predicted_count": 504
+        },
+        {
+          "class_index": 4,
+          "class_name": "deer",
+          "support": 1000,
+          "correct": 537,
+          "accuracy": 0.537,
+          "precision": 0.5635,
+          "recall": 0.537,
+          "f1_score": 0.5499,
+          "predicted_count": 953
+        },
+        {
+          "class_index": 5,
+          "class_name": "dog",
+          "support": 1000,
+          "correct": 606,
+          "accuracy": 0.606,
+          "precision": 0.4742,
+          "recall": 0.606,
+          "f1_score": 0.532,
+          "predicted_count": 1278
+        },
+        {
+          "class_index": 6,
+          "class_name": "frog",
+          "support": 1000,
+          "correct": 764,
+          "accuracy": 0.764,
+          "precision": 0.6508,
+          "recall": 0.764,
+          "f1_score": 0.7029,
+          "predicted_count": 1174
+        },
+        {
+          "class_index": 7,
+          "class_name": "horse",
+          "support": 1000,
+          "correct": 594,
+          "accuracy": 0.594,
+          "precision": 0.7165,
+          "recall": 0.594,
+          "f1_score": 0.6495,
+          "predicted_count": 829
+        },
+        {
+          "class_index": 8,
+          "class_name": "ship",
+          "support": 1000,
+          "correct": 745,
+          "accuracy": 0.745,
+          "precision": 0.7268,
+          "recall": 0.745,
+          "f1_score": 0.7358,
+          "predicted_count": 1025
+        },
+        {
+          "class_index": 9,
+          "class_name": "truck",
+          "support": 1000,
+          "correct": 759,
+          "accuracy": 0.759,
+          "precision": 0.5746,
+          "recall": 0.759,
+          "f1_score": 0.654,
+          "predicted_count": 1321
+        }
+      ],
+      "top_confusions": [
+        {
+          "true_class": "cat",
+          "predicted_class": "dog",
+          "count": 357
+        },
+        {
+          "true_class": "automobile",
+          "predicted_class": "truck",
+          "count": 254
+        },
+        {
+          "true_class": "airplane",
+          "predicted_class": "ship",
+          "count": 125
+        },
+        {
+          "true_class": "bird",
+          "predicted_class": "deer",
+          "count": 124
+        },
+        {
+          "true_class": "deer",
+          "predicted_class": "frog",
+          "count": 113
+        },
+        {
+          "true_class": "truck",
+          "predicted_class": "automobile",
+          "count": 108
+        },
+        {
+          "true_class": "deer",
+          "predicted_class": "horse",
+          "count": 104
+        },
+        {
+          "true_class": "cat",
+          "predicted_class": "bird",
+          "count": 103
+        },
+        {
+          "true_class": "dog",
+          "predicted_class": "bird",
+          "count": 101
+        },
+        {
+          "true_class": "horse",
+          "predicted_class": "dog",
+          "count": 100
+        }
+      ]
+    },
+    "clean": {
+      "loss": 1.1704,
+      "accuracy": 0.6027
+    },
+    "occluded": {
+      "loss": 1.2919,
+      "accuracy": 0.5646
+    },
+    "texture": {
+      "loss": 1.9275,
+      "accuracy": 0.4302
+    },
+    "robustness": [
+      {
+        "model": "vit",
+        "shift": "occluded",
+        "clean_accuracy": 0.6027,
+        "shifted_accuracy": 0.5646,
+        "robustness_drop": 0.03810000000000002
+      },
+      {
+        "model": "vit",
+        "shift": "texture",
+        "clean_accuracy": 0.6027,
+        "shifted_accuracy": 0.4302,
+        "robustness_drop": 0.1725
+      }
+    ],
+    "artifacts": {
+      "classification_report": "outputs/checkpoint_evaluation/vit_25pct_best/classification_report.json",
+      "prediction_analysis": "outputs/checkpoint_evaluation/vit_25pct_best/prediction_analysis.json",
+      "confusion_matrix": "outputs/checkpoint_evaluation/vit_25pct_best/confusion_matrix.png",
+      "confusion_matrix_normalized": "outputs/checkpoint_evaluation/vit_25pct_best/confusion_matrix_normalized.png",
+      "interpretability": [
+        "outputs/checkpoint_evaluation/vit_25pct_best/interpretability/vit_attention.png"
+      ],
+      "misclassified_examples": "outputs/checkpoint_evaluation/vit_25pct_best/examples/misclassified_examples.png",
+      "correct_examples": "outputs/checkpoint_evaluation/vit_25pct_best/examples/correct_examples.png"
+    },
+    "checkpoint_path": "/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/outputs/checkpoints/vit_25pct_best.pt",
+    "load_info": {
+      "missing_keys": [],
+      "unexpected_keys": []
+    }
+  },
+  {
+    "dataset": "CIFAR-10",
+    "dataset_slug": "cifar10",
+    "model": "vit",
+    "train_fraction": 0.5,
+    "parameter_count": 1803850,
+    "classification": {
+      "macro_avg": {
+        "precision": 0.6729,
+        "recall": 0.6703,
+        "f1_score": 0.6681
+      },
+      "weighted_avg": {
+        "precision": 0.6729,
+        "recall": 0.6703,
+        "f1_score": 0.6681
+      },
+      "confidence": {
+        "mean": 0.7706,
+        "mean_correct": 0.8338,
+        "mean_incorrect": 0.642
+      },
+      "per_class": [
+        {
+          "class_index": 0,
+          "class_name": "airplane",
+          "support": 1000,
+          "correct": 729,
+          "accuracy": 0.729,
+          "precision": 0.6682,
+          "recall": 0.729,
+          "f1_score": 0.6973,
+          "predicted_count": 1091
+        },
+        {
+          "class_index": 1,
+          "class_name": "automobile",
+          "support": 1000,
+          "correct": 708,
+          "accuracy": 0.708,
+          "precision": 0.8213,
+          "recall": 0.708,
+          "f1_score": 0.7605,
+          "predicted_count": 862
+        },
+        {
+          "class_index": 2,
+          "class_name": "bird",
+          "support": 1000,
+          "correct": 526,
+          "accuracy": 0.526,
+          "precision": 0.6053,
+          "recall": 0.526,
+          "f1_score": 0.5629,
+          "predicted_count": 869
+        },
+        {
+          "class_index": 3,
+          "class_name": "cat",
+          "support": 1000,
+          "correct": 454,
+          "accuracy": 0.454,
+          "precision": 0.5322,
+          "recall": 0.454,
+          "f1_score": 0.49,
+          "predicted_count": 853
+        },
+        {
+          "class_index": 4,
+          "class_name": "deer",
+          "support": 1000,
+          "correct": 666,
+          "accuracy": 0.666,
+          "precision": 0.6184,
+          "recall": 0.666,
+          "f1_score": 0.6413,
+          "predicted_count": 1077
+        },
+        {
+          "class_index": 5,
+          "class_name": "dog",
+          "support": 1000,
+          "correct": 599,
+          "accuracy": 0.599,
+          "precision": 0.581,
+          "recall": 0.599,
+          "f1_score": 0.5899,
+          "predicted_count": 1031
+        },
+        {
+          "class_index": 6,
+          "class_name": "frog",
+          "support": 1000,
+          "correct": 825,
+          "accuracy": 0.825,
+          "precision": 0.6279,
+          "recall": 0.825,
+          "f1_score": 0.7131,
+          "predicted_count": 1314
+        },
+        {
+          "class_index": 7,
+          "class_name": "horse",
+          "support": 1000,
+          "correct": 660,
+          "accuracy": 0.66,
+          "precision": 0.7612,
+          "recall": 0.66,
+          "f1_score": 0.707,
+          "predicted_count": 867
+        },
+        {
+          "class_index": 8,
+          "class_name": "ship",
+          "support": 1000,
+          "correct": 845,
+          "accuracy": 0.845,
+          "precision": 0.738,
+          "recall": 0.845,
+          "f1_score": 0.7879,
+          "predicted_count": 1145
+        },
+        {
+          "class_index": 9,
+          "class_name": "truck",
+          "support": 1000,
+          "correct": 691,
+          "accuracy": 0.691,
+          "precision": 0.7755,
+          "recall": 0.691,
+          "f1_score": 0.7308,
+          "predicted_count": 891
+        }
+      ],
+      "top_confusions": [
+        {
+          "true_class": "cat",
+          "predicted_class": "dog",
+          "count": 196
+        },
+        {
+          "true_class": "dog",
+          "predicted_class": "cat",
+          "count": 173
+        },
+        {
+          "true_class": "bird",
+          "predicted_class": "frog",
+          "count": 128
+        },
+        {
+          "true_class": "automobile",
+          "predicted_class": "truck",
+          "count": 126
+        },
+        {
+          "true_class": "cat",
+          "predicted_class": "frog",
+          "count": 123
+        },
+        {
+          "true_class": "bird",
+          "predicted_class": "deer",
+          "count": 118
+        },
+        {
+          "true_class": "airplane",
+          "predicted_class": "ship",
+          "count": 103
+        },
+        {
+          "true_class": "deer",
+          "predicted_class": "frog",
+          "count": 94
+        },
+        {
+          "true_class": "horse",
+          "predicted_class": "dog",
+          "count": 93
+        },
+        {
+          "true_class": "truck",
+          "predicted_class": "automobile",
+          "count": 90
+        }
+      ]
+    },
+    "clean": {
+      "loss": 1.0056,
+      "accuracy": 0.6703
+    },
+    "occluded": {
+      "loss": 1.1206,
+      "accuracy": 0.6333
+    },
+    "texture": {
+      "loss": 2.2755,
+      "accuracy": 0.421
+    },
+    "robustness": [
+      {
+        "model": "vit",
+        "shift": "occluded",
+        "clean_accuracy": 0.6703,
+        "shifted_accuracy": 0.6333,
+        "robustness_drop": 0.03700000000000003
+      },
+      {
+        "model": "vit",
+        "shift": "texture",
+        "clean_accuracy": 0.6703,
+        "shifted_accuracy": 0.421,
+        "robustness_drop": 0.24930000000000002
+      }
+    ],
+    "artifacts": {
+      "classification_report": "outputs/checkpoint_evaluation/vit_50pct_best/classification_report.json",
+      "prediction_analysis": "outputs/checkpoint_evaluation/vit_50pct_best/prediction_analysis.json",
+      "confusion_matrix": "outputs/checkpoint_evaluation/vit_50pct_best/confusion_matrix.png",
+      "confusion_matrix_normalized": "outputs/checkpoint_evaluation/vit_50pct_best/confusion_matrix_normalized.png",
+      "interpretability": [
+        "outputs/checkpoint_evaluation/vit_50pct_best/interpretability/vit_attention.png"
+      ],
+      "misclassified_examples": "outputs/checkpoint_evaluation/vit_50pct_best/examples/misclassified_examples.png",
+      "correct_examples": "outputs/checkpoint_evaluation/vit_50pct_best/examples/correct_examples.png"
+    },
+    "checkpoint_path": "/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/outputs/checkpoints/vit_50pct_best.pt",
+    "load_info": {
+      "missing_keys": [],
+      "unexpected_keys": []
+    }
+  }
+]
