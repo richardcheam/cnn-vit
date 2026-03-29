@@ -1,0 +1,5 @@
+model,shift,clean_accuracy,shifted_accuracy,robustness_drop
+cnn,occluded,0.857,0.8032,0.05379999999999996
+cnn,texture,0.857,0.3298,0.5272
+vit,occluded,0.7336,0.6881,0.045499999999999985
+vit,texture,0.7336,0.5026,0.23099999999999998

@@ -1,0 +1,9 @@
+model,train_fraction,train_size,val_size,test_size,test_accuracy,test_loss,best_val_accuracy,training_time_seconds,training_time_readable,parameter_count,checkpoint_path
+cnn,0.1,4500,5000,10000,0.657,1.0158,0.6644,151.42,2m 31s,374282,outputs/checkpoints/cnn_10pct_best.pt
+cnn,0.25,11250,5000,10000,0.7508,0.8186,0.7532,265.49,4m 25s,374282,outputs/checkpoints/cnn_25pct_best.pt
+cnn,0.5,22500,5000,10000,0.8148,0.6189,0.8178,453.6,7m 33s,374282,outputs/checkpoints/cnn_50pct_best.pt
+cnn,1.0,45000,5000,10000,0.857,0.4464,0.8604,836.74,13m 56s,374282,outputs/checkpoints/cnn_100pct_best.pt
+vit,0.1,4500,5000,10000,0.5353,1.377,0.5362,169.14,2m 49s,1803850,outputs/checkpoints/vit_10pct_best.pt
+vit,0.25,11250,5000,10000,0.6027,1.1704,0.615,300.0,5m 00s,1803850,outputs/checkpoints/vit_25pct_best.pt
+vit,0.5,22500,5000,10000,0.6703,1.0056,0.6858,517.76,8m 37s,1803850,outputs/checkpoints/vit_50pct_best.pt
+vit,1.0,45000,5000,10000,0.7336,0.8605,0.7464,946.15,15m 46s,1803850,outputs/checkpoints/vit_100pct_best.pt

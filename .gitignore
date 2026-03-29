@@ -18,13 +18,13 @@ __pycache__/
 
 # Project-generated data and results
 data/
-outputs/*
-!outputs/checkpoints/
-!outputs/checkpoints/**
-!outputs/eurosat_transfer/
-outputs/eurosat_transfer/*
-!outputs/eurosat_transfer/checkpoints/
-!outputs/eurosat_transfer/checkpoints/**
+# outputs/*
+# !outputs/checkpoints/
+# !outputs/checkpoints/**
+# !outputs/eurosat_transfer/
+# outputs/eurosat_transfer/*
+# !outputs/eurosat_transfer/checkpoints/
+# !outputs/eurosat_transfer/checkpoints/**
 
 # Coverage and logs
 .coverage
