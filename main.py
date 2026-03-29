@@ -27,6 +27,24 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--device", type=str, default=None, help="Choose a device such as cpu, cuda, or mps.")
     parser.add_argument("--output-dir", type=Path, default=None, help="Directory where results are saved.")
     parser.add_argument(
+        "--eurosat-train-fraction",
+        type=float,
+        default=None,
+        help="Optional fraction of the EuroSAT train split to use for quick transfer-stage pilots.",
+    )
+    parser.add_argument(
+        "--eurosat-val-fraction",
+        type=float,
+        default=None,
+        help="Optional EuroSAT validation fraction override.",
+    )
+    parser.add_argument(
+        "--eurosat-test-fraction",
+        type=float,
+        default=None,
+        help="Optional EuroSAT test fraction override.",
+    )
+    parser.add_argument(
         "--models",
         nargs="+",
         choices=AVAILABLE_MODELS,
@@ -86,6 +104,12 @@ def main() -> None:
             config.experiment.output_dir = args.output_dir
         else:
             config.transfer.output_dir = args.output_dir
+    if args.eurosat_train_fraction is not None:
+        config.eurosat.train_fraction = args.eurosat_train_fraction
+    if args.eurosat_val_fraction is not None:
+        config.eurosat.val_fraction = args.eurosat_val_fraction
+    if args.eurosat_test_fraction is not None:
+        config.eurosat.test_fraction = args.eurosat_test_fraction
     if args.device is not None:
         config.training.device = args.device
     if args.models is not None:

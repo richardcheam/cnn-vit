@@ -327,6 +327,7 @@ uv run python main.py --experiment eurosat --transfer-mode pretrained
 uv run python main.py --experiment eurosat --checkpoint-dir outputs/checkpoints
 uv run python main.py --experiment eurosat --cnn-checkpoint /path/to/cnn_100pct_best.pt --vit-checkpoint /path/to/vit_100pct_best.pt
 uv run python main.py --experiment eurosat --models cnn
+uv run python main.py --experiment eurosat --eurosat-train-fraction 0.25
 ```
 
 The default CIFAR run is a lightweight protocol with 5 epochs per experiment for quick iteration. The `--full` flag switches CIFAR to 20 epochs and EuroSAT to 25 epochs.
@@ -387,6 +388,8 @@ When you run `uv run python main.py --experiment eurosat`, the project executes 
 4. For pretrained runs, load only the transferable backbone weights and keep a fresh EuroSAT classifier head.
 5. Fine-tune on the EuroSAT training split and select the best validation checkpoint in memory.
 6. Save EuroSAT checkpoints, plots, CSV summaries, and `summary.json` into `outputs/eurosat_transfer/`.
+
+The EuroSAT summary rows also include `macro_f1` and `weighted_f1`, so the downstream stage is not limited to accuracy alone.
 
 ## Why The Train Split Grows From 10% To 100%
 

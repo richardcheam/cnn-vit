@@ -5,6 +5,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import torch
 from matplotlib.ticker import PercentFormatter
+from sklearn.metrics import f1_score
 
 from configs.config import ProjectConfig
 from datasets.cifar_loader import DataBundle
@@ -71,6 +72,20 @@ def _save_figure(figure, path: Path) -> None:
     figure.tight_layout(rect=(0, 0, 1, 0.98))
     figure.savefig(path, dpi=240)
     plt.close(figure)
+
+
+@torch.no_grad()
+def _collect_predictions(model: torch.nn.Module, loader, device: torch.device) -> tuple[list[int], list[int]]:
+    predictions: list[int] = []
+    targets: list[int] = []
+    for images, labels in loader:
+        images = images.to(device, non_blocking=device.type != "cpu")
+        labels = labels.to(device, non_blocking=device.type != "cpu")
+        logits = model(images)
+        batch_predictions = logits.argmax(dim=1)
+        predictions.extend(batch_predictions.detach().cpu().tolist())
+        targets.extend(labels.detach().cpu().tolist())
+    return predictions, targets
 
 
 def _build_eurosat_model(model_name: str, config: ProjectConfig) -> torch.nn.Module:
@@ -312,6 +327,9 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
                 run_name=run_label,
             )
             test_metrics = trainer.evaluate(data_bundle.test, label=f"{run_label} test")
+            test_predictions, test_targets = _collect_predictions(model, data_bundle.test, device=device)
+            macro_f1 = f1_score(test_targets, test_predictions, average="macro")
+            weighted_f1 = f1_score(test_targets, test_predictions, average="weighted")
 
             summary = {
                 "dataset": config.eurosat.name,
@@ -326,6 +344,8 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
                 "image_size": config.eurosat.image_size,
                 "test_accuracy": round(test_metrics["accuracy"], 4),
                 "test_loss": round(test_metrics["loss"], 4),
+                "macro_f1": round(macro_f1, 4),
+                "weighted_f1": round(weighted_f1, 4),
                 "best_val_accuracy": round(history["best_val_accuracy"], 4),
                 "parameter_count": parameter_count,
                 "training_time_seconds": round(history["training_time_seconds"], 2),
@@ -356,7 +376,8 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
             detailed_results.append(summary)
             _log(
                 f"[{run_label}] Finished | "
-                f"test_acc={summary['test_accuracy']:.4f}, best_val_acc={summary['best_val_accuracy']:.4f}, "
+                f"test_acc={summary['test_accuracy']:.4f}, macro_f1={summary['macro_f1']:.4f}, "
+                f"best_val_acc={summary['best_val_accuracy']:.4f}, "
                 f"checkpoint={checkpoint_path}"
             )
 
