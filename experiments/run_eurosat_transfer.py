@@ -14,6 +14,7 @@ from evaluation.metrics import model_summary
 from models.cnn import CNN
 from models.vit import VisionTransformer
 from training.trainer import Trainer
+from utils.artifacts import load_eurosat_runs_with_histories
 from utils.helpers import ensure_dir, format_seconds, save_csv, save_json, save_torch_checkpoint
 from utils.transfer import build_finetune_parameter_groups, load_pretrained_backbone, resolve_checkpoint_path
 
@@ -51,6 +52,42 @@ TRANSFER_LINESTYLES = {
     "scratch": "-",
     "pretrained": "--",
 }
+
+
+def _eurosat_run_key(row: dict) -> tuple:
+    return (
+        row.get("dataset_slug", row.get("dataset")),
+        row.get("model"),
+        row.get("initialization"),
+        row.get("train_size"),
+        row.get("val_size"),
+        row.get("test_size"),
+    )
+
+
+def _merge_eurosat_runs(existing_runs: list[dict], new_runs: list[dict]) -> list[dict]:
+    merged: dict[tuple, dict] = {}
+    for row in existing_runs:
+        merged[_eurosat_run_key(row)] = row
+    for row in new_runs:
+        merged[_eurosat_run_key(row)] = row
+    return sorted(
+        merged.values(),
+        key=lambda row: (
+            row.get("model", ""),
+            row.get("initialization", ""),
+            row.get("train_size", 0),
+            row.get("val_size", 0),
+            row.get("test_size", 0),
+        ),
+    )
+
+
+def _summary_run_id(row: dict) -> str:
+    train_size = row.get("train_size", "na")
+    initialization = row.get("initialization", "run")
+    model = row.get("model", "model")
+    return f"{model}_{initialization}_{train_size}"
 
 
 def _log(message: str) -> None:
@@ -113,7 +150,14 @@ def _build_eurosat_model(model_name: str, config: ProjectConfig) -> torch.nn.Mod
 def _save_transfer_accuracy_plot(rows: list[dict], output_dir: Path) -> None:
     ensure_dir(output_dir)
     ordered_rows = sorted(rows, key=lambda row: (row["model"], row["initialization"]))
-    labels = [f"{row['model'].upper()}\n{row['initialization']}" for row in ordered_rows]
+    unique_train_sizes = {row.get("train_size") for row in ordered_rows}
+    show_train_size = len(unique_train_sizes) > 1
+    labels = []
+    for row in ordered_rows:
+        label = f"{row['model'].upper()}\n{row['initialization']}"
+        if show_train_size and row.get("train_size") is not None:
+            label += f"\n{row['train_size']:,} train"
+        labels.append(label)
     accuracies = [row["test_accuracy"] for row in ordered_rows]
     colors = [ARCHITECTURE_COLORS[row["model"]] for row in ordered_rows]
     alphas = [0.65 if row["initialization"] == "scratch" else 1.0 for row in ordered_rows]
@@ -150,6 +194,8 @@ def _save_transfer_validation_curves(results: list[dict], output_dir: Path) -> N
         figure, axes = plt.subplots(1, 2, figsize=(13, 5))
         dataset_name = results[0]["dataset"] if results else "Downstream"
         source_dataset = results[0].get("source_dataset", "source-stage") if results else "source-stage"
+        unique_train_sizes = {row.get("train_size") for row in results}
+        show_train_size = len(unique_train_sizes) > 1
 
         for result in results:
             history = result["history"]
@@ -157,6 +203,8 @@ def _save_transfer_validation_curves(results: list[dict], output_dir: Path) -> N
             color = ARCHITECTURE_COLORS[result["model"]]
             linestyle = TRANSFER_LINESTYLES[result["initialization"]]
             label = f"{result['model'].upper()} {result['initialization']}"
+            if show_train_size and result.get("train_size") is not None:
+                label += f" ({result['train_size']:,})"
 
             axes[0].plot(
                 epochs,
@@ -383,6 +431,17 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
                 f"checkpoint={checkpoint_path}"
             )
 
+    existing_detailed_results = load_eurosat_runs_with_histories(root_output_dir)
+    merged_detailed_results = _merge_eurosat_runs(existing_detailed_results, detailed_results)
+    merged_rows = [
+        {
+            key: value
+            for key, value in result.items()
+            if key not in {"history", "preload_info"}
+        }
+        for result in merged_detailed_results
+    ]
+
     summary = {
         "config": config.to_dict(),
         "dataset": config.eurosat.name,
@@ -395,23 +454,23 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
             "test_size": protocol.test_size,
             "class_names": list(protocol.class_names),
         },
-        "runs": rows,
-        "detailed_runs": detailed_results,
+        "runs": merged_rows,
+        "detailed_runs": merged_detailed_results,
         "histories": {
-            f"{result['model']}_{result['initialization']}": result["history"]
-            for result in detailed_results
+            _summary_run_id(result): result["history"]
+            for result in merged_detailed_results
         },
         "checkpoints": {
-            f"{result['model']}_{result['initialization']}": result["checkpoint_path"]
-            for result in detailed_results
+            _summary_run_id(result): result["checkpoint_path"]
+            for result in merged_detailed_results
         },
     }
     save_json(summary, root_output_dir / "summary.json")
-    save_json(detailed_results, root_output_dir / "transfer_runs.json")
-    save_csv(rows, root_output_dir / "eurosat_transfer_results.csv")
+    save_json(merged_detailed_results, root_output_dir / "transfer_runs.json")
+    save_csv(merged_rows, root_output_dir / "eurosat_transfer_results.csv")
 
-    _save_transfer_accuracy_plot(rows=rows, output_dir=plots_dir)
-    _save_transfer_validation_curves(results=detailed_results, output_dir=plots_dir)
+    _save_transfer_accuracy_plot(rows=merged_rows, output_dir=plots_dir)
+    _save_transfer_validation_curves(results=merged_detailed_results, output_dir=plots_dir)
     _log(f"[Artifacts] Saved {config.eurosat.name} results to {root_output_dir}")
     _log("=" * 80)
     return summary

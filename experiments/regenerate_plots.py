@@ -24,6 +24,13 @@ from utils.artifacts import load_cifar_runs_with_histories, load_eurosat_runs_wi
 from utils.helpers import ensure_dir, save_csv, save_json
 
 
+def _eurosat_summary_run_id(row: dict) -> str:
+    train_size = row.get("train_size", "na")
+    initialization = row.get("initialization", "run")
+    model = row.get("model", "model")
+    return f"{model}_{initialization}_{train_size}"
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Regenerate saved experiment plots from persisted histories without retraining.",
@@ -120,11 +127,11 @@ def regenerate_eurosat_plots(source_dir: Path, output_dir: Path) -> None:
         "runs": rows,
         "detailed_runs": detailed_runs,
         "histories": {
-            f"{result['model']}_{result['initialization']}": result["history"]
+            _eurosat_summary_run_id(result): result["history"]
             for result in detailed_runs
         },
         "checkpoints": {
-            f"{result['model']}_{result['initialization']}": result["checkpoint_path"]
+            _eurosat_summary_run_id(result): result["checkpoint_path"]
             for result in detailed_runs
             if result.get("checkpoint_path")
         },

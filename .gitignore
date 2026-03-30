@@ -30,6 +30,11 @@ data/
 .coverage
 htmlcov/
 *.log
+report/*.aux
+report/*.out
+report/*.log
+report/.texfonts/
+report/missfont.log
 
 # macOS
 .DS_Store
