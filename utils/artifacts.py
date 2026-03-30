@@ -36,24 +36,25 @@ def load_eurosat_runs_with_histories(output_dir: str | Path) -> list[dict]:
     output_dir = Path(output_dir)
     summary_path = output_dir / "summary.json"
     runs_path = output_dir / "transfer_runs.json"
+    checkpoint_runs = _load_eurosat_runs_from_checkpoints(output_dir / "checkpoints")
 
     if runs_path.exists():
-        return load_json(runs_path)
+        return _merge_eurosat_runs(load_json(runs_path), checkpoint_runs)
 
     if summary_path.exists():
         summary = load_json(summary_path)
         if "detailed_runs" in summary:
-            return summary["detailed_runs"]
+            return _merge_eurosat_runs(summary["detailed_runs"], checkpoint_runs)
         if "runs" in summary and "histories" in summary:
             detailed_runs = []
             for row in summary["runs"]:
-                key = f"{row['model']}_{row['initialization']}"
+                key = f"{row['model']}_{row['initialization']}_{row.get('train_size', 'na')}"
                 detailed = dict(row)
                 detailed["history"] = summary["histories"].get(key)
                 detailed_runs.append(detailed)
-            return detailed_runs
+            return _merge_eurosat_runs(detailed_runs, checkpoint_runs)
 
-    return _load_eurosat_runs_from_checkpoints(output_dir / "checkpoints")
+    return checkpoint_runs
 
 
 def _load_cifar_runs_from_checkpoints(checkpoint_dir: Path) -> list[dict]:
@@ -104,3 +105,32 @@ def _load_eurosat_runs_from_checkpoints(checkpoint_dir: Path) -> list[dict]:
         runs.append(detailed)
 
     return sorted(runs, key=lambda row: (row["model"], row["initialization"]))
+
+
+def _merge_eurosat_runs(existing_runs: list[dict], checkpoint_runs: list[dict]) -> list[dict]:
+    merged: dict[tuple, dict] = {}
+    for row in existing_runs:
+        merged[_eurosat_run_key(row)] = row
+    for row in checkpoint_runs:
+        merged[_eurosat_run_key(row)] = row
+    return sorted(
+        merged.values(),
+        key=lambda row: (
+            row.get("model", ""),
+            row.get("initialization", ""),
+            row.get("train_size", 0),
+            row.get("val_size", 0),
+            row.get("test_size", 0),
+        ),
+    )
+
+
+def _eurosat_run_key(row: dict) -> tuple:
+    return (
+        row.get("dataset_slug", row.get("dataset")),
+        row.get("model"),
+        row.get("initialization"),
+        row.get("train_size"),
+        row.get("val_size"),
+        row.get("test_size"),
+    )

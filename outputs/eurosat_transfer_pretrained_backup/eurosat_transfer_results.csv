@@ -1,3 +1,0 @@
-dataset,dataset_slug,source_dataset,source_dataset_slug,model,initialization,train_size,val_size,test_size,image_size,test_accuracy,test_loss,macro_f1,weighted_f1,best_val_accuracy,parameter_count,training_time_seconds,training_time_readable,source_checkpoint,checkpoint_path
-EuroSAT,eurosat,CIFAR-10,cifar10,cnn,pretrained,21600,2700,2700,64,0.9674,0.0984,0.966,0.9673,0.9767,374282,683.37,11m 23s,outputs/checkpoints/cnn_100pct_best.pt,outputs/eurosat_transfer/checkpoints/cnn_pretrained_eurosat_best.pt
-EuroSAT,eurosat,CIFAR-10,cifar10,vit,pretrained,21600,2700,2700,64,0.9415,0.2363,0.9385,0.9413,0.9511,1840714,1888.09,31m 28s,outputs/checkpoints/vit_100pct_best.pt,outputs/eurosat_transfer/checkpoints/vit_pretrained_eurosat_best.pt
