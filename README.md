@@ -20,10 +20,11 @@ The project studies not only which model is more accurate, but also how each mod
 
 In practice, this means we train both architectures under the same protocol and compare them across clean accuracy, robustness, data efficiency, and interpretability.
 
-The repository now supports two connected stages:
+The repository now supports three connected stages:
 
 1. Source-stage pretraining and controlled analysis on CIFAR-10.
 2. Downstream transfer to EuroSAT using either random initialization or the saved CIFAR checkpoints.
+3. Downstream transfer to the Brain Tumor MRI dataset using the same scratch-vs-pretrained comparison.
 
 ## Pipeline Overview
 
@@ -235,6 +236,68 @@ So the EuroSAT transfer stage runs:
 
 For the ViT transfer runs, the positional embeddings are automatically interpolated when moving from CIFAR-10 resolution to EuroSAT resolution.
 
+## Brain MRI Transfer Setup
+
+The second downstream transfer stage uses the Kaggle Brain Tumor MRI dataset as a medical-image classification benchmark.
+
+### 1. Expected local dataset layout
+
+This dataset is not auto-downloaded by the project. Download it manually from Kaggle and place it under a directory that contains:
+
+```text
+data/brain_tumor_mri_dataset/
+├── Training/
+│   ├── glioma/
+│   ├── meningioma/
+│   ├── notumor/
+│   └── pituitary/
+└── Testing/
+    ├── glioma/
+    ├── meningioma/
+    ├── notumor/
+    └── pituitary/
+```
+
+If your extracted folder has one extra wrapper directory, the loader will detect that automatically.
+
+### 2. Brain MRI setup
+
+| Item | Value |
+| --- | --- |
+| Dataset | Brain Tumor MRI |
+| Number of classes | `4` |
+| Working image size | `128 x 128 x 3` |
+| Split strategy | Provided Kaggle `Training/` and `Testing/` folders, plus a validation split carved from `Training/` |
+| Default validation split | `15%` of the training folder |
+
+### 3. Brain MRI transforms
+
+| Split | Transform sequence |
+| --- | --- |
+| Train | `RGB convert` -> `Resize(128, 128)` -> `RandomRotation(10)` -> `RandomAffine(translate/scale)` -> `ToTensor()` -> `Normalize(mean, std)` |
+| Validation | `RGB convert` -> `Resize(128, 128)` -> `ToTensor()` -> `Normalize(mean, std)` |
+| Test | `RGB convert` -> `Resize(128, 128)` -> `ToTensor()` -> `Normalize(mean, std)` |
+
+The medical pipeline uses light geometry-only augmentation and avoids the stronger orientation changes used in EuroSAT.
+
+### 4. Brain MRI comparison matrix
+
+For each architecture, the runner compares:
+
+- `scratch`: train directly on Brain MRI from random initialization
+- `pretrained`: load the CIFAR-10 backbone checkpoint, replace the classifier head, and fine-tune end to end
+
+### 5. Run commands
+
+```bash
+uv run python main.py --experiment brain_mri --brain-mri-data-dir data/brain_tumor_mri_dataset
+uv run python main.py --experiment brain_mri --transfer-mode pretrained --brain-mri-data-dir data/brain_tumor_mri_dataset
+uv run python main.py --experiment brain_mri --models cnn --brain-mri-data-dir data/brain_tumor_mri_dataset
+uv run python main.py --experiment brain_mri --brain-mri-train-fraction 0.25 --brain-mri-data-dir data/brain_tumor_mri_dataset
+```
+
+Brain MRI artifacts are saved to `outputs/brain_mri_transfer/`.
+
 ## Project Structure
 
 ```text
@@ -242,6 +305,7 @@ project/
 ├── configs/
 │   └── config.py
 ├── datasets/
+│   ├── brain_mri_loader.py
 │   ├── cifar_loader.py
 │   ├── eurosat_loader.py
 │   ├── occlusion.py
@@ -250,6 +314,7 @@ project/
 │   ├── metrics.py
 │   └── robustness.py
 ├── experiments/
+│   ├── run_brain_mri_transfer.py
 │   ├── run_eurosat_transfer.py
 │   └── run_experiments.py
 ├── interpretability/

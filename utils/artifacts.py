@@ -57,6 +57,31 @@ def load_eurosat_runs_with_histories(output_dir: str | Path) -> list[dict]:
     return checkpoint_runs
 
 
+def load_brain_mri_runs_with_histories(output_dir: str | Path) -> list[dict]:
+    output_dir = Path(output_dir)
+    summary_path = output_dir / "summary.json"
+    runs_path = output_dir / "transfer_runs.json"
+    checkpoint_runs = _load_brain_mri_runs_from_checkpoints(output_dir / "checkpoints")
+
+    if runs_path.exists():
+        return _merge_transfer_runs(load_json(runs_path), checkpoint_runs)
+
+    if summary_path.exists():
+        summary = load_json(summary_path)
+        if "detailed_runs" in summary:
+            return _merge_transfer_runs(summary["detailed_runs"], checkpoint_runs)
+        if "runs" in summary and "histories" in summary:
+            detailed_runs = []
+            for row in summary["runs"]:
+                key = f"{row['model']}_{row['initialization']}_{row.get('train_size', 'na')}"
+                detailed = dict(row)
+                detailed["history"] = summary["histories"].get(key)
+                detailed_runs.append(detailed)
+            return _merge_transfer_runs(detailed_runs, checkpoint_runs)
+
+    return checkpoint_runs
+
+
 def _load_cifar_runs_from_checkpoints(checkpoint_dir: Path) -> list[dict]:
     if not checkpoint_dir.exists():
         return []
@@ -107,12 +132,34 @@ def _load_eurosat_runs_from_checkpoints(checkpoint_dir: Path) -> list[dict]:
     return sorted(runs, key=lambda row: (row["model"], row["initialization"]))
 
 
-def _merge_eurosat_runs(existing_runs: list[dict], checkpoint_runs: list[dict]) -> list[dict]:
+def _load_brain_mri_runs_from_checkpoints(checkpoint_dir: Path) -> list[dict]:
+    if not checkpoint_dir.exists():
+        return []
+
+    runs = []
+    for checkpoint_path in sorted(checkpoint_dir.glob("*_best.pt")):
+        checkpoint = load_torch_checkpoint(checkpoint_path)
+        history = checkpoint.get("history")
+        summary = checkpoint.get("summary", {})
+        if history is None or summary.get("initialization") is None:
+            continue
+        if summary.get("dataset_slug") not in {"brain_tumor_mri", "brain_mri"}:
+            continue
+
+        detailed = dict(summary)
+        detailed["history"] = history
+        detailed["checkpoint_path"] = str(checkpoint_path)
+        runs.append(detailed)
+
+    return sorted(runs, key=lambda row: (row["model"], row["initialization"]))
+
+
+def _merge_transfer_runs(existing_runs: list[dict], checkpoint_runs: list[dict]) -> list[dict]:
     merged: dict[tuple, dict] = {}
     for row in existing_runs:
-        merged[_eurosat_run_key(row)] = row
+        merged[_transfer_run_key(row)] = row
     for row in checkpoint_runs:
-        merged[_eurosat_run_key(row)] = row
+        merged[_transfer_run_key(row)] = row
     return sorted(
         merged.values(),
         key=lambda row: (
@@ -125,7 +172,7 @@ def _merge_eurosat_runs(existing_runs: list[dict], checkpoint_runs: list[dict]) 
     )
 
 
-def _eurosat_run_key(row: dict) -> tuple:
+def _transfer_run_key(row: dict) -> tuple:
     return (
         row.get("dataset_slug", row.get("dataset")),
         row.get("model"),

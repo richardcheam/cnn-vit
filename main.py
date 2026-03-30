@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 
 from configs.config import AVAILABLE_MODELS, build_config
+from experiments.run_brain_mri_transfer import run_brain_mri_transfer
 from experiments.run_eurosat_transfer import run_eurosat_transfer
 from experiments.run_experiments import run_experiments
 from utils.helpers import get_device, runtime_diagnostics, set_seed
@@ -16,9 +17,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--experiment",
-        choices=("cifar", "eurosat"),
+        choices=("cifar", "eurosat", "brain_mri"),
         default="cifar",
-        help="Choose between the source-stage study and the EuroSAT transfer stage.",
+        help="Choose between the source-stage study and the downstream transfer stages.",
     )
     parser.add_argument("--full", action="store_true", help="Run the longer 20-epoch protocol.")
     parser.add_argument("--epochs", type=int, default=None, help="Override the number of training epochs.")
@@ -43,6 +44,24 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=None,
         help="Optional EuroSAT test fraction override.",
+    )
+    parser.add_argument(
+        "--brain-mri-data-dir",
+        type=Path,
+        default=None,
+        help="Directory containing the Brain Tumor MRI dataset with `Training/` and `Testing/` subfolders.",
+    )
+    parser.add_argument(
+        "--brain-mri-train-fraction",
+        type=float,
+        default=None,
+        help="Optional fraction of the Brain MRI training split to use.",
+    )
+    parser.add_argument(
+        "--brain-mri-val-fraction",
+        type=float,
+        default=None,
+        help="Optional Brain MRI validation fraction override, carved from the training folder.",
     )
     parser.add_argument(
         "--models",
@@ -87,43 +106,70 @@ def main() -> None:
     if args.epochs is not None:
         if args.experiment == "cifar":
             config.training.epochs = args.epochs
-        else:
+        elif args.experiment == "eurosat":
             config.transfer.epochs = args.epochs
+        else:
+            config.brain_transfer.epochs = args.epochs
     if args.batch_size is not None:
         if args.experiment == "cifar":
             config.data.batch_size = args.batch_size
-        else:
+        elif args.experiment == "eurosat":
             config.eurosat.batch_size = args.batch_size
+        else:
+            config.brain_mri.batch_size = args.batch_size
     if args.num_workers is not None:
         if args.experiment == "cifar":
             config.data.num_workers = args.num_workers
-        else:
+        elif args.experiment == "eurosat":
             config.eurosat.num_workers = args.num_workers
+        else:
+            config.brain_mri.num_workers = args.num_workers
     if args.output_dir is not None:
         if args.experiment == "cifar":
             config.experiment.output_dir = args.output_dir
-        else:
+        elif args.experiment == "eurosat":
             config.transfer.output_dir = args.output_dir
+        else:
+            config.brain_transfer.output_dir = args.output_dir
     if args.eurosat_train_fraction is not None:
         config.eurosat.train_fraction = args.eurosat_train_fraction
     if args.eurosat_val_fraction is not None:
         config.eurosat.val_fraction = args.eurosat_val_fraction
     if args.eurosat_test_fraction is not None:
         config.eurosat.test_fraction = args.eurosat_test_fraction
+    if args.brain_mri_data_dir is not None:
+        config.brain_mri.data_dir = args.brain_mri_data_dir
+    if args.brain_mri_train_fraction is not None:
+        config.brain_mri.train_fraction = args.brain_mri_train_fraction
+    if args.brain_mri_val_fraction is not None:
+        config.brain_mri.val_fraction = args.brain_mri_val_fraction
     if args.device is not None:
         config.training.device = args.device
     if args.models is not None:
         selected_models = tuple(args.models)
         config.experiment.model_names = selected_models
         config.transfer.model_names = selected_models
+        config.brain_transfer.model_names = selected_models
     if args.transfer_mode is not None:
-        config.transfer.run_mode = args.transfer_mode
+        if args.experiment == "brain_mri":
+            config.brain_transfer.run_mode = args.transfer_mode
+        else:
+            config.transfer.run_mode = args.transfer_mode
     if args.checkpoint_dir is not None:
-        config.transfer.checkpoint_dir = args.checkpoint_dir
+        if args.experiment == "brain_mri":
+            config.brain_transfer.checkpoint_dir = args.checkpoint_dir
+        else:
+            config.transfer.checkpoint_dir = args.checkpoint_dir
     if args.cnn_checkpoint is not None:
-        config.transfer.cnn_checkpoint = args.cnn_checkpoint
+        if args.experiment == "brain_mri":
+            config.brain_transfer.cnn_checkpoint = args.cnn_checkpoint
+        else:
+            config.transfer.cnn_checkpoint = args.cnn_checkpoint
     if args.vit_checkpoint is not None:
-        config.transfer.vit_checkpoint = args.vit_checkpoint
+        if args.experiment == "brain_mri":
+            config.brain_transfer.vit_checkpoint = args.vit_checkpoint
+        else:
+            config.transfer.vit_checkpoint = args.vit_checkpoint
 
     # Reproducibility matters for comparisons, so we seed before building data
     # loaders or models.
@@ -132,11 +178,19 @@ def main() -> None:
     print("Launching experiment runner...", flush=True)
     if args.experiment == "cifar":
         print(f"Selected experiment: source-stage study on {config.data.name}", flush=True)
-    else:
+    elif args.experiment == "eurosat":
         print(f"Selected experiment: downstream transfer on {config.eurosat.name}", flush=True)
+    else:
+        print(f"Selected experiment: downstream transfer on {config.brain_mri.name}", flush=True)
     print(
         "Selected models: "
-        + ", ".join(config.experiment.model_names if args.experiment == "cifar" else config.transfer.model_names),
+        + ", ".join(
+            config.experiment.model_names
+            if args.experiment == "cifar"
+            else config.transfer.model_names
+            if args.experiment == "eurosat"
+            else config.brain_transfer.model_names
+        ),
         flush=True,
     )
     print("\nRuntime diagnostics:", flush=True)
@@ -144,8 +198,10 @@ def main() -> None:
         print(f"  - {line}", flush=True)
     if args.experiment == "cifar":
         summary = run_experiments(config=config, device=device)
-    else:
+    elif args.experiment == "eurosat":
         summary = run_eurosat_transfer(config=config, device=device)
+    else:
+        summary = run_brain_mri_transfer(config=config, device=device)
 
     print("\nFinal summary:", flush=True)
     print(f"Device: {device}", flush=True)
@@ -157,7 +213,7 @@ def main() -> None:
                 f"params={row['parameter_count']:,}, time={row['training_time_readable']}"
             )
         print(f"Artifacts saved to: {config.experiment.output_dir}", flush=True)
-    else:
+    elif args.experiment == "eurosat":
         print(f"{config.eurosat.name} transfer results:")
         for row in summary["runs"]:
             print(
@@ -165,6 +221,14 @@ def main() -> None:
                 f"acc={row['test_accuracy']:.4f}, checkpoint={row['checkpoint_path']}"
             )
         print(f"Artifacts saved to: {config.transfer.output_dir}", flush=True)
+    else:
+        print(f"{config.brain_mri.name} transfer results:")
+        for row in summary["runs"]:
+            print(
+                f"  {row['model'].upper()} ({row['initialization']}): "
+                f"acc={row['test_accuracy']:.4f}, checkpoint={row['checkpoint_path']}"
+            )
+        print(f"Artifacts saved to: {config.brain_transfer.output_dir}", flush=True)
 
 
 if __name__ == "__main__":

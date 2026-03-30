@@ -9,6 +9,12 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from configs.config import build_config
+from experiments.run_brain_mri_transfer import (
+    _save_transfer_accuracy_plot as _save_brain_mri_transfer_accuracy_plot,
+)
+from experiments.run_brain_mri_transfer import (
+    _save_transfer_validation_curves as _save_brain_mri_transfer_validation_curves,
+)
 from experiments.run_eurosat_transfer import (
     _save_transfer_accuracy_plot,
     _save_transfer_validation_curves,
@@ -20,11 +26,23 @@ from experiments.run_experiments import (
     _save_robustness_plot,
     _save_training_curves,
 )
-from utils.artifacts import load_cifar_runs_with_histories, load_eurosat_runs_with_histories, load_json
+from utils.artifacts import (
+    load_brain_mri_runs_with_histories,
+    load_cifar_runs_with_histories,
+    load_eurosat_runs_with_histories,
+    load_json,
+)
 from utils.helpers import ensure_dir, save_csv, save_json
 
 
 def _eurosat_summary_run_id(row: dict) -> str:
+    train_size = row.get("train_size", "na")
+    initialization = row.get("initialization", "run")
+    model = row.get("model", "model")
+    return f"{model}_{initialization}_{train_size}"
+
+
+def _brain_mri_summary_run_id(row: dict) -> str:
     train_size = row.get("train_size", "na")
     initialization = row.get("initialization", "run")
     model = row.get("model", "model")
@@ -37,7 +55,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--experiment",
-        choices=("cifar", "eurosat"),
+        choices=("cifar", "eurosat", "brain_mri"),
         required=True,
         help="Choose which saved experiment outputs to regenerate plots for.",
     )
@@ -63,8 +81,10 @@ def main() -> None:
 
     if args.experiment == "cifar":
         regenerate_cifar_plots(source_dir=source_dir, output_dir=output_dir)
-    else:
+    elif args.experiment == "eurosat":
         regenerate_eurosat_plots(source_dir=source_dir, output_dir=output_dir)
+    else:
+        regenerate_brain_mri_plots(source_dir=source_dir, output_dir=output_dir)
 
 
 def regenerate_cifar_plots(source_dir: Path, output_dir: Path) -> None:
@@ -143,6 +163,46 @@ def regenerate_eurosat_plots(source_dir: Path, output_dir: Path) -> None:
     _save_transfer_validation_curves(results=detailed_runs, output_dir=output_dir)
     print(f"Regenerated EuroSAT plots in {output_dir}")
     print(f"Recovered EuroSAT summary artifacts in {source_dir}")
+
+
+def regenerate_brain_mri_plots(source_dir: Path, output_dir: Path) -> None:
+    detailed_runs = load_brain_mri_runs_with_histories(source_dir)
+    if not detailed_runs:
+        raise RuntimeError(
+            "No Brain MRI runs with saved histories were found. "
+            "Use outputs generated with the updated code, or rerun once so histories are persisted."
+        )
+
+    rows = [
+        {
+            key: value
+            for key, value in row.items()
+            if key not in {"history", "preload_info"}
+        }
+        for row in detailed_runs
+    ]
+    summary = {
+        "dataset": detailed_runs[0].get("dataset", "Brain Tumor MRI"),
+        "source_dataset": detailed_runs[0].get("source_dataset", "CIFAR-10"),
+        "runs": rows,
+        "detailed_runs": detailed_runs,
+        "histories": {
+            _brain_mri_summary_run_id(result): result["history"]
+            for result in detailed_runs
+        },
+        "checkpoints": {
+            _brain_mri_summary_run_id(result): result["checkpoint_path"]
+            for result in detailed_runs
+            if result.get("checkpoint_path")
+        },
+    }
+    save_json(summary, source_dir / "summary.json")
+    save_json(detailed_runs, source_dir / "transfer_runs.json")
+    save_csv(rows, source_dir / "brain_mri_transfer_results.csv")
+    _save_brain_mri_transfer_accuracy_plot(rows=rows, output_dir=output_dir)
+    _save_brain_mri_transfer_validation_curves(results=detailed_runs, output_dir=output_dir)
+    print(f"Regenerated Brain MRI plots in {output_dir}")
+    print(f"Recovered Brain MRI summary artifacts in {source_dir}")
 
 
 if __name__ == "__main__":

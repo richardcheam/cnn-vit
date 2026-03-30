@@ -44,6 +44,22 @@ class EuroSATDataConfig:
 
 
 @dataclass
+class BrainMRIDataConfig:
+    name: str = "Brain Tumor MRI"
+    slug: str = "brain_tumor_mri"
+    data_dir: Path = Path("data/brain_tumor_mri_dataset")
+    image_size: int = 128
+    channels: int = 3
+    num_classes: int = 4
+    batch_size: int = 32
+    num_workers: int = 2
+    val_fraction: float = 0.15
+    train_fraction: float = 1.0
+    mean: tuple[float, float, float] = RGB_DEFAULT_MEAN
+    std: tuple[float, float, float] = RGB_DEFAULT_STD
+
+
+@dataclass
 class AugmentationConfig:
     occlusion_mask_size: int = 8
     occlusion_fill_value: float = 0.0
@@ -95,6 +111,21 @@ class TransferConfig:
 
 
 @dataclass
+class BrainTransferConfig:
+    output_dir: Path = Path("outputs/brain_mri_transfer")
+    checkpoint_dir: Path = Path("outputs/checkpoints")
+    cnn_checkpoint: Path | None = None
+    vit_checkpoint: Path | None = None
+    model_names: tuple[str, ...] = AVAILABLE_MODELS
+    run_mode: str = "both"
+    epochs: int = 10
+    scratch_learning_rate: float = 1e-3
+    backbone_learning_rate: float = 1e-4
+    head_learning_rate: float = 1e-3
+    weight_decay: float = 1e-4
+
+
+@dataclass
 class ExperimentSettings:
     output_dir: Path = Path("outputs")
     data_fractions: tuple[float, ...] = (0.1, 0.25, 0.5, 1.0)
@@ -108,11 +139,13 @@ class ProjectConfig:
     title: str = "Understanding CNN vs Vision Transformer"
     data: DataConfig = field(default_factory=DataConfig)
     eurosat: EuroSATDataConfig = field(default_factory=EuroSATDataConfig)
+    brain_mri: BrainMRIDataConfig = field(default_factory=BrainMRIDataConfig)
     augmentations: AugmentationConfig = field(default_factory=AugmentationConfig)
     cnn: CNNConfig = field(default_factory=CNNConfig)
     vit: ViTConfig = field(default_factory=ViTConfig)
     training: TrainingConfig = field(default_factory=TrainingConfig)
     transfer: TransferConfig = field(default_factory=TransferConfig)
+    brain_transfer: BrainTransferConfig = field(default_factory=BrainTransferConfig)
     experiment: ExperimentSettings = field(default_factory=ExperimentSettings)
 
     def to_dict(self) -> dict:
@@ -123,6 +156,7 @@ def build_config(full_run: bool = False) -> ProjectConfig:
     config = ProjectConfig()
     config.training.epochs = 20 if full_run else 5
     config.transfer.epochs = 25 if full_run else 10
+    config.brain_transfer.epochs = 25 if full_run else 10
     config.experiment.full_run = full_run
     return config
 
