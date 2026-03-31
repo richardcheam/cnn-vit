@@ -208,7 +208,8 @@ class HIAttention(nn.Module):
         self,
         x: torch.Tensor,
         return_attention: bool = False,
-    ) -> tuple[torch.Tensor, torch.Tensor] | torch.Tensor:
+        return_full_attention: bool = False,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor] | tuple[torch.Tensor, torch.Tensor] | torch.Tensor:
         batch_size, num_tokens, channels = x.shape
 
         # Generate one head token per attention head from channel groups.
@@ -241,6 +242,9 @@ class HIAttention(nn.Module):
         x = torch.cat([cls_token, patch_tokens], dim=1)
         x = self.proj_drop(x)
 
+        if return_attention and return_full_attention:
+            reduced_attention = attention[:, :, :num_tokens, :num_tokens]
+            return x, reduced_attention, attention
         if return_attention:
             # Approximate rollout support: keep only the original cls+patch token
             # submatrix so downstream attention visualization stays compatible.
@@ -285,7 +289,17 @@ class DHVTBlock(nn.Module):
         self,
         x: torch.Tensor,
         return_attention: bool = False,
-    ) -> tuple[torch.Tensor, torch.Tensor] | torch.Tensor:
+        return_full_attention: bool = False,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor] | tuple[torch.Tensor, torch.Tensor] | torch.Tensor:
+        if return_attention and return_full_attention:
+            attended, attention, full_attention = self.attn(
+                self.norm1(x),
+                return_attention=True,
+                return_full_attention=True,
+            )
+            x = x + self.drop_path(attended)
+            x = x + self.drop_path(self.mlp(self.norm2(x)))
+            return x, attention, full_attention
         if return_attention:
             attended, attention = self.attn(self.norm1(x), return_attention=True)
             x = x + self.drop_path(attended)
@@ -359,24 +373,49 @@ class DHVisionTransformer(nn.Module):
         self,
         x: torch.Tensor,
         return_attentions: bool = False,
-    ) -> tuple[torch.Tensor, list[torch.Tensor]]:
+        return_attention_details: bool = False,
+    ) -> tuple[torch.Tensor, list[torch.Tensor], list[torch.Tensor]] | tuple[torch.Tensor, list[torch.Tensor]]:
         patch_tokens = self.patch_embed(x)
         cls_tokens = self.cls_token.expand(x.shape[0], -1, -1)
         tokens = torch.cat([cls_tokens, patch_tokens], dim=1)
         tokens = self.pos_drop(tokens)
 
         attentions: list[torch.Tensor] = []
+        full_attentions: list[torch.Tensor] = []
         for block in self.blocks:
-            if return_attentions:
+            if return_attention_details:
+                tokens, attention, full_attention = block(
+                    tokens,
+                    return_attention=True,
+                    return_full_attention=True,
+                )
+                attentions.append(attention)
+                full_attentions.append(full_attention)
+            elif return_attentions:
                 tokens, attention = block(tokens, return_attention=True)
                 attentions.append(attention)
             else:
                 tokens = block(tokens)
 
         tokens = self.norm(tokens)
+        if return_attention_details:
+            return tokens, attentions, full_attentions
         return tokens, attentions
 
-    def forward(self, x: torch.Tensor, return_attentions: bool = False):
+    def forward(
+        self,
+        x: torch.Tensor,
+        return_attentions: bool = False,
+        return_attention_details: bool = False,
+    ):
+        if return_attention_details:
+            tokens, attentions, full_attentions = self.forward_features(
+                x,
+                return_attention_details=True,
+            )
+            logits = self.head(tokens[:, 0])
+            return logits, attentions, tokens, full_attentions
+
         tokens, attentions = self.forward_features(x, return_attentions=return_attentions)
         logits = self.head(tokens[:, 0])
         if return_attentions:
