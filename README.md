@@ -278,16 +278,33 @@ The EuroSAT normalization defaults are standard RGB values:
 For each architecture, the transfer runner compares:
 
 - `scratch`: train directly on EuroSAT from random initialization
-- `pretrained`: load the CIFAR-10 backbone checkpoint, keep a new EuroSAT classifier head, and fine-tune end to end
+- `pretrained + linear_probe`: load the CIFAR-10 backbone checkpoint, freeze the backbone, and train only the new EuroSAT classifier head
+- `pretrained + full_finetune`: load the CIFAR-10 backbone checkpoint, keep a new EuroSAT classifier head, and fine-tune end to end
 
 So the EuroSAT transfer stage runs:
 
 - CNN scratch
+- CNN pretrained on CIFAR-10 then linear-probed on EuroSAT
 - CNN pretrained on CIFAR-10 then fine-tuned on EuroSAT
 - ViT scratch
+- ViT pretrained on CIFAR-10 then linear-probed on EuroSAT
 - ViT pretrained on CIFAR-10 then fine-tuned on EuroSAT
 
-### 4. Fine-tuning details
+### 4. Adaptation modes
+
+```mermaid
+flowchart LR
+    A[CIFAR-10 checkpoint]
+    A --> B[Replace downstream classifier head]
+    B --> C1[Linear probe<br/>freeze backbone<br/>train head only]
+    B --> C2[Full fine-tune<br/>train backbone + head]
+```
+
+`linear_probe` tests whether the pretrained representation is already useful without adapting the backbone.
+
+`full_finetune` tests whether downstream adaptation of the backbone gives additional gains.
+
+### 5. Optimization details
 
 | Setting | Value |
 | --- | --- |
@@ -349,7 +366,8 @@ In this stage, `RGB convert`, `Resize`, `ToTensor`, and `Normalize` are preproce
 For each architecture, the runner compares:
 
 - `scratch`: train directly on Brain MRI from random initialization
-- `pretrained`: load the CIFAR-10 backbone checkpoint, replace the classifier head, and fine-tune end to end
+- `pretrained + linear_probe`: load the CIFAR-10 backbone checkpoint, freeze the backbone, and train only the new classifier head
+- `pretrained + full_finetune`: load the CIFAR-10 backbone checkpoint, replace the classifier head, and fine-tune end to end
 
 ### 5. Run commands
 
