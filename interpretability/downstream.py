@@ -43,7 +43,7 @@ def save_single_model_interpretability(
         with torch.no_grad():
             predictions = model(images).argmax(dim=1)
 
-        figure, axes = plt.subplots(len(images), 2, figsize=(6, 3 * len(images)))
+        figure, axes = plt.subplots(len(images), 3, figsize=(9, 3 * len(images)))
         if len(images) == 1:
             axes = [axes]
 
@@ -59,8 +59,11 @@ def save_single_model_interpretability(
             axes[index][0].set_title(f"true={class_names[int(labels[index].detach().cpu().item())]}")
             axes[index][0].axis("off")
             axes[index][1].imshow(overlay)
-            axes[index][1].set_title(f"pred={class_names[int(predictions[index].detach().cpu().item())]}")
+            axes[index][1].set_title("overlay")
             axes[index][1].axis("off")
+            axes[index][2].imshow(heatmaps[index].detach().cpu(), cmap="inferno")
+            axes[index][2].set_title(f"pred={class_names[int(predictions[index].detach().cpu().item())]}")
+            axes[index][2].axis("off")
 
         figure.suptitle(f"{dataset_label} CNN Grad-CAM", fontsize=13, fontweight="semibold")
         figure.tight_layout()
@@ -75,7 +78,7 @@ def save_single_model_interpretability(
             logits, attention_maps = generate_attention_maps(model, images)
             predictions = logits.argmax(dim=1)
 
-        figure, axes = plt.subplots(len(images), 2, figsize=(6, 3 * len(images)))
+        figure, axes = plt.subplots(len(images), 3, figsize=(9, 3 * len(images)))
         if len(images) == 1:
             axes = [axes]
 
@@ -91,8 +94,11 @@ def save_single_model_interpretability(
             axes[index][0].set_title(f"true={class_names[int(labels[index].detach().cpu().item())]}")
             axes[index][0].axis("off")
             axes[index][1].imshow(overlay)
-            axes[index][1].set_title(f"pred={class_names[int(predictions[index].detach().cpu().item())]}")
+            axes[index][1].set_title("overlay")
             axes[index][1].axis("off")
+            axes[index][2].imshow(attention_maps[index].detach().cpu(), cmap="viridis")
+            axes[index][2].set_title(f"pred={class_names[int(predictions[index].detach().cpu().item())]}")
+            axes[index][2].axis("off")
 
         figure.suptitle(f"{dataset_label} ViT Attention Rollout", fontsize=13, fontweight="semibold")
         figure.tight_layout()
