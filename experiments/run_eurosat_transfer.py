@@ -11,6 +11,7 @@ from configs.config import ProjectConfig
 from datasets.cifar_loader import DataBundle
 from datasets.eurosat_loader import build_eurosat_dataloaders, describe_eurosat_protocol
 from evaluation.metrics import model_summary
+from interpretability.downstream import save_single_model_interpretability
 from models.cnn import CNN
 from models.vit import VisionTransformer
 from training.trainer import Trainer
@@ -380,6 +381,19 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
             test_predictions, test_targets = _collect_predictions(model, data_bundle.test, device=device)
             macro_f1 = f1_score(test_targets, test_predictions, average="macro")
             weighted_f1 = f1_score(test_targets, test_predictions, average="weighted")
+            interpretability_paths = save_single_model_interpretability(
+                model_name=model_name,
+                model=model,
+                dataset=data_bundle.test_dataset,
+                class_names=data_bundle.classes,
+                device=device,
+                mean=config.eurosat.mean,
+                std=config.eurosat.std,
+                batch_size=config.experiment.interpretability_samples,
+                output_dir=ensure_dir(root_output_dir / "interpretability"),
+                output_stem=f"{model_name}_{initialization}",
+                dataset_label=config.eurosat.name,
+            )
 
             summary = {
                 "dataset": config.eurosat.name,
@@ -401,6 +415,7 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
                 "training_time_seconds": round(history["training_time_seconds"], 2),
                 "training_time_readable": format_seconds(history["training_time_seconds"]),
                 "source_checkpoint": str(checkpoint_paths[model_name]) if initialization == "pretrained" else None,
+                "interpretability": interpretability_paths,
                 "history": history,
             }
             checkpoint_path = _save_downstream_checkpoint(

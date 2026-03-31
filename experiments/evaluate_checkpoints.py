@@ -16,10 +16,13 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from configs.config import build_config
+from datasets.brain_mri_loader import build_brain_mri_dataloaders
 from datasets.cifar_loader import DataBundle, build_dataloaders
 from datasets.eurosat_loader import build_eurosat_dataloaders
 from evaluation.metrics import model_summary
 from evaluation.robustness import summarize_shift
+from experiments.run_brain_mri_transfer import PLOT_STYLE as BRAIN_TRANSFER_PLOT_STYLE
+from experiments.run_brain_mri_transfer import _build_brain_mri_model
 from experiments.run_eurosat_transfer import PLOT_STYLE as TRANSFER_PLOT_STYLE
 from experiments.run_eurosat_transfer import _build_eurosat_model
 from experiments.run_experiments import PLOT_STYLE as SOURCE_PLOT_STYLE
@@ -103,6 +106,7 @@ def _apply_checkpoint_runtime_settings(config, checkpoint: dict[str, Any]) -> No
     stored_config = checkpoint.get("config", {})
     source_data = stored_config.get("data", {})
     downstream_data = stored_config.get("eurosat", {})
+    brain_data = stored_config.get("brain_mri", {})
     cnn_config = stored_config.get("cnn", {})
     vit_config = stored_config.get("vit", {})
     augmentations = stored_config.get("augmentations", {})
@@ -129,6 +133,18 @@ def _apply_checkpoint_runtime_settings(config, checkpoint: dict[str, Any]) -> No
         config.eurosat.val_fraction = downstream_data.get("val_fraction", config.eurosat.val_fraction)
         config.eurosat.test_fraction = downstream_data.get("test_fraction", config.eurosat.test_fraction)
         config.eurosat.train_fraction = downstream_data.get("train_fraction", config.eurosat.train_fraction)
+
+    if brain_data:
+        config.brain_mri.name = brain_data.get("name", config.brain_mri.name)
+        config.brain_mri.slug = brain_data.get("slug", config.brain_mri.slug)
+        config.brain_mri.data_dir = Path(brain_data.get("data_dir", config.brain_mri.data_dir))
+        config.brain_mri.image_size = brain_data.get("image_size", config.brain_mri.image_size)
+        config.brain_mri.channels = brain_data.get("channels", config.brain_mri.channels)
+        config.brain_mri.num_classes = brain_data.get("num_classes", config.brain_mri.num_classes)
+        config.brain_mri.mean = _tuple_or_default(brain_data.get("mean"), config.brain_mri.mean)
+        config.brain_mri.std = _tuple_or_default(brain_data.get("std"), config.brain_mri.std)
+        config.brain_mri.val_fraction = brain_data.get("val_fraction", config.brain_mri.val_fraction)
+        config.brain_mri.train_fraction = brain_data.get("train_fraction", config.brain_mri.train_fraction)
 
     if cnn_config:
         config.cnn.channels = _tuple_or_default(cnn_config.get("channels"), config.cnn.channels)
@@ -243,7 +259,11 @@ def _build_model_from_checkpoint(checkpoint: dict[str, Any], config, device: tor
     if stage == "source":
         model = build_model(model_name=model_name, config=config)
     else:
-        model = _build_eurosat_model(model_name=model_name, config=config)
+        dataset_slug = checkpoint.get("dataset_slug", checkpoint.get("summary", {}).get("dataset_slug"))
+        if dataset_slug in {"brain_tumor_mri", "brain_mri"}:
+            model = _build_brain_mri_model(model_name=model_name, config=config)
+        else:
+            model = _build_eurosat_model(model_name=model_name, config=config)
 
     state_dict = checkpoint.get("model_state_dict", checkpoint)
     incompatible = model.load_state_dict(state_dict, strict=False)
@@ -736,11 +756,28 @@ def _evaluate_downstream_checkpoint(
     output_dir: Path,
     interpretability_samples: int,
 ) -> dict[str, Any]:
-    data_bundle = build_eurosat_dataloaders(config)
+    dataset_slug = checkpoint.get("dataset_slug", checkpoint.get("summary", {}).get("dataset_slug"))
+    if dataset_slug in {"brain_tumor_mri", "brain_mri"}:
+        data_bundle = build_brain_mri_dataloaders(config)
+        class_count = config.brain_mri.num_classes
+        dataset_name = config.brain_mri.name
+        dataset_slug = config.brain_mri.slug
+        mean = config.brain_mri.mean
+        std = config.brain_mri.std
+        plot_style = BRAIN_TRANSFER_PLOT_STYLE
+    else:
+        data_bundle = build_eurosat_dataloaders(config)
+        class_count = config.eurosat.num_classes
+        dataset_name = config.eurosat.name
+        dataset_slug = config.eurosat.slug
+        mean = config.eurosat.mean
+        std = config.eurosat.std
+        plot_style = TRANSFER_PLOT_STYLE
+
     class_names = _resolve_class_names(
         checkpoint=checkpoint,
         fallback_class_names=data_bundle.classes,
-        expected_count=config.eurosat.num_classes,
+        expected_count=class_count,
     )
     metrics = _evaluate_loader(model, data_bundle.test, device, label="downstream test")
     report = classification_report(
@@ -764,17 +801,17 @@ def _evaluate_downstream_checkpoint(
         metrics["targets"],
         metrics["predictions"],
         class_names=class_names,
-        title=f"{config.eurosat.name} Confusion Matrix",
+        title=f"{dataset_name} Confusion Matrix",
         output_path=output_dir / "confusion_matrix.png",
-        plot_style=TRANSFER_PLOT_STYLE,
+        plot_style=plot_style,
     )
     _save_confusion_matrix(
         metrics["targets"],
         metrics["predictions"],
         class_names=class_names,
-        title=f"{config.eurosat.name} Normalized Confusion Matrix",
+        title=f"{dataset_name} Normalized Confusion Matrix",
         output_path=output_dir / "confusion_matrix_normalized.png",
-        plot_style=TRANSFER_PLOT_STYLE,
+        plot_style=plot_style,
         normalize="true",
     )
     interpretability_paths = _save_interpretability(
@@ -783,8 +820,8 @@ def _evaluate_downstream_checkpoint(
         dataset=data_bundle.test_dataset,
         class_names=class_names,
         device=device,
-        mean=config.eurosat.mean,
-        std=config.eurosat.std,
+        mean=mean,
+        std=std,
         batch_size=interpretability_samples,
         output_dir=ensure_dir(output_dir / "interpretability"),
     )
@@ -794,29 +831,29 @@ def _evaluate_downstream_checkpoint(
         dataset=data_bundle.test_dataset,
         device=device,
         class_names=class_names,
-        mean=config.eurosat.mean,
-        std=config.eurosat.std,
+        mean=mean,
+        std=std,
         output_path=example_dir / "misclassified_examples.png",
         selection="misclassified",
-        title=f"{config.eurosat.name} Misclassified Examples",
-        plot_style=TRANSFER_PLOT_STYLE,
+        title=f"{dataset_name} Misclassified Examples",
+        plot_style=plot_style,
     )
     correct_examples_path = _save_example_grid(
         model=model,
         dataset=data_bundle.test_dataset,
         device=device,
         class_names=class_names,
-        mean=config.eurosat.mean,
-        std=config.eurosat.std,
+        mean=mean,
+        std=std,
         output_path=example_dir / "correct_examples.png",
         selection="correct",
-        title=f"{config.eurosat.name} Correct Predictions",
-        plot_style=TRANSFER_PLOT_STYLE,
+        title=f"{dataset_name} Correct Predictions",
+        plot_style=plot_style,
     )
 
     summary = {
-        "dataset": config.eurosat.name,
-        "dataset_slug": config.eurosat.slug,
+        "dataset": dataset_name,
+        "dataset_slug": dataset_slug,
         "source_dataset": checkpoint.get("source_dataset", config.data.name),
         "model": checkpoint["model_name"],
         "initialization": checkpoint.get("initialization", checkpoint.get("summary", {}).get("initialization")),
@@ -858,9 +895,11 @@ def evaluate_checkpoint(
     if batch_size is not None:
         config.data.batch_size = batch_size
         config.eurosat.batch_size = batch_size
+        config.brain_mri.batch_size = batch_size
     if num_workers is not None:
         config.data.num_workers = num_workers
         config.eurosat.num_workers = num_workers
+        config.brain_mri.num_workers = num_workers
 
     checkpoint_output_dir = ensure_dir(base_output_dir / checkpoint_path.stem)
     _log("=" * 80)

@@ -18,6 +18,8 @@ __pycache__/
 
 # Project-generated data and results
 data/
+# !data/brain-tumor-mri/
+# !data/brain-tumor-mri/**
 # outputs/*
 # !outputs/checkpoints/
 # !outputs/checkpoints/**

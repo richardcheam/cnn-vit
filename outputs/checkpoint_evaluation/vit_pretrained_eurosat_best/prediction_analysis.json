@@ -1,0 +1,181 @@
+{
+  "macro_avg": {
+    "precision": 0.9389,
+    "recall": 0.9383,
+    "f1_score": 0.9385
+  },
+  "weighted_avg": {
+    "precision": 0.9415,
+    "recall": 0.9415,
+    "f1_score": 0.9413
+  },
+  "confidence": {
+    "mean": 0.9759,
+    "mean_correct": 0.9848,
+    "mean_incorrect": 0.8326
+  },
+  "per_class": [
+    {
+      "class_index": 0,
+      "class_name": "AnnualCrop",
+      "support": 300,
+      "correct": 286,
+      "accuracy": 0.9533,
+      "precision": 0.9316,
+      "recall": 0.9533,
+      "f1_score": 0.9423,
+      "predicted_count": 307
+    },
+    {
+      "class_index": 1,
+      "class_name": "Forest",
+      "support": 300,
+      "correct": 291,
+      "accuracy": 0.97,
+      "precision": 0.97,
+      "recall": 0.97,
+      "f1_score": 0.97,
+      "predicted_count": 300
+    },
+    {
+      "class_index": 2,
+      "class_name": "HerbaceousVegetation",
+      "support": 300,
+      "correct": 282,
+      "accuracy": 0.94,
+      "precision": 0.9276,
+      "recall": 0.94,
+      "f1_score": 0.9338,
+      "predicted_count": 304
+    },
+    {
+      "class_index": 3,
+      "class_name": "Highway",
+      "support": 250,
+      "correct": 223,
+      "accuracy": 0.892,
+      "precision": 0.892,
+      "recall": 0.892,
+      "f1_score": 0.892,
+      "predicted_count": 250
+    },
+    {
+      "class_index": 4,
+      "class_name": "Industrial",
+      "support": 250,
+      "correct": 240,
+      "accuracy": 0.96,
+      "precision": 0.9639,
+      "recall": 0.96,
+      "f1_score": 0.9619,
+      "predicted_count": 249
+    },
+    {
+      "class_index": 5,
+      "class_name": "Pasture",
+      "support": 200,
+      "correct": 183,
+      "accuracy": 0.915,
+      "precision": 0.8927,
+      "recall": 0.915,
+      "f1_score": 0.9037,
+      "predicted_count": 205
+    },
+    {
+      "class_index": 6,
+      "class_name": "PermanentCrop",
+      "support": 250,
+      "correct": 224,
+      "accuracy": 0.896,
+      "precision": 0.918,
+      "recall": 0.896,
+      "f1_score": 0.9069,
+      "predicted_count": 244
+    },
+    {
+      "class_index": 7,
+      "class_name": "Residential",
+      "support": 300,
+      "correct": 295,
+      "accuracy": 0.9833,
+      "precision": 0.9866,
+      "recall": 0.9833,
+      "f1_score": 0.985,
+      "predicted_count": 299
+    },
+    {
+      "class_index": 8,
+      "class_name": "River",
+      "support": 250,
+      "correct": 220,
+      "accuracy": 0.88,
+      "precision": 0.9362,
+      "recall": 0.88,
+      "f1_score": 0.9072,
+      "predicted_count": 235
+    },
+    {
+      "class_index": 9,
+      "class_name": "SeaLake",
+      "support": 300,
+      "correct": 298,
+      "accuracy": 0.9933,
+      "precision": 0.9707,
+      "recall": 0.9933,
+      "f1_score": 0.9819,
+      "predicted_count": 307
+    }
+  ],
+  "top_confusions": [
+    {
+      "true_class": "PermanentCrop",
+      "predicted_class": "HerbaceousVegetation",
+      "count": 12
+    },
+    {
+      "true_class": "River",
+      "predicted_class": "Highway",
+      "count": 9
+    },
+    {
+      "true_class": "Highway",
+      "predicted_class": "River",
+      "count": 8
+    },
+    {
+      "true_class": "River",
+      "predicted_class": "AnnualCrop",
+      "count": 8
+    },
+    {
+      "true_class": "River",
+      "predicted_class": "Pasture",
+      "count": 8
+    },
+    {
+      "true_class": "HerbaceousVegetation",
+      "predicted_class": "PermanentCrop",
+      "count": 7
+    },
+    {
+      "true_class": "Industrial",
+      "predicted_class": "Highway",
+      "count": 7
+    },
+    {
+      "true_class": "AnnualCrop",
+      "predicted_class": "PermanentCrop",
+      "count": 6
+    },
+    {
+      "true_class": "Pasture",
+      "predicted_class": "Forest",
+      "count": 6
+    },
+    {
+      "true_class": "PermanentCrop",
+      "predicted_class": "Highway",
+      "count": 6
+    }
+  ]
+}
