@@ -26,6 +26,40 @@ The repository now supports three connected stages:
 2. Downstream transfer to EuroSAT using either random initialization or the saved CIFAR checkpoints.
 3. Downstream transfer to the Brain Tumor MRI dataset using the same scratch-vs-pretrained comparison.
 
+## Current Results
+
+These are the currently saved results in `outputs/`.
+
+### CIFAR-10 source study
+
+| Model | Clean accuracy | Occluded accuracy | Texture accuracy |
+| --- | ---: | ---: | ---: |
+| CNN | `85.70%` | `80.32%` | `32.98%` |
+| ViT | `73.36%` | `68.81%` | `50.26%` |
+
+- CNN is clearly stronger on standard CIFAR-10 accuracy and data efficiency.
+- ViT is much more robust to the texture-modified test set.
+
+### EuroSAT transfer
+
+| Model | Scratch | CIFAR-pretrained |
+| --- | ---: | ---: |
+| CNN | `96.52%` | `96.74%` |
+| ViT | `93.59%` | `94.15%` |
+
+- Transfer helps both models, but the gain on EuroSAT is small.
+- CNN remains stronger than ViT on this downstream task.
+
+### Brain Tumor MRI transfer
+
+| Model | Scratch | CIFAR-pretrained |
+| --- | ---: | ---: |
+| CNN | `82.56%` | `89.38%` |
+| ViT | `85.88%` | `93.00%` |
+
+- Transfer helps both models substantially on Brain Tumor MRI.
+- On this medical-image task, the pretrained ViT is the strongest result in the repository so far.
+
 ## Pipeline Overview
 
 ```mermaid
@@ -77,7 +111,7 @@ The project keeps CIFAR-10 at its native resolution. Images are not downscaled b
 
 ### 2. Preprocessing and transforms
 
-The training and evaluation pipelines are intentionally different.
+The training and evaluation pipelines are intentionally different. Here, `ToTensor()` and `Normalize(...)` are preprocessing transforms. The random crop, flip, rotation, and affine steps are augmentation transforms.
 
 | Split | Transform sequence | Purpose |
 | --- | --- | --- |
@@ -204,6 +238,8 @@ The EuroSAT pipeline uses a stratified split so every class stays represented ac
 | Validation | `Resize(64, 64)` -> `ToTensor()` -> `Normalize(mean, std)` |
 | Test | `Resize(64, 64)` -> `ToTensor()` -> `Normalize(mean, std)` |
 
+In this stage, `Resize`, `ToTensor`, and `Normalize` are preprocessing. The horizontal and vertical flips are augmentation.
+
 The EuroSAT normalization defaults are standard RGB values:
 
 - Mean: `(0.485, 0.456, 0.406)`
@@ -278,7 +314,7 @@ If your extracted folder has one extra wrapper directory, the loader will detect
 | Validation | `RGB convert` -> `Resize(128, 128)` -> `ToTensor()` -> `Normalize(mean, std)` |
 | Test | `RGB convert` -> `Resize(128, 128)` -> `ToTensor()` -> `Normalize(mean, std)` |
 
-The medical pipeline uses light geometry-only augmentation and avoids the stronger orientation changes used in EuroSAT.
+In this stage, `RGB convert`, `Resize`, `ToTensor`, and `Normalize` are preprocessing. `RandomRotation` and `RandomAffine` are augmentation. The medical pipeline uses light geometry-only augmentation and avoids the stronger orientation changes used in EuroSAT.
 
 ### 4. Brain MRI comparison matrix
 
