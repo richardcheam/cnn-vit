@@ -12,6 +12,7 @@ from datasets.brain_mri_loader import build_brain_mri_dataloaders, describe_brai
 from evaluation.metrics import model_summary
 from interpretability.downstream import save_single_model_interpretability
 from models.cnn import CNN
+from models.dhvt import DHVisionTransformer
 from models.vit import VisionTransformer
 from training.trainer import Trainer
 from utils.artifacts import load_brain_mri_runs_with_histories
@@ -51,6 +52,7 @@ PLOT_STYLE = {
 ARCHITECTURE_COLORS = {
     "cnn": "#1f4e79",
     "vit": "#b85c38",
+    "dhvt": "#2f855a",
 }
 
 TRANSFER_LINESTYLES = {
@@ -162,6 +164,19 @@ def _build_brain_mri_model(model_name: str, config: ProjectConfig) -> torch.nn.M
             mlp_ratio=config.vit.mlp_ratio,
             dropout=config.vit.dropout,
             attention_dropout=config.vit.attention_dropout,
+        )
+    if model_name == "dhvt":
+        return DHVisionTransformer(
+            image_size=config.brain_mri.image_size,
+            patch_size=config.dhvt.patch_size,
+            num_classes=config.brain_mri.num_classes,
+            embed_dim=config.dhvt.embed_dim,
+            depth=config.dhvt.depth,
+            num_heads=config.dhvt.num_heads,
+            mlp_ratio=config.dhvt.mlp_ratio,
+            dropout=config.dhvt.dropout,
+            attention_dropout=config.dhvt.attention_dropout,
+            drop_path_rate=config.dhvt.drop_path_rate,
         )
     raise ValueError(f"Unsupported model name: {model_name}")
 
@@ -342,6 +357,7 @@ def run_brain_mri_transfer(config: ProjectConfig, device: torch.device) -> dict:
         explicit_checkpoint_paths = {
             "cnn": config.brain_transfer.cnn_checkpoint,
             "vit": config.brain_transfer.vit_checkpoint,
+            "dhvt": config.brain_transfer.dhvt_checkpoint,
         }
         for model_name in selected_models:
             checkpoint_paths[model_name] = resolve_checkpoint_path(

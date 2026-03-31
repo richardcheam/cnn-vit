@@ -40,3 +40,6 @@ report/missfont.log
 
 # macOS
 .DS_Store
+
+# DHVT git repo
+DHVT/

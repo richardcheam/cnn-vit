@@ -100,6 +100,12 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Explicit ViT checkpoint path for downstream transfer. Overrides --checkpoint-dir.",
     )
+    parser.add_argument(
+        "--dhvt-checkpoint",
+        type=Path,
+        default=None,
+        help="Explicit DHVT checkpoint path for downstream transfer. Overrides --checkpoint-dir.",
+    )
     return parser.parse_args()
 
 
@@ -181,6 +187,11 @@ def main() -> None:
             config.brain_transfer.vit_checkpoint = args.vit_checkpoint
         else:
             config.transfer.vit_checkpoint = args.vit_checkpoint
+    if args.dhvt_checkpoint is not None:
+        if args.experiment == "brain_mri":
+            config.brain_transfer.dhvt_checkpoint = args.dhvt_checkpoint
+        else:
+            config.transfer.dhvt_checkpoint = args.dhvt_checkpoint
 
     # Reproducibility matters for comparisons, so we seed before building data
     # loaders or models.

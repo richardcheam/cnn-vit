@@ -14,6 +14,7 @@ from evaluation.robustness import summarize_shift
 from interpretability.gradcam import GradCAM, overlay_heatmap
 from interpretability.vit_attention import generate_attention_maps, overlay_attention_map
 from models.cnn import CNN
+from models.dhvt import DHVisionTransformer
 from models.vit import VisionTransformer
 from training.trainer import Trainer
 from utils.helpers import ensure_dir, format_seconds, save_csv, save_json, save_torch_checkpoint
@@ -54,11 +55,13 @@ PLOT_STYLE = {
 ARCHITECTURE_COLORS = {
     "cnn": "#1f4e79",
     "vit": "#b85c38",
+    "dhvt": "#2f855a",
 }
 
 ARCHITECTURE_LINESTYLES = {
     "cnn": "-",
     "vit": "--",
+    "dhvt": "-.",
 }
 
 SPLIT_STYLES = {
@@ -154,6 +157,19 @@ def build_model(model_name: str, config: ProjectConfig) -> torch.nn.Module:
             mlp_ratio=config.vit.mlp_ratio,
             dropout=config.vit.dropout,
             attention_dropout=config.vit.attention_dropout,
+        )
+    if model_name == "dhvt":
+        return DHVisionTransformer(
+            image_size=config.data.image_size,
+            patch_size=config.dhvt.patch_size,
+            num_classes=config.data.num_classes,
+            embed_dim=config.dhvt.embed_dim,
+            depth=config.dhvt.depth,
+            num_heads=config.dhvt.num_heads,
+            mlp_ratio=config.dhvt.mlp_ratio,
+            dropout=config.dhvt.dropout,
+            attention_dropout=config.dhvt.attention_dropout,
+            drop_path_rate=config.dhvt.drop_path_rate,
         )
     raise ValueError(f"Unsupported model name: {model_name}")
 
@@ -608,13 +624,15 @@ def _save_interpretability_examples(
         plt.close(gradcam_figure)
         interpretability_paths["cnn_gradcam"] = str(gradcam_path)
 
-    if "vit" in models:
-        vit_model = models["vit"]
-        vit_model.eval()
+    for transformer_name in ("vit", "dhvt"):
+        if transformer_name not in models:
+            continue
+        transformer_model = models[transformer_name]
+        transformer_model.eval()
         with torch.no_grad():
-            _log("[Interpretability] ViT attention rollout running.")
-            vit_logits, vit_maps = generate_attention_maps(vit_model, images)
-            vit_predictions = vit_logits.argmax(dim=1)
+            _log(f"[Interpretability] {transformer_name.upper()} attention rollout running.")
+            transformer_logits, transformer_maps = generate_attention_maps(transformer_model, images)
+            transformer_predictions = transformer_logits.argmax(dim=1)
 
         vit_figure, vit_axes = plt.subplots(len(images), 2, figsize=(6, 3 * len(images)))
         if len(images) == 1:
@@ -624,7 +642,7 @@ def _save_interpretability_examples(
             base_image = images[index].detach().cpu()
             vit_overlay = overlay_attention_map(
                 base_image,
-                vit_maps[index].detach().cpu(),
+                transformer_maps[index].detach().cpu(),
                 mean=config.data.mean,
                 std=config.data.std,
             )
@@ -632,15 +650,15 @@ def _save_interpretability_examples(
             vit_axes[index][0].imshow(vit_overlay)
             vit_axes[index][0].set_title(title)
             vit_axes[index][0].axis("off")
-            vit_axes[index][1].imshow(vit_maps[index].detach().cpu(), cmap="viridis")
-            vit_axes[index][1].set_title(f"pred={class_names[vit_predictions[index].item()]}")
+            vit_axes[index][1].imshow(transformer_maps[index].detach().cpu(), cmap="viridis")
+            vit_axes[index][1].set_title(f"pred={class_names[transformer_predictions[index].item()]}")
             vit_axes[index][1].axis("off")
 
         vit_figure.tight_layout()
-        vit_path = output_dir / "vit_attention.png"
+        vit_path = output_dir / f"{transformer_name}_attention.png"
         vit_figure.savefig(vit_path, dpi=200)
         plt.close(vit_figure)
-        interpretability_paths["vit_attention"] = str(vit_path)
+        interpretability_paths[f"{transformer_name}_attention"] = str(vit_path)
 
     return interpretability_paths
 

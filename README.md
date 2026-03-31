@@ -20,6 +20,26 @@ The project studies not only which model is more accurate, but also how each mod
 
 In practice, this means we train both architectures under the same protocol and compare them across clean accuracy, robustness, data efficiency, and interpretability.
 
+## Architecture Attribution
+
+The models in this repository are lightweight research baselines, not exact reproductions of one published architecture.
+
+- `CNN`: custom small CNN inspired by LeNet-style convolution/pooling classifiers, VGG-style stacked `3x3` convolutions, and Batch Normalization.
+- `ViT`: compact Vision Transformer inspired by the original ViT design and the standard Transformer encoder.
+
+Useful architecture references:
+
+- LeCun et al., 1998, `Gradient-Based Learning Applied to Document Recognition`  
+  https://ieeexplore.ieee.org/document/726791
+- Simonyan and Zisserman, 2014, `Very Deep Convolutional Networks for Large-Scale Image Recognition`  
+  https://arxiv.org/abs/1409.1556
+- Ioffe and Szegedy, 2015, `Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift`  
+  https://arxiv.org/abs/1502.03167
+- Vaswani et al., 2017, `Attention Is All You Need`  
+  https://arxiv.org/abs/1706.03762
+- Dosovitskiy et al., 2021, `An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale`  
+  https://arxiv.org/abs/2010.11929
+
 The repository now supports three connected stages:
 
 1. Source-stage pretraining and controlled analysis on CIFAR-10.
@@ -29,6 +49,7 @@ The repository now supports three connected stages:
 ## Current Results
 
 These are the currently saved results in `outputs/`.
+All reported source and downstream results below were trained for `100` epochs per run.
 
 ### Metrics used
 
@@ -73,6 +94,7 @@ Robustness on the full-data models:
 | ViT | pretrained + full fine-tune | `94.15%` | `0.9389` | `0.9383` | `0.9385` | `31m 28s` |
 
 - Linear probing is much weaker than full fine-tuning for both models.
+- The ViT is especially weak under a frozen backbone on EuroSAT: `79.00%` with linear probing versus `94.15%` with full fine-tuning.
 - Transfer helps both models, but the gain over scratch appears only after full fine-tuning.
 - CNN remains stronger than ViT on this downstream task.
 - Evaluation results show the most difficult EuroSAT classes are `PermanentCrop`, `Highway`, and `River`. The most common confusions are `PermanentCrop -> HerbaceousVegetation` and `Highway <-> River`.
@@ -89,6 +111,7 @@ Robustness on the full-data models:
 | ViT | pretrained + full fine-tune | `93.00%` | `0.9352` | `0.9300` | `0.9279` | `47m 56s` |
 
 - Transfer helps both models substantially on Brain Tumor MRI.
+- Linear probing is clearly insufficient on Brain Tumor MRI. The CNN drops from `89.38%` with full fine-tuning to `67.31%` with a frozen backbone, and the ViT drops from `93.00%` to `76.00%`.
 - Linear probing is clearly weaker than both scratch and full fine-tuning here, so downstream adaptation matters a lot.
 - On this medical-image task, the pretrained ViT is the strongest result in the repository so far.
 - Full class-wise precision, recall, F1, and support remain available in the saved `classification_report.json` artifacts.
@@ -236,7 +259,7 @@ Interpretability is also generated from the full-data models so the visualizatio
 | Learning rate | `1e-3` |
 | Weight decay | `1e-4` |
 | Batch size | `128` by default |
-| Epochs | `5` by default, `20` with `--full` |
+| Epochs | Reported results here use `100`; quick CLI defaults remain shorter for lightweight reruns |
 | Random seed | `42` |
 
 ## What The Pipeline Measures
@@ -326,7 +349,7 @@ Interpretability note:
 | Pretrained backbone learning rate | `1e-4` |
 | Pretrained classifier-head learning rate | `1e-3` |
 | Weight decay | `1e-4` |
-| Epochs | `10` by default, `25` with `--full` |
+| Epochs | Reported results here use `100`; quick CLI defaults remain shorter for lightweight reruns |
 
 For the ViT transfer runs, the positional embeddings are automatically interpolated when moving from CIFAR-10 resolution to EuroSAT resolution.
 
@@ -490,7 +513,7 @@ uv run python main.py --experiment eurosat --models cnn
 uv run python main.py --experiment eurosat --eurosat-train-fraction 0.25
 ```
 
-The default CIFAR run is a lightweight protocol with 5 epochs per experiment for quick iteration. The `--full` flag switches CIFAR to 20 epochs and EuroSAT to 25 epochs.
+The current saved results in this repository were produced with 100-epoch runs. The CLI defaults remain shorter for quick iteration, and you can override them with `--epochs`.
 
 If you want to run only one architecture, use `--models`:
 

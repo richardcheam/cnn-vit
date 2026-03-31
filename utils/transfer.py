@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from torch import nn
 
 from models.cnn import CNN
+from models.dhvt import DHVisionTransformer
 from models.vit import VisionTransformer
 
 
@@ -18,7 +19,7 @@ def replace_classification_head(model: nn.Module, num_classes: int) -> None:
         model.classifier = nn.Linear(in_features, num_classes)
         return
 
-    if isinstance(model, VisionTransformer):
+    if isinstance(model, (VisionTransformer, DHVisionTransformer)):
         in_features = model.head.in_features
         model.head = nn.Linear(in_features, num_classes)
         nn.init.xavier_uniform_(model.head.weight)
@@ -116,7 +117,7 @@ def load_pretrained_backbone(
 def _classifier_parameters(model: nn.Module) -> list[nn.Parameter]:
     if isinstance(model, CNN):
         return list(model.classifier.parameters())
-    if isinstance(model, VisionTransformer):
+    if isinstance(model, (VisionTransformer, DHVisionTransformer)):
         return list(model.head.parameters())
     raise TypeError(f"Unsupported model type for classifier lookup: {type(model)!r}")
 
@@ -124,7 +125,7 @@ def _classifier_parameters(model: nn.Module) -> list[nn.Parameter]:
 def _is_classifier_key(model: nn.Module, key: str) -> bool:
     if isinstance(model, CNN):
         return key.startswith("classifier.")
-    if isinstance(model, VisionTransformer):
+    if isinstance(model, (VisionTransformer, DHVisionTransformer)):
         return key.startswith("head.")
     return False
 

@@ -73,7 +73,7 @@ def save_single_model_interpretability(
         plt.close(figure)
         return {"cnn_gradcam": str(path)}
 
-    if model_name == "vit":
+    if model_name in {"vit", "dhvt"}:
         model.eval()
         with torch.no_grad():
             logits, attention_maps = generate_attention_maps(model, images)
@@ -101,11 +101,12 @@ def save_single_model_interpretability(
             axes[index][2].set_title(f"pred={class_names[int(predictions[index].detach().cpu().item())]}")
             axes[index][2].axis("off")
 
-        figure.suptitle(f"{dataset_label} ViT Attention Rollout", fontsize=13, fontweight="semibold")
+        model_label = "ViT" if model_name == "vit" else "DHVT"
+        figure.suptitle(f"{dataset_label} {model_label} Attention Rollout", fontsize=13, fontweight="semibold")
         figure.tight_layout()
-        path = output_dir / f"{output_stem}_vit_attention.png"
+        path = output_dir / f"{output_stem}_{model_name}_attention.png"
         figure.savefig(path, dpi=200)
         plt.close(figure)
-        return {"vit_attention": str(path)}
+        return {f"{model_name}_attention": str(path)}
 
     return {}

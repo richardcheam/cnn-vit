@@ -1,1 +1,1 @@
-"""Model definitions for CNN and ViT experiments."""
+"""Model definitions for CNN, ViT, and DHVT experiments."""

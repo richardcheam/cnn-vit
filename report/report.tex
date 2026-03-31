@@ -59,6 +59,11 @@ So in this project, \textit{pretrained} means transfer learning through CIFAR-10
 
 When linear probing is used, the backbone remains frozen during training and only the downstream classifier head is updated. Gradient-based interpretability methods may still compute gradients during the visualization pass, but this is an inference-time explanation step and does not update the frozen backbone weights.
 
+All reported source and downstream results in this document come from 100-epoch runs.
+
+\subsection{Architecture attribution}
+The repository models are lightweight research baselines, not exact reproductions of one published architecture. The CNN is a custom compact model inspired by LeNet-style convolution / pooling classifiers \cite{lecun1998gradient}, VGG-style stacked small convolutions \cite{simonyan2015very}, and Batch Normalization \cite{ioffe2015batch}. The ViT is a compact implementation inspired by the Transformer encoder \cite{vaswani2017attention} and the original Vision Transformer design \cite{dosovitskiy2021image}. This wording is important for attribution: the code is custom, but the architectural ideas are grounded in these standard references.
+
 \subsection{Metrics}
 The project uses standard multiclass classification metrics.
 \begin{itemize}
@@ -136,6 +141,7 @@ ViT & pretrained + full fine-tune & 94.15\% & 0.9389 & 0.9383 & 0.9385 & 31m 28s
 The EuroSAT result now has a clearer interpretation:
 \begin{itemize}
     \item linear probing is much weaker than full fine-tuning for both architectures
+    \item the ViT is especially weak under a frozen backbone: 79.00\% with linear probing versus 94.15\% with full fine-tuning
     \item full fine-tuning gives only a small gain over scratch
     \item CNN full fine-tuning remains the strongest EuroSAT result
 \end{itemize}
@@ -167,6 +173,7 @@ ViT & pretrained + full fine-tune & 93.00\% & 0.9352 & 0.9300 & 0.9279 & 47m 56s
 The Brain Tumor MRI result is stronger:
 \begin{itemize}
     \item linear probing is much weaker than both scratch and full fine-tuning
+    \item this drop is severe for both models, which indicates that downstream adaptation is necessary rather than optional
     \item full fine-tuning gives a large gain over scratch
     \item pretrained ViT with full fine-tuning is the strongest downstream result in the repository
 \end{itemize}
@@ -205,6 +212,21 @@ Alex Krizhevsky and Geoffrey Hinton.
 Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg Heigold, Sylvain Gelly, Jakob Uszkoreit, and Neil Houlsby.
 \newblock An image is worth 16x16 words: Transformers for image recognition at scale.
 \newblock In \emph{International Conference on Learning Representations}, 2021.
+
+\bibitem{simonyan2015very}
+Karen Simonyan and Andrew Zisserman.
+\newblock Very deep convolutional networks for large-scale image recognition.
+\newblock In \emph{International Conference on Learning Representations}, 2015.
+
+\bibitem{ioffe2015batch}
+Sergey Ioffe and Christian Szegedy.
+\newblock Batch normalization: Accelerating deep network training by reducing internal covariate shift.
+\newblock In \emph{International Conference on Machine Learning}, pages 448--456, 2015.
+
+\bibitem{vaswani2017attention}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, {\L}ukasz Kaiser, and Illia Polosukhin.
+\newblock Attention is all you need.
+\newblock In \emph{Advances in Neural Information Processing Systems}, volume 30, 2017.
 
 \bibitem{touvron2021training}
 Hugo Touvron, Matthieu Cord, Matthijs Douze, Francisco Massa, Alexandre Sablayrolles, and Hervé Jégou.

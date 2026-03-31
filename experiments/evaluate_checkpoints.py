@@ -109,6 +109,7 @@ def _apply_checkpoint_runtime_settings(config, checkpoint: dict[str, Any]) -> No
     brain_data = stored_config.get("brain_mri", {})
     cnn_config = stored_config.get("cnn", {})
     vit_config = stored_config.get("vit", {})
+    dhvt_config = stored_config.get("dhvt", {})
     augmentations = stored_config.get("augmentations", {})
     training = stored_config.get("training", {})
 
@@ -158,6 +159,16 @@ def _apply_checkpoint_runtime_settings(config, checkpoint: dict[str, Any]) -> No
         config.vit.mlp_ratio = vit_config.get("mlp_ratio", config.vit.mlp_ratio)
         config.vit.dropout = vit_config.get("dropout", config.vit.dropout)
         config.vit.attention_dropout = vit_config.get("attention_dropout", config.vit.attention_dropout)
+
+    if dhvt_config:
+        config.dhvt.patch_size = dhvt_config.get("patch_size", config.dhvt.patch_size)
+        config.dhvt.embed_dim = dhvt_config.get("embed_dim", config.dhvt.embed_dim)
+        config.dhvt.depth = dhvt_config.get("depth", config.dhvt.depth)
+        config.dhvt.num_heads = dhvt_config.get("num_heads", config.dhvt.num_heads)
+        config.dhvt.mlp_ratio = dhvt_config.get("mlp_ratio", config.dhvt.mlp_ratio)
+        config.dhvt.dropout = dhvt_config.get("dropout", config.dhvt.dropout)
+        config.dhvt.attention_dropout = dhvt_config.get("attention_dropout", config.dhvt.attention_dropout)
+        config.dhvt.drop_path_rate = dhvt_config.get("drop_path_rate", config.dhvt.drop_path_rate)
 
     if augmentations:
         config.augmentations.occlusion_mask_size = augmentations.get(
@@ -610,7 +621,7 @@ def _save_interpretability(
             axes[index][2].axis("off")
 
         figure.tight_layout()
-        path = output_dir / "vit_attention.png"
+        path = output_dir / f"{model_name}_attention.png"
         figure.savefig(path, dpi=220)
         plt.close(figure)
         output_paths.append(str(path))

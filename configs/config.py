@@ -8,7 +8,7 @@ CIFAR10_MEAN = (0.4914, 0.4822, 0.4465)
 CIFAR10_STD = (0.2470, 0.2435, 0.2616)
 RGB_DEFAULT_MEAN = (0.485, 0.456, 0.406)
 RGB_DEFAULT_STD = (0.229, 0.224, 0.225)
-AVAILABLE_MODELS = ("cnn", "vit")
+AVAILABLE_MODELS = ("cnn", "vit", "dhvt")
 
 
 @dataclass
@@ -86,6 +86,18 @@ class ViTConfig:
 
 
 @dataclass
+class DHVTConfig:
+    patch_size: int = 4
+    embed_dim: int = 192
+    depth: int = 12
+    num_heads: int = 4
+    mlp_ratio: float = 4.0
+    dropout: float = 0.0
+    attention_dropout: float = 0.0
+    drop_path_rate: float = 0.1
+
+
+@dataclass
 class TrainingConfig:
     epochs: int = 5
     learning_rate: float = 1e-3
@@ -101,6 +113,7 @@ class TransferConfig:
     checkpoint_dir: Path = Path("outputs/checkpoints")
     cnn_checkpoint: Path | None = None
     vit_checkpoint: Path | None = None
+    dhvt_checkpoint: Path | None = None
     model_names: tuple[str, ...] = AVAILABLE_MODELS
     run_mode: str = "both"
     adaptation_mode: str = "both"
@@ -117,6 +130,7 @@ class BrainTransferConfig:
     checkpoint_dir: Path = Path("outputs/checkpoints")
     cnn_checkpoint: Path | None = None
     vit_checkpoint: Path | None = None
+    dhvt_checkpoint: Path | None = None
     model_names: tuple[str, ...] = AVAILABLE_MODELS
     run_mode: str = "both"
     adaptation_mode: str = "both"
@@ -145,6 +159,7 @@ class ProjectConfig:
     augmentations: AugmentationConfig = field(default_factory=AugmentationConfig)
     cnn: CNNConfig = field(default_factory=CNNConfig)
     vit: ViTConfig = field(default_factory=ViTConfig)
+    dhvt: DHVTConfig = field(default_factory=DHVTConfig)
     training: TrainingConfig = field(default_factory=TrainingConfig)
     transfer: TransferConfig = field(default_factory=TransferConfig)
     brain_transfer: BrainTransferConfig = field(default_factory=BrainTransferConfig)
