@@ -426,19 +426,23 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
                 test_predictions, test_targets = _collect_predictions(model, data_bundle.test, device=device)
                 macro_f1 = f1_score(test_targets, test_predictions, average="macro")
                 weighted_f1 = f1_score(test_targets, test_predictions, average="weighted")
-                interpretability_paths = save_single_model_interpretability(
-                    model_name=model_name,
-                    model=model,
-                    dataset=data_bundle.test_dataset,
-                    class_names=data_bundle.classes,
-                    device=device,
-                    mean=config.eurosat.mean,
-                    std=config.eurosat.std,
-                    batch_size=config.experiment.interpretability_samples,
-                    output_dir=ensure_dir(root_output_dir / "interpretability"),
-                    output_stem=f"{model_name}_{initialization}_{adaptation}",
-                    dataset_label=config.eurosat.name,
-                )
+                interpretability_paths: dict[str, str] = {}
+                try:
+                    interpretability_paths = save_single_model_interpretability(
+                        model_name=model_name,
+                        model=model,
+                        dataset=data_bundle.test_dataset,
+                        class_names=data_bundle.classes,
+                        device=device,
+                        mean=config.eurosat.mean,
+                        std=config.eurosat.std,
+                        batch_size=config.experiment.interpretability_samples,
+                        output_dir=ensure_dir(root_output_dir / "interpretability"),
+                        output_stem=f"{model_name}_{initialization}_{adaptation}",
+                        dataset_label=config.eurosat.name,
+                    )
+                except Exception as error:
+                    _log(f"[{run_label}] Interpretability skipped due to error: {error}")
 
                 summary = {
                     "dataset": config.eurosat.name,

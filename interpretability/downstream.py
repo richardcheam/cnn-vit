@@ -37,6 +37,7 @@ def save_single_model_interpretability(
 
     if model_name == "cnn":
         model.eval()
+        images = images.detach().clone().requires_grad_(True)
         gradcam = GradCAM(model, model.conv3)
         heatmaps = gradcam.generate(images)
         gradcam.close()
