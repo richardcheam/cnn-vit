@@ -1,0 +1,143 @@
+{
+  "dataset": "Brain Tumor MRI",
+  "dataset_slug": "brain_tumor_mri",
+  "source_dataset": "CIFAR-10",
+  "model": "vit",
+  "initialization": "scratch",
+  "parameter_count": 1987012,
+  "classification": {
+    "macro_avg": {
+      "precision": 0.8629,
+      "recall": 0.8588,
+      "f1_score": 0.8554
+    },
+    "weighted_avg": {
+      "precision": 0.8629,
+      "recall": 0.8588,
+      "f1_score": 0.8554
+    },
+    "confidence": {
+      "mean": 0.8941,
+      "mean_correct": 0.9211,
+      "mean_incorrect": 0.7295
+    },
+    "per_class": [
+      {
+        "class_index": 0,
+        "class_name": "glioma",
+        "support": 400,
+        "correct": 281,
+        "accuracy": 0.7025,
+        "precision": 0.9006,
+        "recall": 0.7025,
+        "f1_score": 0.7893,
+        "predicted_count": 312
+      },
+      {
+        "class_index": 1,
+        "class_name": "meningioma",
+        "support": 400,
+        "correct": 321,
+        "accuracy": 0.8025,
+        "precision": 0.8359,
+        "recall": 0.8025,
+        "f1_score": 0.8189,
+        "predicted_count": 384
+      },
+      {
+        "class_index": 2,
+        "class_name": "notumor",
+        "support": 400,
+        "correct": 397,
+        "accuracy": 0.9925,
+        "precision": 0.8135,
+        "recall": 0.9925,
+        "f1_score": 0.8941,
+        "predicted_count": 488
+      },
+      {
+        "class_index": 3,
+        "class_name": "pituitary",
+        "support": 400,
+        "correct": 375,
+        "accuracy": 0.9375,
+        "precision": 0.9014,
+        "recall": 0.9375,
+        "f1_score": 0.9191,
+        "predicted_count": 416
+      }
+    ],
+    "top_confusions": [
+      {
+        "true_class": "glioma",
+        "predicted_class": "notumor",
+        "count": 59
+      },
+      {
+        "true_class": "glioma",
+        "predicted_class": "meningioma",
+        "count": 47
+      },
+      {
+        "true_class": "meningioma",
+        "predicted_class": "notumor",
+        "count": 31
+      },
+      {
+        "true_class": "meningioma",
+        "predicted_class": "pituitary",
+        "count": 28
+      },
+      {
+        "true_class": "meningioma",
+        "predicted_class": "glioma",
+        "count": 20
+      },
+      {
+        "true_class": "pituitary",
+        "predicted_class": "meningioma",
+        "count": 15
+      },
+      {
+        "true_class": "glioma",
+        "predicted_class": "pituitary",
+        "count": 13
+      },
+      {
+        "true_class": "pituitary",
+        "predicted_class": "glioma",
+        "count": 9
+      },
+      {
+        "true_class": "notumor",
+        "predicted_class": "glioma",
+        "count": 2
+      },
+      {
+        "true_class": "notumor",
+        "predicted_class": "meningioma",
+        "count": 1
+      }
+    ]
+  },
+  "test": {
+    "loss": 0.6325,
+    "accuracy": 0.8588
+  },
+  "artifacts": {
+    "classification_report": "outputs/checkpoint_evaluation/vit_scratch_brain_tumor_mri_best/classification_report.json",
+    "prediction_analysis": "outputs/checkpoint_evaluation/vit_scratch_brain_tumor_mri_best/prediction_analysis.json",
+    "confusion_matrix": "outputs/checkpoint_evaluation/vit_scratch_brain_tumor_mri_best/confusion_matrix.png",
+    "confusion_matrix_normalized": "outputs/checkpoint_evaluation/vit_scratch_brain_tumor_mri_best/confusion_matrix_normalized.png",
+    "interpretability": [
+      "outputs/checkpoint_evaluation/vit_scratch_brain_tumor_mri_best/interpretability/vit_attention.png"
+    ],
+    "misclassified_examples": "outputs/checkpoint_evaluation/vit_scratch_brain_tumor_mri_best/examples/misclassified_examples.png",
+    "correct_examples": "outputs/checkpoint_evaluation/vit_scratch_brain_tumor_mri_best/examples/correct_examples.png"
+  },
+  "checkpoint_path": "/home/richard/cnn-vit/outputs/brain_mri_transfer/checkpoints/vit_scratch_brain_tumor_mri_best.pt",
+  "load_info": {
+    "missing_keys": [],
+    "unexpected_keys": []
+  }
+}

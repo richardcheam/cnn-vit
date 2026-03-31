@@ -125,7 +125,7 @@
     "misclassified_examples": "outputs/checkpoint_evaluation/vit_pretrained_brain_tumor_mri_best/examples/misclassified_examples.png",
     "correct_examples": "outputs/checkpoint_evaluation/vit_pretrained_brain_tumor_mri_best/examples/correct_examples.png"
   },
-  "checkpoint_path": "/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/outputs/brain_mri_transfer/checkpoints/vit_pretrained_brain_tumor_mri_best.pt",
+  "checkpoint_path": "/home/richard/cnn-vit/outputs/brain_mri_transfer/checkpoints/vit_pretrained_brain_tumor_mri_best.pt",
   "load_info": {
     "missing_keys": [],
     "unexpected_keys": []
