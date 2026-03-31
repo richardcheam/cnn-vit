@@ -69,7 +69,7 @@ The project uses standard multiclass classification metrics.
     \item \textbf{Support}: number of true samples belonging to a class in the evaluation split.
 \end{itemize}
 
-For the downstream datasets, macro-F1 is reported together with accuracy because it is more informative than accuracy alone when class balance matters.
+For the downstream datasets, macro-F1 is reported together with accuracy because it is more informative than accuracy alone when class balance matters. In the current downstream runs, class supports are close to balanced, so weighted-F1 is almost identical to macro-F1 and is omitted from the main tables.
 
 \section{Results}
 \subsection{CIFAR-10 source stage}
@@ -78,12 +78,12 @@ The source-stage result is clear. The CNN is the stronger standard classifier, w
 \begin{table}[H]
 \centering
 \caption{Full-data source-stage results on CIFAR-10.}
-\begin{tabular}{lcccccc}
+\begin{tabular}{lccccc}
 \toprule
-Model & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Weighted-F1 & Time \\
+Model & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Time \\
 \midrule
-CNN & 85.70\% & 0.8611 & 0.8570 & 0.8580 & 0.8580 & 13m 56s \\
-ViT & 73.36\% & 0.7330 & 0.7336 & 0.7330 & 0.7330 & 15m 46s \\
+CNN & 85.70\% & 0.8611 & 0.8570 & 0.8580 & 13m 56s \\
+ViT & 73.36\% & 0.7330 & 0.7336 & 0.7330 & 15m 46s \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -117,14 +117,14 @@ Transfer to EuroSAT gives only a small gain over scratch for both models.
 \begin{table}[H]
 \centering
 \caption{EuroSAT downstream results.}
-\begin{tabular}{lccccccc}
+\begin{tabular}{lcccccc}
 \toprule
-Model & Init & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Weighted-F1 & Time \\
+Model & Init & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Time \\
 \midrule
-CNN & scratch & 96.52\% & 0.9649 & 0.9640 & 0.9642 & 0.9651 & 11m 19s \\
-CNN & pretrained & 96.74\% & 0.9664 & 0.9660 & 0.9660 & 0.9673 & 11m 23s \\
-ViT & scratch & 93.59\% & 0.9341 & 0.9330 & 0.9331 & 0.9359 & 31m 29s \\
-ViT & pretrained & 94.15\% & 0.9389 & 0.9383 & 0.9385 & 0.9413 & 31m 28s \\
+CNN & scratch & 96.52\% & 0.9649 & 0.9640 & 0.9642 & 11m 19s \\
+CNN & pretrained & 96.74\% & 0.9664 & 0.9660 & 0.9660 & 11m 23s \\
+ViT & scratch & 93.59\% & 0.9341 & 0.9330 & 0.9331 & 31m 29s \\
+ViT & pretrained & 94.15\% & 0.9389 & 0.9383 & 0.9385 & 31m 28s \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -145,14 +145,14 @@ The Brain Tumor MRI transfer result is stronger and more informative. Here, CIFA
 \begin{table}[H]
 \centering
 \caption{Brain Tumor MRI downstream results.}
-\begin{tabular}{lccccccc}
+\begin{tabular}{lcccccc}
 \toprule
-Model & Init & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Weighted-F1 & Time \\
+Model & Init & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Time \\
 \midrule
-CNN & scratch & 82.56\% & 0.8429 & 0.8256 & 0.8230 & 0.8230 & 13m 18s \\
-CNN & pretrained & 89.38\% & 0.9018 & 0.8938 & 0.8917 & 0.8917 & 13m 16s \\
-ViT & scratch & 85.88\% & 0.8629 & 0.8588 & 0.8554 & 0.8554 & 47m 47s \\
-ViT & pretrained & 93.00\% & 0.9352 & 0.9300 & 0.9279 & 0.9279 & 47m 56s \\
+CNN & scratch & 82.56\% & 0.8429 & 0.8256 & 0.8230 & 13m 18s \\
+CNN & pretrained & 89.38\% & 0.9018 & 0.8938 & 0.8917 & 13m 16s \\
+ViT & scratch & 85.88\% & 0.8629 & 0.8588 & 0.8554 & 47m 47s \\
+ViT & pretrained & 93.00\% & 0.9352 & 0.9300 & 0.9279 & 47m 56s \\
 \bottomrule
 \end{tabular}
 \end{table}

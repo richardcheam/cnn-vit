@@ -41,13 +41,14 @@ These are the currently saved results in `outputs/`.
 - `Support`: number of true samples belonging to a class in the evaluation split.
 
 In single-label multiclass classification, `macro-F1` is especially useful when class balance matters, because it does not let large classes dominate the summary.
+In the current downstream runs, class supports are close to balanced, so `weighted-F1` is almost identical to `macro-F1`. For that reason, the main tables report `macro-F1` only.
 
 ### CIFAR-10 source study
 
-| Model | Accuracy | Macro precision | Macro recall | Macro-F1 | Weighted-F1 | Time |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| CNN | `85.70%` | `0.8611` | `0.8570` | `0.8580` | `0.8580` | `13m 56s` |
-| ViT | `73.36%` | `0.7330` | `0.7336` | `0.7330` | `0.7330` | `15m 46s` |
+| Model | Accuracy | Macro precision | Macro recall | Macro-F1 | Time |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| CNN | `85.70%` | `0.8611` | `0.8570` | `0.8580` | `13m 56s` |
+| ViT | `73.36%` | `0.7330` | `0.7336` | `0.7330` | `15m 46s` |
 
 Robustness on the full-data models:
 
@@ -62,12 +63,12 @@ Robustness on the full-data models:
 
 ### EuroSAT transfer
 
-| Model | Init | Accuracy | Macro precision | Macro recall | Macro-F1 | Weighted-F1 | Time |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| CNN | scratch | `96.52%` | `0.9649` | `0.9640` | `0.9642` | `0.9651` | `11m 19s` |
-| CNN | pretrained | `96.74%` | `0.9664` | `0.9660` | `0.9660` | `0.9673` | `11m 23s` |
-| ViT | scratch | `93.59%` | `0.9341` | `0.9330` | `0.9331` | `0.9359` | `31m 29s` |
-| ViT | pretrained | `94.15%` | `0.9389` | `0.9383` | `0.9385` | `0.9413` | `31m 28s` |
+| Model | Init | Accuracy | Macro precision | Macro recall | Macro-F1 | Time |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| CNN | scratch | `96.52%` | `0.9649` | `0.9640` | `0.9642` | `11m 19s` |
+| CNN | pretrained | `96.74%` | `0.9664` | `0.9660` | `0.9660` | `11m 23s` |
+| ViT | scratch | `93.59%` | `0.9341` | `0.9330` | `0.9331` | `31m 29s` |
+| ViT | pretrained | `94.15%` | `0.9389` | `0.9383` | `0.9385` | `31m 28s` |
 
 - Transfer helps both models, but the gain on EuroSAT is small.
 - CNN remains stronger than ViT on this downstream task.
@@ -75,12 +76,12 @@ Robustness on the full-data models:
 
 ### Brain Tumor MRI transfer
 
-| Model | Init | Accuracy | Macro precision | Macro recall | Macro-F1 | Weighted-F1 | Time |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| CNN | scratch | `82.56%` | `0.8429` | `0.8256` | `0.8230` | `0.8230` | `13m 18s` |
-| CNN | pretrained | `89.38%` | `0.9018` | `0.8938` | `0.8917` | `0.8917` | `13m 16s` |
-| ViT | scratch | `85.88%` | `0.8629` | `0.8588` | `0.8554` | `0.8554` | `47m 47s` |
-| ViT | pretrained | `93.00%` | `0.9352` | `0.9300` | `0.9279` | `0.9279` | `47m 56s` |
+| Model | Init | Accuracy | Macro precision | Macro recall | Macro-F1 | Time |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| CNN | scratch | `82.56%` | `0.8429` | `0.8256` | `0.8230` | `13m 18s` |
+| CNN | pretrained | `89.38%` | `0.9018` | `0.8938` | `0.8917` | `13m 16s` |
+| ViT | scratch | `85.88%` | `0.8629` | `0.8588` | `0.8554` | `47m 47s` |
+| ViT | pretrained | `93.00%` | `0.9352` | `0.9300` | `0.9279` | `47m 56s` |
 
 - Transfer helps both models substantially on Brain Tumor MRI.
 - On this medical-image task, the pretrained ViT is the strongest result in the repository so far.
