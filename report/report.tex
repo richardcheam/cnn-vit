@@ -15,7 +15,7 @@ Source and Transfer Results}
 \maketitle
 
 \begin{abstract}
-This report summarizes the current saved results of the project. The study starts with a controlled CIFAR-10 comparison between a lightweight CNN and a lightweight ViT, then transfers both models to EuroSAT and Brain Tumor MRI. The main findings are direct: the CNN is stronger on the source CIFAR-10 task, especially in low-data training, while the ViT is more robust to texture corruption. In downstream transfer, CIFAR pretraining provides only a small gain on EuroSAT but a clear gain on Brain Tumor MRI. The best downstream result so far is the pretrained ViT on Brain Tumor MRI.
+This report summarizes the current saved results of the project. The study starts with a controlled CIFAR-10 comparison between a lightweight CNN and a lightweight ViT, then transfers both models to EuroSAT and Brain Tumor MRI. The main findings are direct: the CNN is stronger on the source CIFAR-10 task, especially in low-data training, while the ViT is more robust to texture corruption. In downstream transfer, linear probing is clearly weaker than full fine-tuning. Full fine-tuning gives only a small gain on EuroSAT but a strong gain on Brain Tumor MRI. The best downstream result so far is the pretrained ViT with full fine-tuning on Brain Tumor MRI.
 \end{abstract}
 
 \section{Introduction}
@@ -121,23 +121,26 @@ Transfer to EuroSAT gives only a small gain over scratch for both models.
 \caption{EuroSAT downstream results.}
 \begin{tabular}{lcccccc}
 \toprule
-Model & Init & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Time \\
+Model & Setup & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Time \\
 \midrule
 CNN & scratch & 96.52\% & 0.9649 & 0.9640 & 0.9642 & 11m 19s \\
-CNN & pretrained & 96.74\% & 0.9664 & 0.9660 & 0.9660 & 11m 23s \\
+CNN & pretrained + linear probe & 85.78\% & 0.8560 & 0.8496 & 0.8496 & 11m 21s \\
+CNN & pretrained + full fine-tune & 96.74\% & 0.9664 & 0.9660 & 0.9660 & 11m 23s \\
 ViT & scratch & 93.59\% & 0.9341 & 0.9330 & 0.9331 & 31m 29s \\
-ViT & pretrained & 94.15\% & 0.9389 & 0.9383 & 0.9385 & 31m 28s \\
+ViT & pretrained + linear probe & 79.00\% & 0.7834 & 0.7784 & 0.7784 & 11m 43s \\
+ViT & pretrained + full fine-tune & 94.15\% & 0.9389 & 0.9383 & 0.9385 & 31m 28s \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The effect of transfer is positive but small:
+The EuroSAT result now has a clearer interpretation:
 \begin{itemize}
-    \item CNN gain: +0.22 points
-    \item ViT gain: +0.56 points
+    \item linear probing is much weaker than full fine-tuning for both architectures
+    \item full fine-tuning gives only a small gain over scratch
+    \item CNN full fine-tuning remains the strongest EuroSAT result
 \end{itemize}
 
-This suggests that EuroSAT is already easy enough for both architectures that CIFAR initialization is helpful but not decisive. The CNN remains the stronger downstream model on this task.
+This suggests that CIFAR features alone are not enough for strong EuroSAT transfer; downstream adaptation is important. At the same time, EuroSAT is easy enough that scratch training is already strong, so the final gain from full fine-tuning remains small.
 
 Checkpoint-based evaluation shows that the most difficult EuroSAT classes are \textit{PermanentCrop}, \textit{Highway}, and \textit{River}. The dominant confusions are \textit{PermanentCrop} $\rightarrow$ \textit{HerbaceousVegetation} and \textit{Highway} $\leftrightarrow$ \textit{River}.
 
@@ -149,23 +152,26 @@ The Brain Tumor MRI transfer result is stronger and more informative. Here, CIFA
 \caption{Brain Tumor MRI downstream results.}
 \begin{tabular}{lcccccc}
 \toprule
-Model & Init & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Time \\
+Model & Setup & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Time \\
 \midrule
 CNN & scratch & 82.56\% & 0.8429 & 0.8256 & 0.8230 & 13m 18s \\
-CNN & pretrained & 89.38\% & 0.9018 & 0.8938 & 0.8917 & 13m 16s \\
+CNN & pretrained + linear probe & 67.31\% & 0.6715 & 0.6715 & 0.6715 & 42m 10s \\
+CNN & pretrained + full fine-tune & 89.38\% & 0.9018 & 0.8938 & 0.8917 & 13m 16s \\
 ViT & scratch & 85.88\% & 0.8629 & 0.8588 & 0.8554 & 47m 47s \\
-ViT & pretrained & 93.00\% & 0.9352 & 0.9300 & 0.9279 & 47m 56s \\
+ViT & pretrained + linear probe & 76.00\% & 0.7524 & 0.7524 & 0.7524 & 15m 28s \\
+ViT & pretrained + full fine-tune & 93.00\% & 0.9352 & 0.9300 & 0.9279 & 47m 56s \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The transfer gains are substantial:
+The Brain Tumor MRI result is stronger:
 \begin{itemize}
-    \item CNN gain: +6.82 points
-    \item ViT gain: +7.12 points
+    \item linear probing is much weaker than both scratch and full fine-tuning
+    \item full fine-tuning gives a large gain over scratch
+    \item pretrained ViT with full fine-tuning is the strongest downstream result in the repository
 \end{itemize}
 
-Unlike CIFAR-10 and EuroSAT, the best result on this dataset is the pretrained ViT. This means the project now has a split outcome:
+This means the project now has a split outcome:
 \begin{itemize}
     \item CNN is strongest on the source task and on EuroSAT
     \item pretrained ViT is strongest on Brain Tumor MRI
@@ -177,7 +183,8 @@ The current results support three direct conclusions.
 \begin{itemize}
     \item On CIFAR-10, the CNN is the better source-stage model. It is more accurate and more data-efficient.
     \item On CIFAR-10, the ViT is much less affected by the texture-modified test set.
-    \item For downstream transfer, CIFAR pretraining matters much more for Brain Tumor MRI than for EuroSAT, and the pretrained ViT is currently the best medical downstream model in the repository.
+    \item For downstream transfer, linear probing is not enough. Full fine-tuning is clearly stronger on both EuroSAT and Brain Tumor MRI.
+    \item CIFAR pretraining matters much more for Brain Tumor MRI than for EuroSAT, and the pretrained ViT with full fine-tuning is currently the best medical downstream model in the repository.
 \end{itemize}
 
 So the present evidence does not support one universal winner. Instead, the results suggest that CNNs and ViTs learn different useful biases, and those differences matter differently across source and downstream tasks.

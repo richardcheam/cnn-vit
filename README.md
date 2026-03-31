@@ -63,27 +63,33 @@ Robustness on the full-data models:
 
 ### EuroSAT transfer
 
-| Model | Init | Accuracy | Macro precision | Macro recall | Macro-F1 | Time |
+| Model | Setup | Accuracy | Macro precision | Macro recall | Macro-F1 | Time |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
 | CNN | scratch | `96.52%` | `0.9649` | `0.9640` | `0.9642` | `11m 19s` |
-| CNN | pretrained | `96.74%` | `0.9664` | `0.9660` | `0.9660` | `11m 23s` |
+| CNN | pretrained + linear probe | `85.78%` | `0.8560` | `0.8496` | `0.8496` | `11m 21s` |
+| CNN | pretrained + full fine-tune | `96.74%` | `0.9664` | `0.9660` | `0.9660` | `11m 23s` |
 | ViT | scratch | `93.59%` | `0.9341` | `0.9330` | `0.9331` | `31m 29s` |
-| ViT | pretrained | `94.15%` | `0.9389` | `0.9383` | `0.9385` | `31m 28s` |
+| ViT | pretrained + linear probe | `79.00%` | `0.7834` | `0.7784` | `0.7784` | `11m 43s` |
+| ViT | pretrained + full fine-tune | `94.15%` | `0.9389` | `0.9383` | `0.9385` | `31m 28s` |
 
-- Transfer helps both models, but the gain on EuroSAT is small.
+- Linear probing is much weaker than full fine-tuning for both models.
+- Transfer helps both models, but the gain over scratch appears only after full fine-tuning.
 - CNN remains stronger than ViT on this downstream task.
 - Evaluation results show the most difficult EuroSAT classes are `PermanentCrop`, `Highway`, and `River`. The most common confusions are `PermanentCrop -> HerbaceousVegetation` and `Highway <-> River`.
 
 ### Brain Tumor MRI transfer
 
-| Model | Init | Accuracy | Macro precision | Macro recall | Macro-F1 | Time |
+| Model | Setup | Accuracy | Macro precision | Macro recall | Macro-F1 | Time |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
 | CNN | scratch | `82.56%` | `0.8429` | `0.8256` | `0.8230` | `13m 18s` |
-| CNN | pretrained | `89.38%` | `0.9018` | `0.8938` | `0.8917` | `13m 16s` |
+| CNN | pretrained + linear probe | `67.31%` | `0.6715` | `0.6715` | `0.6715` | `42m 10s` |
+| CNN | pretrained + full fine-tune | `89.38%` | `0.9018` | `0.8938` | `0.8917` | `13m 16s` |
 | ViT | scratch | `85.88%` | `0.8629` | `0.8588` | `0.8554` | `47m 47s` |
-| ViT | pretrained | `93.00%` | `0.9352` | `0.9300` | `0.9279` | `47m 56s` |
+| ViT | pretrained + linear probe | `76.00%` | `0.7524` | `0.7524` | `0.7524` | `15m 28s` |
+| ViT | pretrained + full fine-tune | `93.00%` | `0.9352` | `0.9300` | `0.9279` | `47m 56s` |
 
 - Transfer helps both models substantially on Brain Tumor MRI.
+- Linear probing is clearly weaker than both scratch and full fine-tuning here, so downstream adaptation matters a lot.
 - On this medical-image task, the pretrained ViT is the strongest result in the repository so far.
 - Full class-wise precision, recall, F1, and support remain available in the saved `classification_report.json` artifacts.
 
