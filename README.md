@@ -30,7 +30,26 @@ The repository now supports three connected stages:
 
 These are the currently saved results in `outputs/`.
 
+### Metrics used
+
+- `Accuracy`: fraction of correct predictions over the evaluation split.
+- `Precision`: for one class, among samples predicted as that class, how many are correct.
+- `Recall`: for one class, among true samples of that class, how many are recovered.
+- `F1-score`: harmonic mean of precision and recall for one class.
+- `Macro-F1`: average of the class-wise F1 scores, giving every class equal weight.
+- `Weighted-F1`: average of the class-wise F1 scores weighted by class size.
+- `Support`: number of true samples belonging to a class in the evaluation split.
+
+In single-label multiclass classification, `macro-F1` is especially useful when class balance matters, because it does not let large classes dominate the summary.
+
 ### CIFAR-10 source study
+
+| Model | Accuracy | Macro precision | Macro recall | Macro-F1 | Weighted-F1 | Time |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| CNN | `85.70%` | `0.8611` | `0.8570` | `0.8580` | `0.8580` | `13m 56s` |
+| ViT | `73.36%` | `0.7330` | `0.7336` | `0.7330` | `0.7330` | `15m 46s` |
+
+Robustness on the full-data models:
 
 | Model | Clean accuracy | Occluded accuracy | Texture accuracy |
 | --- | ---: | ---: | ---: |
@@ -39,26 +58,33 @@ These are the currently saved results in `outputs/`.
 
 - CNN is clearly stronger on standard CIFAR-10 accuracy and data efficiency.
 - ViT is much more robust to the texture-modified test set.
+- Checkpoint-based evaluation shows the hardest source classes are `cat`, `dog`, and `bird`, with strong `cat`/`dog` confusion for both models.
 
 ### EuroSAT transfer
 
-| Model | Scratch | CIFAR-pretrained |
-| --- | ---: | ---: |
-| CNN | `96.52%` | `96.74%` |
-| ViT | `93.59%` | `94.15%` |
+| Model | Init | Accuracy | Macro precision | Macro recall | Macro-F1 | Weighted-F1 | Time |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| CNN | scratch | `96.52%` | `0.9649` | `0.9640` | `0.9642` | `0.9651` | `11m 19s` |
+| CNN | pretrained | `96.74%` | `0.9664` | `0.9660` | `0.9660` | `0.9673` | `11m 23s` |
+| ViT | scratch | `93.59%` | `0.9341` | `0.9330` | `0.9331` | `0.9359` | `31m 29s` |
+| ViT | pretrained | `94.15%` | `0.9389` | `0.9383` | `0.9385` | `0.9413` | `31m 28s` |
 
 - Transfer helps both models, but the gain on EuroSAT is small.
 - CNN remains stronger than ViT on this downstream task.
+- Evaluation results show the most difficult EuroSAT classes are `PermanentCrop`, `Highway`, and `River`. The most common confusions are `PermanentCrop -> HerbaceousVegetation` and `Highway <-> River`.
 
 ### Brain Tumor MRI transfer
 
-| Model | Scratch | CIFAR-pretrained |
-| --- | ---: | ---: |
-| CNN | `82.56%` | `89.38%` |
-| ViT | `85.88%` | `93.00%` |
+| Model | Init | Accuracy | Macro precision | Macro recall | Macro-F1 | Weighted-F1 | Time |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| CNN | scratch | `82.56%` | `0.8429` | `0.8256` | `0.8230` | `0.8230` | `13m 18s` |
+| CNN | pretrained | `89.38%` | `0.9018` | `0.8938` | `0.8917` | `0.8917` | `13m 16s` |
+| ViT | scratch | `85.88%` | `0.8629` | `0.8588` | `0.8554` | `0.8554` | `47m 47s` |
+| ViT | pretrained | `93.00%` | `0.9352` | `0.9300` | `0.9279` | `0.9279` | `47m 56s` |
 
 - Transfer helps both models substantially on Brain Tumor MRI.
 - On this medical-image task, the pretrained ViT is the strongest result in the repository so far.
+- Full class-wise precision, recall, F1, and support remain available in the saved `classification_report.json` artifacts.
 
 ## Pipeline Overview
 
@@ -141,6 +167,8 @@ Important design choice:
 | Texture-modified test set | `10,000` | Clean test images with patch shuffling and noise |
 
 The validation split is created once with a fixed random seed and reused across all experiments. This keeps the comparison controlled.
+
+Augmentation is applied online during loading. It changes the appearance of a sample seen in an epoch, but it does not increase the stored dataset size.
 
 ### 4. Data-efficiency design
 

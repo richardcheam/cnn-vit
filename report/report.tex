@@ -33,7 +33,7 @@ Training uses:
     \item normalization with CIFAR-10 statistics
 \end{itemize}
 
-Here, \texttt{ToTensor()} and normalization are preprocessing transforms. The random crop and horizontal flip are augmentation transforms.
+Here, \texttt{ToTensor()} and normalization are preprocessing transforms. The random crop and horizontal flip are augmentation transforms. Augmentation is applied online during loading; it does not increase the stored dataset size.
 
 The source-stage comparison includes:
 \begin{itemize}
@@ -57,6 +57,20 @@ For both downstream datasets, two modes are compared:
 
 So in this project, \textit{pretrained} means transfer learning through CIFAR-10 initialization, not frozen-backbone linear probing.
 
+\subsection{Metrics}
+The project uses standard multiclass classification metrics.
+\begin{itemize}
+    \item \textbf{Accuracy}: fraction of correct predictions over the evaluation split.
+    \item \textbf{Precision}: for one class, among predicted samples of that class, how many are correct.
+    \item \textbf{Recall}: for one class, among true samples of that class, how many are correctly recovered.
+    \item \textbf{F1-score}: harmonic mean of precision and recall for one class.
+    \item \textbf{Macro-F1}: arithmetic mean of the class-wise F1 scores, so every class has equal weight.
+    \item \textbf{Weighted-F1}: average of the class-wise F1 scores weighted by class support.
+    \item \textbf{Support}: number of true samples belonging to a class in the evaluation split.
+\end{itemize}
+
+For the downstream datasets, macro-F1 is reported together with accuracy because it is more informative than accuracy alone when class balance matters.
+
 \section{Results}
 \subsection{CIFAR-10 source stage}
 The source-stage result is clear. The CNN is the stronger standard classifier, while the ViT is more robust to texture corruption.
@@ -64,12 +78,25 @@ The source-stage result is clear. The CNN is the stronger standard classifier, w
 \begin{table}[H]
 \centering
 \caption{Full-data source-stage results on CIFAR-10.}
-\begin{tabular}{lcccc}
+\begin{tabular}{lcccccc}
 \toprule
-Model & Clean Acc. & Occluded Acc. & Texture Acc. & Params \\
+Model & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Weighted-F1 & Time \\
 \midrule
-CNN & 85.70\% & 80.32\% & 32.98\% & 374{,}282 \\
-ViT & 73.36\% & 68.81\% & 50.26\% & 1{,}803{,}850 \\
+CNN & 85.70\% & 0.8611 & 0.8570 & 0.8580 & 0.8580 & 13m 56s \\
+ViT & 73.36\% & 0.7330 & 0.7336 & 0.7330 & 0.7330 & 15m 46s \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{CIFAR-10 robustness on the full-data models.}
+\begin{tabular}{lccc}
+\toprule
+Model & Clean Acc. & Occluded Acc. & Texture Acc. \\
+\midrule
+CNN & 85.70\% & 80.32\% & 32.98\% \\
+ViT & 73.36\% & 68.81\% & 50.26\% \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -82,18 +109,22 @@ The CNN also remains ahead across all data budgets:
 
 This confirms the expected pattern from prior work: the CNN is more data-efficient in this small-image, from-scratch setting \cite{dosovitskiy2021image,touvron2021training}. At the same time, the ViT loses much less accuracy under texture modification, which is consistent with the texture-bias literature on CNNs \cite{geirhos2019imagenet}.
 
+Checkpoint-based evaluation also shows that the hardest CIFAR-10 classes are \textit{cat}, \textit{dog}, and \textit{bird}, with strong \textit{cat}/\textit{dog} confusion for both models.
+
 \subsection{EuroSAT transfer}
 Transfer to EuroSAT gives only a small gain over scratch for both models.
 
 \begin{table}[H]
 \centering
 \caption{EuroSAT downstream results.}
-\begin{tabular}{lcc}
+\begin{tabular}{lccccccc}
 \toprule
-Model & Scratch & CIFAR-pretrained \\
+Model & Init & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Weighted-F1 & Time \\
 \midrule
-CNN & 96.52\% & 96.74\% \\
-ViT & 93.59\% & 94.15\% \\
+CNN & scratch & 96.52\% & 0.9649 & 0.9640 & 0.9642 & 0.9651 & 11m 19s \\
+CNN & pretrained & 96.74\% & 0.9664 & 0.9660 & 0.9660 & 0.9673 & 11m 23s \\
+ViT & scratch & 93.59\% & 0.9341 & 0.9330 & 0.9331 & 0.9359 & 31m 29s \\
+ViT & pretrained & 94.15\% & 0.9389 & 0.9383 & 0.9385 & 0.9413 & 31m 28s \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -106,18 +137,22 @@ The effect of transfer is positive but small:
 
 This suggests that EuroSAT is already easy enough for both architectures that CIFAR initialization is helpful but not decisive. The CNN remains the stronger downstream model on this task.
 
+Checkpoint-based evaluation shows that the most difficult EuroSAT classes are \textit{PermanentCrop}, \textit{Highway}, and \textit{River}. The dominant confusions are \textit{PermanentCrop} $\rightarrow$ \textit{HerbaceousVegetation} and \textit{Highway} $\leftrightarrow$ \textit{River}.
+
 \subsection{Brain Tumor MRI transfer}
 The Brain Tumor MRI transfer result is stronger and more informative. Here, CIFAR pretraining gives a clear boost to both architectures.
 
 \begin{table}[H]
 \centering
 \caption{Brain Tumor MRI downstream results.}
-\begin{tabular}{lcc}
+\begin{tabular}{lccccccc}
 \toprule
-Model & Scratch & CIFAR-pretrained \\
+Model & Init & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Weighted-F1 & Time \\
 \midrule
-CNN & 82.56\% & 89.38\% \\
-ViT & 85.88\% & 93.00\% \\
+CNN & scratch & 82.56\% & 0.8429 & 0.8256 & 0.8230 & 0.8230 & 13m 18s \\
+CNN & pretrained & 89.38\% & 0.9018 & 0.8938 & 0.8917 & 0.8917 & 13m 16s \\
+ViT & scratch & 85.88\% & 0.8629 & 0.8588 & 0.8554 & 0.8554 & 47m 47s \\
+ViT & pretrained & 93.00\% & 0.9352 & 0.9300 & 0.9279 & 0.9279 & 47m 56s \\
 \bottomrule
 \end{tabular}
 \end{table}
