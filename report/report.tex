@@ -57,6 +57,8 @@ For both downstream datasets, two modes are compared:
 
 So in this project, \textit{pretrained} means transfer learning through CIFAR-10 initialization, not frozen-backbone linear probing.
 
+When linear probing is used, the backbone remains frozen during training and only the downstream classifier head is updated. Gradient-based interpretability methods may still compute gradients during the visualization pass, but this is an inference-time explanation step and does not update the frozen backbone weights.
+
 \subsection{Metrics}
 The project uses standard multiclass classification metrics.
 \begin{itemize}

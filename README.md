@@ -305,6 +305,12 @@ flowchart LR
 
 `full_finetune` tests whether downstream adaptation of the backbone gives additional gains.
 
+Interpretability note:
+
+- For linear probing, the backbone remains frozen during training.
+- Grad-CAM and attention visualization may still use gradients during the visualization pass.
+- This does not update the frozen backbone weights. It is only an inference-time explanation step.
+
 ### 5. Optimization details
 
 | Setting | Value |

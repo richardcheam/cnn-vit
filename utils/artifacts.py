@@ -39,12 +39,12 @@ def load_eurosat_runs_with_histories(output_dir: str | Path) -> list[dict]:
     checkpoint_runs = _load_eurosat_runs_from_checkpoints(output_dir / "checkpoints")
 
     if runs_path.exists():
-        return _merge_eurosat_runs(load_json(runs_path), checkpoint_runs)
+        return _merge_transfer_runs(load_json(runs_path), checkpoint_runs)
 
     if summary_path.exists():
         summary = load_json(summary_path)
         if "detailed_runs" in summary:
-            return _merge_eurosat_runs(summary["detailed_runs"], checkpoint_runs)
+            return _merge_transfer_runs(summary["detailed_runs"], checkpoint_runs)
         if "runs" in summary and "histories" in summary:
             detailed_runs = []
             for row in summary["runs"]:
@@ -54,7 +54,7 @@ def load_eurosat_runs_with_histories(output_dir: str | Path) -> list[dict]:
                 detailed = dict(row)
                 detailed["history"] = summary["histories"].get(key)
                 detailed_runs.append(detailed)
-            return _merge_eurosat_runs(detailed_runs, checkpoint_runs)
+            return _merge_transfer_runs(detailed_runs, checkpoint_runs)
 
     return checkpoint_runs
 
@@ -169,6 +169,7 @@ def _merge_transfer_runs(existing_runs: list[dict], checkpoint_runs: list[dict])
         key=lambda row: (
             row.get("model", ""),
             row.get("initialization", ""),
+            row.get("adaptation", ""),
             row.get("train_size", 0),
             row.get("val_size", 0),
             row.get("test_size", 0),
