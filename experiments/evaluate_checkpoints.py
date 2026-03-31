@@ -558,18 +558,22 @@ def _save_interpretability(
         label_indices = labels.detach().cpu().tolist()
         prediction_indices = predictions.detach().cpu().tolist()
 
-        figure, axes = plt.subplots(len(images), 2, figsize=(6, 3 * len(images)))
+        figure, axes = plt.subplots(len(images), 3, figsize=(9, 3 * len(images)))
         if len(images) == 1:
             axes = [axes]
 
         for index in range(len(images)):
+            base_image = to_numpy_image(images[index].detach().cpu(), mean=mean, std=std)
             overlay = overlay_heatmap(images[index].detach().cpu(), heatmaps[index].detach().cpu(), mean=mean, std=std)
-            axes[index][0].imshow(overlay)
+            axes[index][0].imshow(base_image)
             axes[index][0].set_title(f"true={_class_name(label_indices[index], class_names)}")
             axes[index][0].axis("off")
-            axes[index][1].imshow(heatmaps[index].detach().cpu(), cmap="inferno")
-            axes[index][1].set_title(f"pred={_class_name(prediction_indices[index], class_names)}")
+            axes[index][1].imshow(overlay)
+            axes[index][1].set_title("overlay")
             axes[index][1].axis("off")
+            axes[index][2].imshow(heatmaps[index].detach().cpu(), cmap="inferno")
+            axes[index][2].set_title(f"pred={_class_name(prediction_indices[index], class_names)}")
+            axes[index][2].axis("off")
 
         figure.tight_layout()
         path = output_dir / "cnn_gradcam.png"
@@ -583,23 +587,27 @@ def _save_interpretability(
         label_indices = labels.detach().cpu().tolist()
         prediction_indices = predictions.detach().cpu().tolist()
 
-        figure, axes = plt.subplots(len(images), 2, figsize=(6, 3 * len(images)))
+        figure, axes = plt.subplots(len(images), 3, figsize=(9, 3 * len(images)))
         if len(images) == 1:
             axes = [axes]
 
         for index in range(len(images)):
+            base_image = to_numpy_image(images[index].detach().cpu(), mean=mean, std=std)
             overlay = overlay_attention_map(
                 images[index].detach().cpu(),
                 attention_maps[index].detach().cpu(),
                 mean=mean,
                 std=std,
             )
-            axes[index][0].imshow(overlay)
+            axes[index][0].imshow(base_image)
             axes[index][0].set_title(f"true={_class_name(label_indices[index], class_names)}")
             axes[index][0].axis("off")
-            axes[index][1].imshow(attention_maps[index].detach().cpu(), cmap="viridis")
-            axes[index][1].set_title(f"pred={_class_name(prediction_indices[index], class_names)}")
+            axes[index][1].imshow(overlay)
+            axes[index][1].set_title("overlay")
             axes[index][1].axis("off")
+            axes[index][2].imshow(attention_maps[index].detach().cpu(), cmap="viridis")
+            axes[index][2].set_title(f"pred={_class_name(prediction_indices[index], class_names)}")
+            axes[index][2].axis("off")
 
         figure.tight_layout()
         path = output_dir / "vit_attention.png"
