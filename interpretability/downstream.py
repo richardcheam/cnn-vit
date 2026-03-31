@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 
 from interpretability.gradcam import GradCAM, overlay_heatmap
 from interpretability.vit_attention import generate_attention_maps, overlay_attention_map
-from utils.helpers import ensure_dir
+from utils.helpers import ensure_dir, to_numpy_image
 
 
 def sample_batch(dataset, batch_size: int) -> tuple[torch.Tensor, torch.Tensor]:
@@ -48,16 +48,17 @@ def save_single_model_interpretability(
             axes = [axes]
 
         for index in range(len(images)):
+            base_image = to_numpy_image(images[index].detach().cpu(), mean=mean, std=std)
             overlay = overlay_heatmap(
                 images[index].detach().cpu(),
                 heatmaps[index].detach().cpu(),
                 mean=mean,
                 std=std,
             )
-            axes[index][0].imshow(overlay)
+            axes[index][0].imshow(base_image)
             axes[index][0].set_title(f"true={class_names[int(labels[index].detach().cpu().item())]}")
             axes[index][0].axis("off")
-            axes[index][1].imshow(heatmaps[index].detach().cpu(), cmap="inferno")
+            axes[index][1].imshow(overlay)
             axes[index][1].set_title(f"pred={class_names[int(predictions[index].detach().cpu().item())]}")
             axes[index][1].axis("off")
 
@@ -79,16 +80,17 @@ def save_single_model_interpretability(
             axes = [axes]
 
         for index in range(len(images)):
+            base_image = to_numpy_image(images[index].detach().cpu(), mean=mean, std=std)
             overlay = overlay_attention_map(
                 images[index].detach().cpu(),
                 attention_maps[index].detach().cpu(),
                 mean=mean,
                 std=std,
             )
-            axes[index][0].imshow(overlay)
+            axes[index][0].imshow(base_image)
             axes[index][0].set_title(f"true={class_names[int(labels[index].detach().cpu().item())]}")
             axes[index][0].axis("off")
-            axes[index][1].imshow(attention_maps[index].detach().cpu(), cmap="viridis")
+            axes[index][1].imshow(overlay)
             axes[index][1].set_title(f"pred={class_names[int(predictions[index].detach().cpu().item())]}")
             axes[index][1].axis("off")
 
