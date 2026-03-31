@@ -38,15 +38,17 @@ from utils.helpers import ensure_dir, save_csv, save_json
 def _eurosat_summary_run_id(row: dict) -> str:
     train_size = row.get("train_size", "na")
     initialization = row.get("initialization", "run")
+    adaptation = row.get("adaptation", "na")
     model = row.get("model", "model")
-    return f"{model}_{initialization}_{train_size}"
+    return f"{model}_{initialization}_{adaptation}_{train_size}"
 
 
 def _brain_mri_summary_run_id(row: dict) -> str:
     train_size = row.get("train_size", "na")
     initialization = row.get("initialization", "run")
+    adaptation = row.get("adaptation", "na")
     model = row.get("model", "model")
-    return f"{model}_{initialization}_{train_size}"
+    return f"{model}_{initialization}_{adaptation}_{train_size}"
 
 
 def parse_args() -> argparse.Namespace:

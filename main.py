@@ -77,6 +77,12 @@ def parse_args() -> argparse.Namespace:
         help="When running the downstream transfer stage, compare scratch, pretrained, or both.",
     )
     parser.add_argument(
+        "--adaptation-mode",
+        choices=("both", "linear_probe", "full_finetune"),
+        default=None,
+        help="For pretrained downstream runs, choose linear probing, full fine-tuning, or both.",
+    )
+    parser.add_argument(
         "--checkpoint-dir",
         type=Path,
         default=None,
@@ -155,6 +161,11 @@ def main() -> None:
             config.brain_transfer.run_mode = args.transfer_mode
         else:
             config.transfer.run_mode = args.transfer_mode
+    if args.adaptation_mode is not None:
+        if args.experiment == "brain_mri":
+            config.brain_transfer.adaptation_mode = args.adaptation_mode
+        else:
+            config.transfer.adaptation_mode = args.adaptation_mode
     if args.checkpoint_dir is not None:
         if args.experiment == "brain_mri":
             config.brain_transfer.checkpoint_dir = args.checkpoint_dir
@@ -216,16 +227,22 @@ def main() -> None:
     elif args.experiment == "eurosat":
         print(f"{config.eurosat.name} transfer results:")
         for row in summary["runs"]:
+            descriptor = row["initialization"]
+            if row["initialization"] == "pretrained":
+                descriptor += f" / {row.get('adaptation', 'full_finetune')}"
             print(
-                f"  {row['model'].upper()} ({row['initialization']}): "
+                f"  {row['model'].upper()} ({descriptor}): "
                 f"acc={row['test_accuracy']:.4f}, checkpoint={row['checkpoint_path']}"
             )
         print(f"Artifacts saved to: {config.transfer.output_dir}", flush=True)
     else:
         print(f"{config.brain_mri.name} transfer results:")
         for row in summary["runs"]:
+            descriptor = row["initialization"]
+            if row["initialization"] == "pretrained":
+                descriptor += f" / {row.get('adaptation', 'full_finetune')}"
             print(
-                f"  {row['model'].upper()} ({row['initialization']}): "
+                f"  {row['model'].upper()} ({descriptor}): "
                 f"acc={row['test_accuracy']:.4f}, checkpoint={row['checkpoint_path']}"
             )
         print(f"Artifacts saved to: {config.brain_transfer.output_dir}", flush=True)

@@ -48,6 +48,22 @@ def build_finetune_parameter_groups(
     ]
 
 
+def freeze_backbone_for_linear_probe(model: nn.Module) -> None:
+    """Freeze all pretrained features and keep only the classifier trainable."""
+    head_parameter_ids = {id(parameter) for parameter in _classifier_parameters(model)}
+    for parameter in model.parameters():
+        parameter.requires_grad = id(parameter) in head_parameter_ids
+
+
+def build_linear_probe_parameter_groups(
+    model: nn.Module,
+    head_learning_rate: float,
+) -> list[dict]:
+    """Train only the classifier head during linear probing."""
+    freeze_backbone_for_linear_probe(model)
+    return [{"params": _classifier_parameters(model), "lr": head_learning_rate}]
+
+
 def resolve_checkpoint_path(
     model_name: str,
     checkpoint_dir: str | Path,

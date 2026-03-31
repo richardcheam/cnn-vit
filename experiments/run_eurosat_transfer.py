@@ -17,7 +17,12 @@ from models.vit import VisionTransformer
 from training.trainer import Trainer
 from utils.artifacts import load_eurosat_runs_with_histories
 from utils.helpers import ensure_dir, format_seconds, save_csv, save_json, save_torch_checkpoint
-from utils.transfer import build_finetune_parameter_groups, load_pretrained_backbone, resolve_checkpoint_path
+from utils.transfer import (
+    build_finetune_parameter_groups,
+    build_linear_probe_parameter_groups,
+    load_pretrained_backbone,
+    resolve_checkpoint_path,
+)
 
 
 PLOT_STYLE = {
@@ -51,7 +56,8 @@ ARCHITECTURE_COLORS = {
 
 TRANSFER_LINESTYLES = {
     "scratch": "-",
-    "pretrained": "--",
+    "full_finetune": "--",
+    "linear_probe": ":",
 }
 
 
@@ -60,6 +66,7 @@ def _eurosat_run_key(row: dict) -> tuple:
         row.get("dataset_slug", row.get("dataset")),
         row.get("model"),
         row.get("initialization"),
+        row.get("adaptation"),
         row.get("train_size"),
         row.get("val_size"),
         row.get("test_size"),
@@ -77,6 +84,7 @@ def _merge_eurosat_runs(existing_runs: list[dict], new_runs: list[dict]) -> list
         key=lambda row: (
             row.get("model", ""),
             row.get("initialization", ""),
+            row.get("adaptation", ""),
             row.get("train_size", 0),
             row.get("val_size", 0),
             row.get("test_size", 0),
@@ -87,8 +95,19 @@ def _merge_eurosat_runs(existing_runs: list[dict], new_runs: list[dict]) -> list
 def _summary_run_id(row: dict) -> str:
     train_size = row.get("train_size", "na")
     initialization = row.get("initialization", "run")
+    adaptation = row.get("adaptation", "na")
     model = row.get("model", "model")
-    return f"{model}_{initialization}_{train_size}"
+    return f"{model}_{initialization}_{adaptation}_{train_size}"
+
+
+def _run_descriptor(row: dict) -> str:
+    initialization = row["initialization"]
+    adaptation = row.get("adaptation")
+    if initialization == "scratch":
+        return "scratch"
+    if adaptation == "linear_probe":
+        return "pretrained\nlinear probe"
+    return "pretrained\nfull ft"
 
 
 def _log(message: str) -> None:
@@ -150,18 +169,25 @@ def _build_eurosat_model(model_name: str, config: ProjectConfig) -> torch.nn.Mod
 
 def _save_transfer_accuracy_plot(rows: list[dict], output_dir: Path) -> None:
     ensure_dir(output_dir)
-    ordered_rows = sorted(rows, key=lambda row: (row["model"], row["initialization"]))
+    ordered_rows = sorted(rows, key=lambda row: (row["model"], row["initialization"], row.get("adaptation", "")))
     unique_train_sizes = {row.get("train_size") for row in ordered_rows}
     show_train_size = len(unique_train_sizes) > 1
     labels = []
     for row in ordered_rows:
-        label = f"{row['model'].upper()}\n{row['initialization']}"
+        label = f"{row['model'].upper()}\n{_run_descriptor(row)}"
         if show_train_size and row.get("train_size") is not None:
             label += f"\n{row['train_size']:,} train"
         labels.append(label)
     accuracies = [row["test_accuracy"] for row in ordered_rows]
     colors = [ARCHITECTURE_COLORS[row["model"]] for row in ordered_rows]
-    alphas = [0.65 if row["initialization"] == "scratch" else 1.0 for row in ordered_rows]
+    alphas = [
+        0.65
+        if row["initialization"] == "scratch"
+        else 0.82
+        if row.get("adaptation") == "linear_probe"
+        else 1.0
+        for row in ordered_rows
+    ]
 
     with plt.rc_context(PLOT_STYLE):
         figure, axis = plt.subplots(figsize=(9, 5.2))
@@ -202,8 +228,8 @@ def _save_transfer_validation_curves(results: list[dict], output_dir: Path) -> N
             history = result["history"]
             epochs = range(1, len(history["val_loss"]) + 1)
             color = ARCHITECTURE_COLORS[result["model"]]
-            linestyle = TRANSFER_LINESTYLES[result["initialization"]]
-            label = f"{result['model'].upper()} {result['initialization']}"
+            linestyle = TRANSFER_LINESTYLES[result.get("adaptation", "full_finetune")]
+            label = f"{result['model'].upper()} {_run_descriptor(result).replace(chr(10), ' ')}"
             if show_train_size and result.get("train_size") is not None:
                 label += f" ({result['train_size']:,})"
 
@@ -246,7 +272,8 @@ def _save_downstream_checkpoint(
     summary: dict,
     classes: tuple[str, ...],
 ) -> Path:
-    checkpoint_path = output_dir / f"{model_name}_{initialization}_{config.eurosat.slug}_best.pt"
+    adaptation = summary.get("adaptation", "na")
+    checkpoint_path = output_dir / f"{model_name}_{initialization}_{adaptation}_{config.eurosat.slug}_best.pt"
     checkpoint = {
         "model_name": model_name,
         "dataset": config.eurosat.name,
@@ -254,6 +281,7 @@ def _save_downstream_checkpoint(
         "source_dataset": config.data.name,
         "source_dataset_slug": config.data.slug,
         "initialization": initialization,
+        "adaptation": adaptation,
         "config": config.to_dict(),
         "class_names": list(classes),
         "history": summary["history"],
@@ -302,6 +330,11 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
     if config.transfer.run_mode == "pretrained":
         run_modes = ("pretrained",)
     selected_models = config.transfer.model_names
+    adaptation_modes = ("full_finetune",)
+    if config.transfer.adaptation_mode == "both":
+        adaptation_modes = ("linear_probe", "full_finetune")
+    elif config.transfer.adaptation_mode == "linear_probe":
+        adaptation_modes = ("linear_probe",)
 
     checkpoint_paths = {}
     if "pretrained" in run_modes:
@@ -329,122 +362,135 @@ def run_eurosat_transfer(config: ProjectConfig, device: torch.device) -> dict:
     for model_name in selected_models:
         _log(f"\n===== {config.eurosat.name} model family: {model_name.upper()} =====")
         for initialization in run_modes:
-            run_label = f"{model_name.upper()} | {config.eurosat.name} | {initialization}"
-            _log(f"[{run_label}] Preparing {config.eurosat.name} dataloaders.")
-            data_bundle = build_eurosat_dataloaders(config)
-            _log(
-                f"[{run_label}] Dataset sizes | "
-                f"train={len(data_bundle.train_dataset)}, val={len(data_bundle.val_dataset)}, "
-                f"test={len(data_bundle.test_dataset)}"
-            )
-            model = _build_eurosat_model(model_name, config)
-            parameter_groups = None
-            learning_rate = config.transfer.scratch_learning_rate
-            preload_info = None
-
-            if initialization == "pretrained":
-                checkpoint_path = checkpoint_paths[model_name]
-                preload_info = load_pretrained_backbone(model=model, checkpoint_path=checkpoint_path)
-                parameter_groups = build_finetune_parameter_groups(
-                    model=model,
-                    backbone_learning_rate=config.transfer.backbone_learning_rate,
-                    head_learning_rate=config.transfer.head_learning_rate,
-                )
-                learning_rate = config.transfer.head_learning_rate
+            current_adaptation_modes = ("full_finetune",) if initialization == "scratch" else adaptation_modes
+            for adaptation in current_adaptation_modes:
+                adaptation_label = "scratch" if initialization == "scratch" else adaptation.replace("_", " ")
+                run_label = f"{model_name.upper()} | {config.eurosat.name} | {initialization}"
+                if initialization == "pretrained":
+                    run_label += f" | {adaptation_label}"
+                _log(f"[{run_label}] Preparing {config.eurosat.name} dataloaders.")
+                data_bundle = build_eurosat_dataloaders(config)
                 _log(
-                    f"[{run_label}] Loaded {config.data.name} checkpoint: {checkpoint_path} | "
-                    f"missing={len(preload_info['missing_keys'])}, unexpected={len(preload_info['unexpected_keys'])}"
+                    f"[{run_label}] Dataset sizes | "
+                    f"train={len(data_bundle.train_dataset)}, val={len(data_bundle.val_dataset)}, "
+                    f"test={len(data_bundle.test_dataset)}"
                 )
-            else:
-                _log(f"[{run_label}] Using random initialization.")
+                model = _build_eurosat_model(model_name, config)
+                parameter_groups = None
+                learning_rate = config.transfer.scratch_learning_rate
+                preload_info = None
 
-            parameter_count = model_summary(model)["parameter_count"]
-            trainer = Trainer(
-                model=model,
-                learning_rate=learning_rate,
-                weight_decay=config.transfer.weight_decay,
-                device=device,
-                parameter_groups=parameter_groups,
-            )
-            _log(
-                f"[{run_label}] Starting downstream training | "
-                f"epochs={config.transfer.epochs}, scratch_lr={config.transfer.scratch_learning_rate}, "
-                f"backbone_lr={config.transfer.backbone_learning_rate}, head_lr={config.transfer.head_learning_rate}"
-            )
-            history = trainer.fit(
-                train_loader=data_bundle.train,
-                val_loader=data_bundle.val,
-                epochs=config.transfer.epochs,
-                run_name=run_label,
-            )
-            test_metrics = trainer.evaluate(data_bundle.test, label=f"{run_label} test")
-            test_predictions, test_targets = _collect_predictions(model, data_bundle.test, device=device)
-            macro_f1 = f1_score(test_targets, test_predictions, average="macro")
-            weighted_f1 = f1_score(test_targets, test_predictions, average="weighted")
-            interpretability_paths = save_single_model_interpretability(
-                model_name=model_name,
-                model=model,
-                dataset=data_bundle.test_dataset,
-                class_names=data_bundle.classes,
-                device=device,
-                mean=config.eurosat.mean,
-                std=config.eurosat.std,
-                batch_size=config.experiment.interpretability_samples,
-                output_dir=ensure_dir(root_output_dir / "interpretability"),
-                output_stem=f"{model_name}_{initialization}",
-                dataset_label=config.eurosat.name,
-            )
+                if initialization == "pretrained":
+                    checkpoint_path = checkpoint_paths[model_name]
+                    preload_info = load_pretrained_backbone(model=model, checkpoint_path=checkpoint_path)
+                    if adaptation == "linear_probe":
+                        parameter_groups = build_linear_probe_parameter_groups(
+                            model=model,
+                            head_learning_rate=config.transfer.head_learning_rate,
+                        )
+                        learning_rate = config.transfer.head_learning_rate
+                    else:
+                        parameter_groups = build_finetune_parameter_groups(
+                            model=model,
+                            backbone_learning_rate=config.transfer.backbone_learning_rate,
+                            head_learning_rate=config.transfer.head_learning_rate,
+                        )
+                        learning_rate = config.transfer.head_learning_rate
+                    _log(
+                        f"[{run_label}] Loaded {config.data.name} checkpoint: {checkpoint_path} | "
+                        f"missing={len(preload_info['missing_keys'])}, unexpected={len(preload_info['unexpected_keys'])}"
+                    )
+                else:
+                    _log(f"[{run_label}] Using random initialization.")
 
-            summary = {
-                "dataset": config.eurosat.name,
-                "dataset_slug": config.eurosat.slug,
-                "source_dataset": config.data.name,
-                "source_dataset_slug": config.data.slug,
-                "model": model_name,
-                "initialization": initialization,
-                "train_size": len(data_bundle.train_dataset),
-                "val_size": len(data_bundle.val_dataset),
-                "test_size": len(data_bundle.test_dataset),
-                "image_size": config.eurosat.image_size,
-                "test_accuracy": round(test_metrics["accuracy"], 4),
-                "test_loss": round(test_metrics["loss"], 4),
-                "macro_f1": round(macro_f1, 4),
-                "weighted_f1": round(weighted_f1, 4),
-                "best_val_accuracy": round(history["best_val_accuracy"], 4),
-                "parameter_count": parameter_count,
-                "training_time_seconds": round(history["training_time_seconds"], 2),
-                "training_time_readable": format_seconds(history["training_time_seconds"]),
-                "source_checkpoint": str(checkpoint_paths[model_name]) if initialization == "pretrained" else None,
-                "interpretability": interpretability_paths,
-                "history": history,
-            }
-            checkpoint_path = _save_downstream_checkpoint(
-                model=model,
-                config=config,
-                output_dir=checkpoints_dir,
-                model_name=model_name,
-                initialization=initialization,
-                summary=summary,
-                classes=data_bundle.classes,
-            )
-            summary["checkpoint_path"] = str(checkpoint_path)
-            if preload_info is not None:
-                summary["preload_info"] = preload_info
+                parameter_count = model_summary(model)["parameter_count"]
+                trainer = Trainer(
+                    model=model,
+                    learning_rate=learning_rate,
+                    weight_decay=config.transfer.weight_decay,
+                    device=device,
+                    parameter_groups=parameter_groups,
+                )
+                _log(
+                    f"[{run_label}] Starting downstream training | "
+                    f"epochs={config.transfer.epochs}, scratch_lr={config.transfer.scratch_learning_rate}, "
+                    f"backbone_lr={config.transfer.backbone_learning_rate}, head_lr={config.transfer.head_learning_rate}"
+                )
+                history = trainer.fit(
+                    train_loader=data_bundle.train,
+                    val_loader=data_bundle.val,
+                    epochs=config.transfer.epochs,
+                    run_name=run_label,
+                )
+                test_metrics = trainer.evaluate(data_bundle.test, label=f"{run_label} test")
+                test_predictions, test_targets = _collect_predictions(model, data_bundle.test, device=device)
+                macro_f1 = f1_score(test_targets, test_predictions, average="macro")
+                weighted_f1 = f1_score(test_targets, test_predictions, average="weighted")
+                interpretability_paths = save_single_model_interpretability(
+                    model_name=model_name,
+                    model=model,
+                    dataset=data_bundle.test_dataset,
+                    class_names=data_bundle.classes,
+                    device=device,
+                    mean=config.eurosat.mean,
+                    std=config.eurosat.std,
+                    batch_size=config.experiment.interpretability_samples,
+                    output_dir=ensure_dir(root_output_dir / "interpretability"),
+                    output_stem=f"{model_name}_{initialization}_{adaptation}",
+                    dataset_label=config.eurosat.name,
+                )
 
-            rows.append(
-                {
-                    key: value
-                    for key, value in summary.items()
-                    if key not in {"history", "preload_info"}
+                summary = {
+                    "dataset": config.eurosat.name,
+                    "dataset_slug": config.eurosat.slug,
+                    "source_dataset": config.data.name,
+                    "source_dataset_slug": config.data.slug,
+                    "model": model_name,
+                    "initialization": initialization,
+                    "adaptation": adaptation,
+                    "train_size": len(data_bundle.train_dataset),
+                    "val_size": len(data_bundle.val_dataset),
+                    "test_size": len(data_bundle.test_dataset),
+                    "image_size": config.eurosat.image_size,
+                    "test_accuracy": round(test_metrics["accuracy"], 4),
+                    "test_loss": round(test_metrics["loss"], 4),
+                    "macro_f1": round(macro_f1, 4),
+                    "weighted_f1": round(weighted_f1, 4),
+                    "best_val_accuracy": round(history["best_val_accuracy"], 4),
+                    "parameter_count": parameter_count,
+                    "training_time_seconds": round(history["training_time_seconds"], 2),
+                    "training_time_readable": format_seconds(history["training_time_seconds"]),
+                    "source_checkpoint": str(checkpoint_paths[model_name]) if initialization == "pretrained" else None,
+                    "interpretability": interpretability_paths,
+                    "history": history,
                 }
-            )
-            detailed_results.append(summary)
-            _log(
-                f"[{run_label}] Finished | "
-                f"test_acc={summary['test_accuracy']:.4f}, macro_f1={summary['macro_f1']:.4f}, "
-                f"best_val_acc={summary['best_val_accuracy']:.4f}, "
-                f"checkpoint={checkpoint_path}"
-            )
+                checkpoint_path = _save_downstream_checkpoint(
+                    model=model,
+                    config=config,
+                    output_dir=checkpoints_dir,
+                    model_name=model_name,
+                    initialization=initialization,
+                    summary=summary,
+                    classes=data_bundle.classes,
+                )
+                summary["checkpoint_path"] = str(checkpoint_path)
+                if preload_info is not None:
+                    summary["preload_info"] = preload_info
+
+                rows.append(
+                    {
+                        key: value
+                        for key, value in summary.items()
+                        if key not in {"history", "preload_info"}
+                    }
+                )
+                detailed_results.append(summary)
+                _log(
+                    f"[{run_label}] Finished | "
+                    f"test_acc={summary['test_accuracy']:.4f}, macro_f1={summary['macro_f1']:.4f}, "
+                    f"best_val_acc={summary['best_val_accuracy']:.4f}, "
+                    f"checkpoint={checkpoint_path}"
+                )
 
     existing_detailed_results = load_eurosat_runs_with_histories(root_output_dir)
     merged_detailed_results = _merge_eurosat_runs(existing_detailed_results, detailed_results)

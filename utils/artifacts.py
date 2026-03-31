@@ -48,7 +48,9 @@ def load_eurosat_runs_with_histories(output_dir: str | Path) -> list[dict]:
         if "runs" in summary and "histories" in summary:
             detailed_runs = []
             for row in summary["runs"]:
-                key = f"{row['model']}_{row['initialization']}_{row.get('train_size', 'na')}"
+                key = (
+                    f"{row['model']}_{row['initialization']}_{row.get('adaptation', 'na')}_{row.get('train_size', 'na')}"
+                )
                 detailed = dict(row)
                 detailed["history"] = summary["histories"].get(key)
                 detailed_runs.append(detailed)
@@ -73,7 +75,9 @@ def load_brain_mri_runs_with_histories(output_dir: str | Path) -> list[dict]:
         if "runs" in summary and "histories" in summary:
             detailed_runs = []
             for row in summary["runs"]:
-                key = f"{row['model']}_{row['initialization']}_{row.get('train_size', 'na')}"
+                key = (
+                    f"{row['model']}_{row['initialization']}_{row.get('adaptation', 'na')}_{row.get('train_size', 'na')}"
+                )
                 detailed = dict(row)
                 detailed["history"] = summary["histories"].get(key)
                 detailed_runs.append(detailed)
@@ -177,6 +181,7 @@ def _transfer_run_key(row: dict) -> tuple:
         row.get("dataset_slug", row.get("dataset")),
         row.get("model"),
         row.get("initialization"),
+        row.get("adaptation"),
         row.get("train_size"),
         row.get("val_size"),
         row.get("test_size"),

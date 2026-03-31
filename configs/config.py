@@ -103,6 +103,7 @@ class TransferConfig:
     vit_checkpoint: Path | None = None
     model_names: tuple[str, ...] = AVAILABLE_MODELS
     run_mode: str = "both"
+    adaptation_mode: str = "both"
     epochs: int = 10
     scratch_learning_rate: float = 1e-3
     backbone_learning_rate: float = 1e-4
@@ -118,6 +119,7 @@ class BrainTransferConfig:
     vit_checkpoint: Path | None = None
     model_names: tuple[str, ...] = AVAILABLE_MODELS
     run_mode: str = "both"
+    adaptation_mode: str = "both"
     epochs: int = 10
     scratch_learning_rate: float = 1e-3
     backbone_learning_rate: float = 1e-4
