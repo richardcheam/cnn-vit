@@ -1,835 +1,231 @@
 [
   {
-    "dataset": "EuroSAT",
-    "dataset_slug": "eurosat",
-    "source_dataset": "CIFAR-10",
-    "model": "cnn",
-    "initialization": "pretrained",
-    "parameter_count": 374282,
+    "dataset": "CIFAR-10",
+    "dataset_slug": "cifar10",
+    "model": "dhvt",
+    "train_fraction": 1.0,
+    "parameter_count": 5991280,
     "classification": {
       "macro_avg": {
-        "precision": 0.9664,
-        "recall": 0.966,
-        "f1_score": 0.966
+        "precision": 0.8906,
+        "recall": 0.8888,
+        "f1_score": 0.8891
       },
       "weighted_avg": {
-        "precision": 0.9676,
-        "recall": 0.9674,
-        "f1_score": 0.9673
+        "precision": 0.8906,
+        "recall": 0.8888,
+        "f1_score": 0.8891
       },
       "confidence": {
-        "mean": 0.9661,
-        "mean_correct": 0.9749,
-        "mean_incorrect": 0.705
+        "mean": 0.9586,
+        "mean_correct": 0.9764,
+        "mean_incorrect": 0.8163
       },
       "per_class": [
         {
           "class_index": 0,
-          "class_name": "AnnualCrop",
-          "support": 300,
-          "correct": 289,
-          "accuracy": 0.9633,
-          "precision": 0.9601,
-          "recall": 0.9633,
-          "f1_score": 0.9617,
-          "predicted_count": 301
+          "class_name": "airplane",
+          "support": 1000,
+          "correct": 854,
+          "accuracy": 0.854,
+          "precision": 0.9333,
+          "recall": 0.854,
+          "f1_score": 0.8919,
+          "predicted_count": 915
         },
         {
           "class_index": 1,
-          "class_name": "Forest",
-          "support": 300,
-          "correct": 300,
-          "accuracy": 1.0,
-          "precision": 0.9836,
-          "recall": 1.0,
-          "f1_score": 0.9917,
-          "predicted_count": 305
+          "class_name": "automobile",
+          "support": 1000,
+          "correct": 931,
+          "accuracy": 0.931,
+          "precision": 0.9678,
+          "recall": 0.931,
+          "f1_score": 0.949,
+          "predicted_count": 962
         },
         {
           "class_index": 2,
-          "class_name": "HerbaceousVegetation",
-          "support": 300,
-          "correct": 291,
-          "accuracy": 0.97,
-          "precision": 0.9417,
-          "recall": 0.97,
-          "f1_score": 0.9557,
-          "predicted_count": 309
+          "class_name": "bird",
+          "support": 1000,
+          "correct": 885,
+          "accuracy": 0.885,
+          "precision": 0.8477,
+          "recall": 0.885,
+          "f1_score": 0.8659,
+          "predicted_count": 1044
         },
         {
           "class_index": 3,
-          "class_name": "Highway",
-          "support": 250,
-          "correct": 230,
-          "accuracy": 0.92,
-          "precision": 0.9829,
-          "recall": 0.92,
-          "f1_score": 0.9504,
-          "predicted_count": 234
+          "class_name": "cat",
+          "support": 1000,
+          "correct": 804,
+          "accuracy": 0.804,
+          "precision": 0.7542,
+          "recall": 0.804,
+          "f1_score": 0.7783,
+          "predicted_count": 1066
         },
         {
           "class_index": 4,
-          "class_name": "Industrial",
-          "support": 250,
-          "correct": 248,
-          "accuracy": 0.992,
-          "precision": 0.9612,
-          "recall": 0.992,
-          "f1_score": 0.9764,
-          "predicted_count": 258
+          "class_name": "deer",
+          "support": 1000,
+          "correct": 876,
+          "accuracy": 0.876,
+          "precision": 0.9087,
+          "recall": 0.876,
+          "f1_score": 0.8921,
+          "predicted_count": 964
         },
         {
           "class_index": 5,
-          "class_name": "Pasture",
-          "support": 200,
-          "correct": 194,
-          "accuracy": 0.97,
-          "precision": 0.9417,
-          "recall": 0.97,
-          "f1_score": 0.9557,
-          "predicted_count": 206
+          "class_name": "dog",
+          "support": 1000,
+          "correct": 812,
+          "accuracy": 0.812,
+          "precision": 0.8286,
+          "recall": 0.812,
+          "f1_score": 0.8202,
+          "predicted_count": 980
         },
         {
           "class_index": 6,
-          "class_name": "PermanentCrop",
-          "support": 250,
-          "correct": 232,
-          "accuracy": 0.928,
-          "precision": 0.9508,
-          "recall": 0.928,
-          "f1_score": 0.9393,
-          "predicted_count": 244
+          "class_name": "frog",
+          "support": 1000,
+          "correct": 932,
+          "accuracy": 0.932,
+          "precision": 0.9084,
+          "recall": 0.932,
+          "f1_score": 0.92,
+          "predicted_count": 1026
         },
         {
           "class_index": 7,
-          "class_name": "Residential",
-          "support": 300,
-          "correct": 298,
-          "accuracy": 0.9933,
-          "precision": 0.9933,
-          "recall": 0.9933,
-          "f1_score": 0.9933,
-          "predicted_count": 300
+          "class_name": "horse",
+          "support": 1000,
+          "correct": 898,
+          "accuracy": 0.898,
+          "precision": 0.9443,
+          "recall": 0.898,
+          "f1_score": 0.9206,
+          "predicted_count": 951
         },
         {
           "class_index": 8,
-          "class_name": "River",
-          "support": 250,
-          "correct": 235,
-          "accuracy": 0.94,
-          "precision": 0.9553,
-          "recall": 0.94,
-          "f1_score": 0.9476,
-          "predicted_count": 246
+          "class_name": "ship",
+          "support": 1000,
+          "correct": 951,
+          "accuracy": 0.951,
+          "precision": 0.9135,
+          "recall": 0.951,
+          "f1_score": 0.9319,
+          "predicted_count": 1041
         },
         {
           "class_index": 9,
-          "class_name": "SeaLake",
-          "support": 300,
-          "correct": 295,
-          "accuracy": 0.9833,
-          "precision": 0.9933,
-          "recall": 0.9833,
-          "f1_score": 0.9883,
-          "predicted_count": 297
+          "class_name": "truck",
+          "support": 1000,
+          "correct": 945,
+          "accuracy": 0.945,
+          "precision": 0.8991,
+          "recall": 0.945,
+          "f1_score": 0.9215,
+          "predicted_count": 1051
         }
       ],
       "top_confusions": [
         {
-          "true_class": "Highway",
-          "predicted_class": "River",
-          "count": 8
+          "true_class": "dog",
+          "predicted_class": "cat",
+          "count": 107
         },
         {
-          "true_class": "PermanentCrop",
-          "predicted_class": "HerbaceousVegetation",
-          "count": 8
+          "true_class": "cat",
+          "predicted_class": "dog",
+          "count": 95
         },
         {
-          "true_class": "AnnualCrop",
-          "predicted_class": "PermanentCrop",
-          "count": 7
+          "true_class": "airplane",
+          "predicted_class": "ship",
+          "count": 47
         },
         {
-          "true_class": "Highway",
-          "predicted_class": "Industrial",
-          "count": 6
+          "true_class": "automobile",
+          "predicted_class": "truck",
+          "count": 42
         },
         {
-          "true_class": "PermanentCrop",
-          "predicted_class": "AnnualCrop",
-          "count": 6
+          "true_class": "frog",
+          "predicted_class": "cat",
+          "count": 33
         },
         {
-          "true_class": "River",
-          "predicted_class": "Pasture",
-          "count": 5
+          "true_class": "deer",
+          "predicted_class": "cat",
+          "count": 31
         },
         {
-          "true_class": "HerbaceousVegetation",
-          "predicted_class": "PermanentCrop",
-          "count": 4
+          "true_class": "cat",
+          "predicted_class": "bird",
+          "count": 30
         },
         {
-          "true_class": "Pasture",
-          "predicted_class": "HerbaceousVegetation",
-          "count": 4
+          "true_class": "bird",
+          "predicted_class": "cat",
+          "count": 29
         },
         {
-          "true_class": "Highway",
-          "predicted_class": "HerbaceousVegetation",
-          "count": 3
+          "true_class": "deer",
+          "predicted_class": "bird",
+          "count": 29
         },
         {
-          "true_class": "River",
-          "predicted_class": "AnnualCrop",
-          "count": 3
+          "true_class": "dog",
+          "predicted_class": "bird",
+          "count": 29
         }
       ]
     },
-    "test": {
-      "loss": 0.0984,
-      "accuracy": 0.9674
+    "clean": {
+      "loss": 0.4845,
+      "accuracy": 0.8888
     },
+    "occluded": {
+      "loss": 0.722,
+      "accuracy": 0.8378
+    },
+    "texture": {
+      "loss": 3.0781,
+      "accuracy": 0.4196
+    },
+    "robustness": [
+      {
+        "model": "dhvt",
+        "shift": "occluded",
+        "clean_accuracy": 0.8888,
+        "shifted_accuracy": 0.8378,
+        "robustness_drop": 0.051000000000000045
+      },
+      {
+        "model": "dhvt",
+        "shift": "texture",
+        "clean_accuracy": 0.8888,
+        "shifted_accuracy": 0.4196,
+        "robustness_drop": 0.46920000000000006
+      }
+    ],
     "artifacts": {
-      "classification_report": "outputs/checkpoint_evaluation/cnn_pretrained_eurosat_best/classification_report.json",
-      "prediction_analysis": "outputs/checkpoint_evaluation/cnn_pretrained_eurosat_best/prediction_analysis.json",
-      "confusion_matrix": "outputs/checkpoint_evaluation/cnn_pretrained_eurosat_best/confusion_matrix.png",
-      "confusion_matrix_normalized": "outputs/checkpoint_evaluation/cnn_pretrained_eurosat_best/confusion_matrix_normalized.png",
+      "classification_report": "outputs/checkpoint_evaluation/dhvt_100pct_best/classification_report.json",
+      "prediction_analysis": "outputs/checkpoint_evaluation/dhvt_100pct_best/prediction_analysis.json",
+      "confusion_matrix": "outputs/checkpoint_evaluation/dhvt_100pct_best/confusion_matrix.png",
+      "confusion_matrix_normalized": "outputs/checkpoint_evaluation/dhvt_100pct_best/confusion_matrix_normalized.png",
       "interpretability": [
-        "outputs/checkpoint_evaluation/cnn_pretrained_eurosat_best/interpretability/cnn_gradcam.png"
+        "outputs/checkpoint_evaluation/dhvt_100pct_best/interpretability/dhvt_attention.png"
       ],
-      "misclassified_examples": "outputs/checkpoint_evaluation/cnn_pretrained_eurosat_best/examples/misclassified_examples.png",
-      "correct_examples": "outputs/checkpoint_evaluation/cnn_pretrained_eurosat_best/examples/correct_examples.png"
+      "misclassified_examples": "outputs/checkpoint_evaluation/dhvt_100pct_best/examples/misclassified_examples.png",
+      "correct_examples": "outputs/checkpoint_evaluation/dhvt_100pct_best/examples/correct_examples.png"
     },
-    "checkpoint_path": "/home/richard/cnn-vit/outputs/eurosat_transfer/checkpoints/cnn_pretrained_eurosat_best.pt",
-    "load_info": {
-      "missing_keys": [],
-      "unexpected_keys": []
-    }
-  },
-  {
-    "dataset": "EuroSAT",
-    "dataset_slug": "eurosat",
-    "source_dataset": "CIFAR-10",
-    "model": "cnn",
-    "initialization": "scratch",
-    "parameter_count": 374282,
-    "classification": {
-      "macro_avg": {
-        "precision": 0.9649,
-        "recall": 0.964,
-        "f1_score": 0.9642
-      },
-      "weighted_avg": {
-        "precision": 0.9653,
-        "recall": 0.9652,
-        "f1_score": 0.9651
-      },
-      "confidence": {
-        "mean": 0.9615,
-        "mean_correct": 0.9714,
-        "mean_incorrect": 0.6883
-      },
-      "per_class": [
-        {
-          "class_index": 0,
-          "class_name": "AnnualCrop",
-          "support": 300,
-          "correct": 293,
-          "accuracy": 0.9767,
-          "precision": 0.9482,
-          "recall": 0.9767,
-          "f1_score": 0.9622,
-          "predicted_count": 309
-        },
-        {
-          "class_index": 1,
-          "class_name": "Forest",
-          "support": 300,
-          "correct": 300,
-          "accuracy": 1.0,
-          "precision": 1.0,
-          "recall": 1.0,
-          "f1_score": 1.0,
-          "predicted_count": 300
-        },
-        {
-          "class_index": 2,
-          "class_name": "HerbaceousVegetation",
-          "support": 300,
-          "correct": 278,
-          "accuracy": 0.9267,
-          "precision": 0.9619,
-          "recall": 0.9267,
-          "f1_score": 0.944,
-          "predicted_count": 289
-        },
-        {
-          "class_index": 3,
-          "class_name": "Highway",
-          "support": 250,
-          "correct": 245,
-          "accuracy": 0.98,
-          "precision": 0.9496,
-          "recall": 0.98,
-          "f1_score": 0.9646,
-          "predicted_count": 258
-        },
-        {
-          "class_index": 4,
-          "class_name": "Industrial",
-          "support": 250,
-          "correct": 235,
-          "accuracy": 0.94,
-          "precision": 0.9792,
-          "recall": 0.94,
-          "f1_score": 0.9592,
-          "predicted_count": 240
-        },
-        {
-          "class_index": 5,
-          "class_name": "Pasture",
-          "support": 200,
-          "correct": 193,
-          "accuracy": 0.965,
-          "precision": 0.9698,
-          "recall": 0.965,
-          "f1_score": 0.9674,
-          "predicted_count": 199
-        },
-        {
-          "class_index": 6,
-          "class_name": "PermanentCrop",
-          "support": 250,
-          "correct": 229,
-          "accuracy": 0.916,
-          "precision": 0.9424,
-          "recall": 0.916,
-          "f1_score": 0.929,
-          "predicted_count": 243
-        },
-        {
-          "class_index": 7,
-          "class_name": "Residential",
-          "support": 300,
-          "correct": 297,
-          "accuracy": 0.99,
-          "precision": 0.955,
-          "recall": 0.99,
-          "f1_score": 0.9722,
-          "predicted_count": 311
-        },
-        {
-          "class_index": 8,
-          "class_name": "River",
-          "support": 250,
-          "correct": 238,
-          "accuracy": 0.952,
-          "precision": 0.9558,
-          "recall": 0.952,
-          "f1_score": 0.9539,
-          "predicted_count": 249
-        },
-        {
-          "class_index": 9,
-          "class_name": "SeaLake",
-          "support": 300,
-          "correct": 298,
-          "accuracy": 0.9933,
-          "precision": 0.9868,
-          "recall": 0.9933,
-          "f1_score": 0.99,
-          "predicted_count": 302
-        }
-      ],
-      "top_confusions": [
-        {
-          "true_class": "HerbaceousVegetation",
-          "predicted_class": "PermanentCrop",
-          "count": 10
-        },
-        {
-          "true_class": "Industrial",
-          "predicted_class": "Residential",
-          "count": 8
-        },
-        {
-          "true_class": "PermanentCrop",
-          "predicted_class": "AnnualCrop",
-          "count": 7
-        },
-        {
-          "true_class": "Industrial",
-          "predicted_class": "Highway",
-          "count": 6
-        },
-        {
-          "true_class": "PermanentCrop",
-          "predicted_class": "HerbaceousVegetation",
-          "count": 6
-        },
-        {
-          "true_class": "River",
-          "predicted_class": "Highway",
-          "count": 5
-        },
-        {
-          "true_class": "AnnualCrop",
-          "predicted_class": "PermanentCrop",
-          "count": 4
-        },
-        {
-          "true_class": "HerbaceousVegetation",
-          "predicted_class": "Residential",
-          "count": 4
-        },
-        {
-          "true_class": "Pasture",
-          "predicted_class": "AnnualCrop",
-          "count": 3
-        },
-        {
-          "true_class": "Pasture",
-          "predicted_class": "HerbaceousVegetation",
-          "count": 3
-        }
-      ]
-    },
-    "test": {
-      "loss": 0.107,
-      "accuracy": 0.9652
-    },
-    "artifacts": {
-      "classification_report": "outputs/checkpoint_evaluation/cnn_scratch_eurosat_best/classification_report.json",
-      "prediction_analysis": "outputs/checkpoint_evaluation/cnn_scratch_eurosat_best/prediction_analysis.json",
-      "confusion_matrix": "outputs/checkpoint_evaluation/cnn_scratch_eurosat_best/confusion_matrix.png",
-      "confusion_matrix_normalized": "outputs/checkpoint_evaluation/cnn_scratch_eurosat_best/confusion_matrix_normalized.png",
-      "interpretability": [
-        "outputs/checkpoint_evaluation/cnn_scratch_eurosat_best/interpretability/cnn_gradcam.png"
-      ],
-      "misclassified_examples": "outputs/checkpoint_evaluation/cnn_scratch_eurosat_best/examples/misclassified_examples.png",
-      "correct_examples": "outputs/checkpoint_evaluation/cnn_scratch_eurosat_best/examples/correct_examples.png"
-    },
-    "checkpoint_path": "/home/richard/cnn-vit/outputs/eurosat_transfer/checkpoints/cnn_scratch_eurosat_best.pt",
-    "load_info": {
-      "missing_keys": [],
-      "unexpected_keys": []
-    }
-  },
-  {
-    "dataset": "EuroSAT",
-    "dataset_slug": "eurosat",
-    "source_dataset": "CIFAR-10",
-    "model": "vit",
-    "initialization": "pretrained",
-    "parameter_count": 1840714,
-    "classification": {
-      "macro_avg": {
-        "precision": 0.9389,
-        "recall": 0.9383,
-        "f1_score": 0.9385
-      },
-      "weighted_avg": {
-        "precision": 0.9415,
-        "recall": 0.9415,
-        "f1_score": 0.9413
-      },
-      "confidence": {
-        "mean": 0.9759,
-        "mean_correct": 0.9848,
-        "mean_incorrect": 0.8326
-      },
-      "per_class": [
-        {
-          "class_index": 0,
-          "class_name": "AnnualCrop",
-          "support": 300,
-          "correct": 286,
-          "accuracy": 0.9533,
-          "precision": 0.9316,
-          "recall": 0.9533,
-          "f1_score": 0.9423,
-          "predicted_count": 307
-        },
-        {
-          "class_index": 1,
-          "class_name": "Forest",
-          "support": 300,
-          "correct": 291,
-          "accuracy": 0.97,
-          "precision": 0.97,
-          "recall": 0.97,
-          "f1_score": 0.97,
-          "predicted_count": 300
-        },
-        {
-          "class_index": 2,
-          "class_name": "HerbaceousVegetation",
-          "support": 300,
-          "correct": 282,
-          "accuracy": 0.94,
-          "precision": 0.9276,
-          "recall": 0.94,
-          "f1_score": 0.9338,
-          "predicted_count": 304
-        },
-        {
-          "class_index": 3,
-          "class_name": "Highway",
-          "support": 250,
-          "correct": 223,
-          "accuracy": 0.892,
-          "precision": 0.892,
-          "recall": 0.892,
-          "f1_score": 0.892,
-          "predicted_count": 250
-        },
-        {
-          "class_index": 4,
-          "class_name": "Industrial",
-          "support": 250,
-          "correct": 240,
-          "accuracy": 0.96,
-          "precision": 0.9639,
-          "recall": 0.96,
-          "f1_score": 0.9619,
-          "predicted_count": 249
-        },
-        {
-          "class_index": 5,
-          "class_name": "Pasture",
-          "support": 200,
-          "correct": 183,
-          "accuracy": 0.915,
-          "precision": 0.8927,
-          "recall": 0.915,
-          "f1_score": 0.9037,
-          "predicted_count": 205
-        },
-        {
-          "class_index": 6,
-          "class_name": "PermanentCrop",
-          "support": 250,
-          "correct": 224,
-          "accuracy": 0.896,
-          "precision": 0.918,
-          "recall": 0.896,
-          "f1_score": 0.9069,
-          "predicted_count": 244
-        },
-        {
-          "class_index": 7,
-          "class_name": "Residential",
-          "support": 300,
-          "correct": 295,
-          "accuracy": 0.9833,
-          "precision": 0.9866,
-          "recall": 0.9833,
-          "f1_score": 0.985,
-          "predicted_count": 299
-        },
-        {
-          "class_index": 8,
-          "class_name": "River",
-          "support": 250,
-          "correct": 220,
-          "accuracy": 0.88,
-          "precision": 0.9362,
-          "recall": 0.88,
-          "f1_score": 0.9072,
-          "predicted_count": 235
-        },
-        {
-          "class_index": 9,
-          "class_name": "SeaLake",
-          "support": 300,
-          "correct": 298,
-          "accuracy": 0.9933,
-          "precision": 0.9707,
-          "recall": 0.9933,
-          "f1_score": 0.9819,
-          "predicted_count": 307
-        }
-      ],
-      "top_confusions": [
-        {
-          "true_class": "PermanentCrop",
-          "predicted_class": "HerbaceousVegetation",
-          "count": 12
-        },
-        {
-          "true_class": "River",
-          "predicted_class": "Highway",
-          "count": 9
-        },
-        {
-          "true_class": "Highway",
-          "predicted_class": "River",
-          "count": 8
-        },
-        {
-          "true_class": "River",
-          "predicted_class": "AnnualCrop",
-          "count": 8
-        },
-        {
-          "true_class": "River",
-          "predicted_class": "Pasture",
-          "count": 8
-        },
-        {
-          "true_class": "HerbaceousVegetation",
-          "predicted_class": "PermanentCrop",
-          "count": 7
-        },
-        {
-          "true_class": "Industrial",
-          "predicted_class": "Highway",
-          "count": 7
-        },
-        {
-          "true_class": "AnnualCrop",
-          "predicted_class": "PermanentCrop",
-          "count": 6
-        },
-        {
-          "true_class": "Pasture",
-          "predicted_class": "Forest",
-          "count": 6
-        },
-        {
-          "true_class": "PermanentCrop",
-          "predicted_class": "Highway",
-          "count": 6
-        }
-      ]
-    },
-    "test": {
-      "loss": 0.2363,
-      "accuracy": 0.9415
-    },
-    "artifacts": {
-      "classification_report": "outputs/checkpoint_evaluation/vit_pretrained_eurosat_best/classification_report.json",
-      "prediction_analysis": "outputs/checkpoint_evaluation/vit_pretrained_eurosat_best/prediction_analysis.json",
-      "confusion_matrix": "outputs/checkpoint_evaluation/vit_pretrained_eurosat_best/confusion_matrix.png",
-      "confusion_matrix_normalized": "outputs/checkpoint_evaluation/vit_pretrained_eurosat_best/confusion_matrix_normalized.png",
-      "interpretability": [
-        "outputs/checkpoint_evaluation/vit_pretrained_eurosat_best/interpretability/vit_attention.png"
-      ],
-      "misclassified_examples": "outputs/checkpoint_evaluation/vit_pretrained_eurosat_best/examples/misclassified_examples.png",
-      "correct_examples": "outputs/checkpoint_evaluation/vit_pretrained_eurosat_best/examples/correct_examples.png"
-    },
-    "checkpoint_path": "/home/richard/cnn-vit/outputs/eurosat_transfer/checkpoints/vit_pretrained_eurosat_best.pt",
-    "load_info": {
-      "missing_keys": [],
-      "unexpected_keys": []
-    }
-  },
-  {
-    "dataset": "EuroSAT",
-    "dataset_slug": "eurosat",
-    "source_dataset": "CIFAR-10",
-    "model": "vit",
-    "initialization": "scratch",
-    "parameter_count": 1840714,
-    "classification": {
-      "macro_avg": {
-        "precision": 0.9341,
-        "recall": 0.933,
-        "f1_score": 0.9331
-      },
-      "weighted_avg": {
-        "precision": 0.9367,
-        "recall": 0.9359,
-        "f1_score": 0.9359
-      },
-      "confidence": {
-        "mean": 0.9705,
-        "mean_correct": 0.9818,
-        "mean_incorrect": 0.8055
-      },
-      "per_class": [
-        {
-          "class_index": 0,
-          "class_name": "AnnualCrop",
-          "support": 300,
-          "correct": 287,
-          "accuracy": 0.9567,
-          "precision": 0.9199,
-          "recall": 0.9567,
-          "f1_score": 0.9379,
-          "predicted_count": 312
-        },
-        {
-          "class_index": 1,
-          "class_name": "Forest",
-          "support": 300,
-          "correct": 295,
-          "accuracy": 0.9833,
-          "precision": 0.9516,
-          "recall": 0.9833,
-          "f1_score": 0.9672,
-          "predicted_count": 310
-        },
-        {
-          "class_index": 2,
-          "class_name": "HerbaceousVegetation",
-          "support": 300,
-          "correct": 286,
-          "accuracy": 0.9533,
-          "precision": 0.9226,
-          "recall": 0.9533,
-          "f1_score": 0.9377,
-          "predicted_count": 310
-        },
-        {
-          "class_index": 3,
-          "class_name": "Highway",
-          "support": 250,
-          "correct": 223,
-          "accuracy": 0.892,
-          "precision": 0.8677,
-          "recall": 0.892,
-          "f1_score": 0.8797,
-          "predicted_count": 257
-        },
-        {
-          "class_index": 4,
-          "class_name": "Industrial",
-          "support": 250,
-          "correct": 230,
-          "accuracy": 0.92,
-          "precision": 0.9583,
-          "recall": 0.92,
-          "f1_score": 0.9388,
-          "predicted_count": 240
-        },
-        {
-          "class_index": 5,
-          "class_name": "Pasture",
-          "support": 200,
-          "correct": 188,
-          "accuracy": 0.94,
-          "precision": 0.8826,
-          "recall": 0.94,
-          "f1_score": 0.9104,
-          "predicted_count": 213
-        },
-        {
-          "class_index": 6,
-          "class_name": "PermanentCrop",
-          "support": 250,
-          "correct": 217,
-          "accuracy": 0.868,
-          "precision": 0.9313,
-          "recall": 0.868,
-          "f1_score": 0.8986,
-          "predicted_count": 233
-        },
-        {
-          "class_index": 7,
-          "class_name": "Residential",
-          "support": 300,
-          "correct": 294,
-          "accuracy": 0.98,
-          "precision": 0.9767,
-          "recall": 0.98,
-          "f1_score": 0.9784,
-          "predicted_count": 301
-        },
-        {
-          "class_index": 8,
-          "class_name": "River",
-          "support": 250,
-          "correct": 220,
-          "accuracy": 0.88,
-          "precision": 0.9402,
-          "recall": 0.88,
-          "f1_score": 0.9091,
-          "predicted_count": 234
-        },
-        {
-          "class_index": 9,
-          "class_name": "SeaLake",
-          "support": 300,
-          "correct": 287,
-          "accuracy": 0.9567,
-          "precision": 0.9897,
-          "recall": 0.9567,
-          "f1_score": 0.9729,
-          "predicted_count": 290
-        }
-      ],
-      "top_confusions": [
-        {
-          "true_class": "Industrial",
-          "predicted_class": "Highway",
-          "count": 14
-        },
-        {
-          "true_class": "PermanentCrop",
-          "predicted_class": "HerbaceousVegetation",
-          "count": 13
-        },
-        {
-          "true_class": "PermanentCrop",
-          "predicted_class": "AnnualCrop",
-          "count": 9
-        },
-        {
-          "true_class": "Highway",
-          "predicted_class": "Pasture",
-          "count": 8
-        },
-        {
-          "true_class": "River",
-          "predicted_class": "Highway",
-          "count": 8
-        },
-        {
-          "true_class": "River",
-          "predicted_class": "AnnualCrop",
-          "count": 7
-        },
-        {
-          "true_class": "River",
-          "predicted_class": "Pasture",
-          "count": 6
-        },
-        {
-          "true_class": "SeaLake",
-          "predicted_class": "Forest",
-          "count": 6
-        },
-        {
-          "true_class": "AnnualCrop",
-          "predicted_class": "PermanentCrop",
-          "count": 5
-        },
-        {
-          "true_class": "PermanentCrop",
-          "predicted_class": "Highway",
-          "count": 5
-        }
-      ]
-    },
-    "test": {
-      "loss": 0.2456,
-      "accuracy": 0.9359
-    },
-    "artifacts": {
-      "classification_report": "outputs/checkpoint_evaluation/vit_scratch_eurosat_best/classification_report.json",
-      "prediction_analysis": "outputs/checkpoint_evaluation/vit_scratch_eurosat_best/prediction_analysis.json",
-      "confusion_matrix": "outputs/checkpoint_evaluation/vit_scratch_eurosat_best/confusion_matrix.png",
-      "confusion_matrix_normalized": "outputs/checkpoint_evaluation/vit_scratch_eurosat_best/confusion_matrix_normalized.png",
-      "interpretability": [
-        "outputs/checkpoint_evaluation/vit_scratch_eurosat_best/interpretability/vit_attention.png"
-      ],
-      "misclassified_examples": "outputs/checkpoint_evaluation/vit_scratch_eurosat_best/examples/misclassified_examples.png",
-      "correct_examples": "outputs/checkpoint_evaluation/vit_scratch_eurosat_best/examples/correct_examples.png"
-    },
-    "checkpoint_path": "/home/richard/cnn-vit/outputs/eurosat_transfer/checkpoints/vit_scratch_eurosat_best.pt",
+    "checkpoint_path": "/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/outputs/checkpoints/dhvt_100pct_best.pt",
     "load_info": {
       "missing_keys": [],
       "unexpected_keys": []

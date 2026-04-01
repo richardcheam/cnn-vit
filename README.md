@@ -71,7 +71,7 @@ In the current downstream runs, class supports are close to balanced, so `weight
 
 | Model | Accuracy | Macro precision | Macro recall | Macro-F1 | Time |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| DHVT | `88.88%` | `0.8894` | `0.8888` | `0.8888` | `59m 56s` |
+| DHVT | `88.88%` | `0.8906` | `0.8888` | `0.8891` | `59m 56s` |
 | CNN | `85.70%` | `0.8611` | `0.8570` | `0.8580` | `13m 56s` |
 | ViT | `73.36%` | `0.7330` | `0.7336` | `0.7330` | `15m 46s` |
 
@@ -86,40 +86,55 @@ Robustness on the full-data models:
 - DHVT is the strongest source-stage model on clean CIFAR-10 accuracy.
 - DHVT also improves the low-data behavior of vanilla ViT, but it remains more texture-sensitive than the vanilla ViT.
 - ViT is still the most texture-robust of the three source-stage models.
+- DHVT rollout maps and head-token influence maps largely overlap on CIFAR-10, which suggests that the extra head-token mechanism reinforces the same discriminative regions rather than redirecting attention to different parts of the image.
 - Checkpoint-based evaluation shows the hardest source classes are `cat`, `dog`, and `bird`, with strong `cat`/`dog` confusion for both models.
 
 ### EuroSAT transfer
 
-| Model | Setup | Accuracy | Macro precision | Macro recall | Macro-F1 | Time |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| CNN | scratch | `96.52%` | `0.9649` | `0.9640` | `0.9642` | `11m 19s` |
-| CNN | pretrained + linear probe | `85.78%` | `0.8560` | `0.8496` | `0.8496` | `11m 21s` |
-| CNN | pretrained + full fine-tune | `96.74%` | `0.9664` | `0.9660` | `0.9660` | `11m 23s` |
-| ViT | scratch | `93.59%` | `0.9341` | `0.9330` | `0.9331` | `31m 29s` |
-| ViT | pretrained + linear probe | `79.00%` | `0.7834` | `0.7784` | `0.7784` | `11m 43s` |
-| ViT | pretrained + full fine-tune | `94.15%` | `0.9389` | `0.9383` | `0.9385` | `31m 28s` |
+| Model | Setup | Accuracy | Macro-F1 | Time |
+| --- | --- | ---: | ---: | ---: |
+| CNN | scratch | `96.52%` | `0.9642` | `11m 19s` |
+| CNN | pretrained + linear probe | `85.78%` | `0.8496` | `11m 21s` |
+| CNN | pretrained + full fine-tune | `96.74%` | `0.9660` | `11m 23s` |
+| DHVT | scratch | `97.52%` | `0.9745` | `1h 53m 56s` |
+| DHVT | pretrained + linear probe | `87.52%` | `0.8682` | `1h 10m 27s` |
+| DHVT | pretrained + full fine-tune | `96.96%` | `0.9685` | `1h 54m 19s` |
+| ViT | scratch | `93.59%` | `0.9331` | `31m 29s` |
+| ViT | pretrained + linear probe | `79.00%` | `0.7784` | `11m 43s` |
+| ViT | pretrained + full fine-tune | `94.15%` | `0.9385` | `31m 28s` |
 
-- Linear probing is much weaker than full fine-tuning for both models.
+- DHVT scratch is the strongest EuroSAT result in the repository at `97.52%`.
+- CNN changes very little on EuroSAT: scratch `96.52%`, linear probe `85.78%`, full fine-tune `96.74%`, and all three runs take about `11` minutes.
+- ViT shows a stronger adaptation gap on EuroSAT: scratch `93.59%`, linear probe `79.00%`, full fine-tune `94.15%`.
+- CIFAR pretraining does not help DHVT on EuroSAT: `96.96%` with full fine-tuning is slightly below the DHVT scratch run.
+- Linear probing is clearly weaker than full fine-tuning for all transformer-style models.
+- For DHVT, linear probing saves about `44` minutes relative to full fine-tuning, but loses about `9.4` accuracy points.
 - The ViT is especially weak under a frozen backbone on EuroSAT: `79.00%` with linear probing versus `94.15%` with full fine-tuning.
-- Transfer helps both models, but the gain over scratch appears only after full fine-tuning.
-- CNN remains stronger than ViT on this downstream task.
 - Evaluation results show the most difficult EuroSAT classes are `PermanentCrop`, `Highway`, and `River`. The most common confusions are `PermanentCrop -> HerbaceousVegetation` and `Highway <-> River`.
 
 ### Brain Tumor MRI transfer
 
-| Model | Setup | Accuracy | Macro precision | Macro recall | Macro-F1 | Time |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| CNN | scratch | `82.56%` | `0.8429` | `0.8256` | `0.8230` | `13m 18s` |
-| CNN | pretrained + linear probe | `67.31%` | `0.6715` | `0.6715` | `0.6715` | `42m 10s` |
-| CNN | pretrained + full fine-tune | `89.38%` | `0.9018` | `0.8938` | `0.8917` | `13m 16s` |
-| ViT | scratch | `85.88%` | `0.8629` | `0.8588` | `0.8554` | `47m 47s` |
-| ViT | pretrained + linear probe | `76.00%` | `0.7524` | `0.7524` | `0.7524` | `15m 28s` |
-| ViT | pretrained + full fine-tune | `93.00%` | `0.9352` | `0.9300` | `0.9279` | `47m 56s` |
+| Model | Setup | Accuracy | Macro-F1 | Time |
+| --- | --- | ---: | ---: | ---: |
+| CNN | scratch | `82.56%` | `0.8230` | `13m 18s` |
+| CNN | pretrained + linear probe | `67.31%` | `0.6715` | `42m 10s` |
+| CNN | pretrained + full fine-tune | `89.38%` | `0.8917` | `13m 16s` |
+| DHVT | scratch | `87.88%` | `0.8776` | `2h 57m 00s` |
+| DHVT | pretrained + linear probe | `76.88%` | `0.7648` | `59m 24s` |
+| DHVT | pretrained + full fine-tune | `94.00%` | `0.9386` | `2h 31m 18s` |
+| ViT | scratch | `85.88%` | `0.8554` | `47m 47s` |
+| ViT | pretrained + linear probe | `76.00%` | `0.7524` | `15m 28s` |
+| ViT | pretrained + full fine-tune | `93.00%` | `0.9279` | `47m 56s` |
 
 - Transfer helps both models substantially on Brain Tumor MRI.
-- Linear probing is clearly insufficient on Brain Tumor MRI. The CNN drops from `89.38%` with full fine-tuning to `67.31%` with a frozen backbone, and the ViT drops from `93.00%` to `76.00%`.
-- Linear probing is clearly weaker than both scratch and full fine-tuning here, so downstream adaptation matters a lot.
-- On this medical-image task, the pretrained ViT is the strongest result in the repository so far.
+- CNN gains strongly from full fine-tuning on Brain Tumor MRI: scratch `82.56%`, linear probe `67.31%`, full fine-tune `89.38%`.
+- ViT shows the same pattern: scratch `85.88%`, linear probe `76.00%`, full fine-tune `93.00%`.
+- DHVT full fine-tuning is now the strongest Brain Tumor MRI result in the repository at `94.00%`.
+- Linear probing is clearly insufficient on Brain Tumor MRI. The DHVT drops from `94.00%` with full fine-tuning to `76.88%` with a frozen backbone, but the linear-probe run is also much cheaper: `59m` instead of `2h 31m`.
+- For CNN, linear probing is not even cheaper than full fine-tuning here (`42m` versus `13m`) and performs much worse, so it is not a useful tradeoff.
+- For ViT, linear probing is cheaper (`15m` versus `48m`) but still loses `17` accuracy points relative to full fine-tuning.
+- Full fine-tuning gives a clear gain over scratch for both ViT-style models on this medical task.
+- Brain MRI is the clearest case where CIFAR pretraining matters for DHVT.
 - Full class-wise precision, recall, F1, and support remain available in the saved `classification_report.json` artifacts.
 
 ## Pipeline Overview

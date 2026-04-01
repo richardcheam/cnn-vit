@@ -89,7 +89,7 @@ The source-stage result is now three-way. DHVT is the strongest clean classifier
 \toprule
 Model & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Time \\
 \midrule
-DHVT & 88.88\% & 0.8894 & 0.8888 & 0.8888 & 59m 56s \\
+DHVT & 88.88\% & 0.8906 & 0.8888 & 0.8891 & 59m 56s \\
 CNN & 85.70\% & 0.8611 & 0.8570 & 0.8580 & 13m 56s \\
 ViT & 73.36\% & 0.7330 & 0.7336 & 0.7330 & 15m 46s \\
 \bottomrule
@@ -120,6 +120,7 @@ Across data budgets, DHVT overtakes the CNN once enough data is available, while
 This refines the earlier story. The CNN is still more data-efficient than the vanilla ViT in this small-image, from-scratch setting \cite{dosovitskiy2021image,touvron2021training}. DHVT narrows that gap and becomes the strongest clean classifier at 100\% data, which is qualitatively consistent with its design goal of improving transformer behavior on small datasets \cite{lu2022bridging}. At the same time, the vanilla ViT loses much less accuracy under texture modification, which remains consistent with the texture-bias literature on CNNs \cite{geirhos2019imagenet}.
 
 Checkpoint-based evaluation also shows that the hardest CIFAR-10 classes are \textit{cat}, \textit{dog}, and \textit{bird}, with strong \textit{cat}/\textit{dog} confusion for both models.
+The DHVT rollout maps and head-token influence maps also largely overlap on CIFAR-10, which suggests that the added head-token mechanism reinforces the same discriminative regions rather than redirecting attention to qualitatively different evidence.
 
 \subsection{EuroSAT transfer}
 Transfer to EuroSAT gives only a small gain over scratch for both models.
@@ -127,29 +128,35 @@ Transfer to EuroSAT gives only a small gain over scratch for both models.
 \begin{table}[H]
 \centering
 \caption{EuroSAT downstream results.}
-\begin{tabular}{lcccccc}
+\begin{tabular}{lcccc}
 \toprule
-Model & Setup & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Time \\
+Model & Setup & Acc. & Macro-F1 & Time \\
 \midrule
-CNN & scratch & 96.52\% & 0.9649 & 0.9640 & 0.9642 & 11m 19s \\
-CNN & pretrained + linear probe & 85.78\% & 0.8560 & 0.8496 & 0.8496 & 11m 21s \\
-CNN & pretrained + full fine-tune & 96.74\% & 0.9664 & 0.9660 & 0.9660 & 11m 23s \\
-ViT & scratch & 93.59\% & 0.9341 & 0.9330 & 0.9331 & 31m 29s \\
-ViT & pretrained + linear probe & 79.00\% & 0.7834 & 0.7784 & 0.7784 & 11m 43s \\
-ViT & pretrained + full fine-tune & 94.15\% & 0.9389 & 0.9383 & 0.9385 & 31m 28s \\
+CNN & scratch & 96.52\% & 0.9642 & 11m 19s \\
+CNN & pretrained + linear probe & 85.78\% & 0.8496 & 11m 21s \\
+CNN & pretrained + full fine-tune & 96.74\% & 0.9660 & 11m 23s \\
+DHVT & scratch & 97.52\% & 0.9745 & 1h 53m 56s \\
+DHVT & pretrained + linear probe & 87.52\% & 0.8682 & 1h 10m 27s \\
+DHVT & pretrained + full fine-tune & 96.96\% & 0.9685 & 1h 54m 19s \\
+ViT & scratch & 93.59\% & 0.9331 & 31m 29s \\
+ViT & pretrained + linear probe & 79.00\% & 0.7784 & 11m 43s \\
+ViT & pretrained + full fine-tune & 94.15\% & 0.9385 & 31m 28s \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 The EuroSAT result now has a clearer interpretation:
 \begin{itemize}
-    \item linear probing is much weaker than full fine-tuning for both architectures
+    \item DHVT scratch is the strongest EuroSAT result at 97.52\%
+    \item CNN changes very little on EuroSAT: scratch 96.52\%, linear probe 85.78\%, and full fine-tuning 96.74\%, all with roughly 11-minute runs
+    \item ViT shows a stronger adaptation gap on EuroSAT: scratch 93.59\%, linear probe 79.00\%, and full fine-tuning 94.15\%
+    \item CIFAR pretraining does not help DHVT on EuroSAT: DHVT full fine-tuning is slightly below its scratch result
+    \item linear probing is much weaker than full fine-tuning for all transformer-style models
+    \item for DHVT, linear probing saves about 44 minutes relative to full fine-tuning, but loses about 9.4 accuracy points
     \item the ViT is especially weak under a frozen backbone: 79.00\% with linear probing versus 94.15\% with full fine-tuning
-    \item full fine-tuning gives only a small gain over scratch
-    \item CNN full fine-tuning remains the strongest EuroSAT result
 \end{itemize}
 
-This suggests that CIFAR features alone are not enough for strong EuroSAT transfer; downstream adaptation is important. At the same time, EuroSAT is easy enough that scratch training is already strong, so the final gain from full fine-tuning remains small.
+This suggests that CIFAR features alone are not enough for strong EuroSAT transfer; downstream adaptation is important. At the same time, EuroSAT is easy enough that scratch training is already strong, and for DHVT the scratch run is actually the best result.
 
 Checkpoint-based evaluation shows that the most difficult EuroSAT classes are \textit{PermanentCrop}, \textit{Highway}, and \textit{River}. The dominant confusions are \textit{PermanentCrop} $\rightarrow$ \textit{HerbaceousVegetation} and \textit{Highway} $\leftrightarrow$ \textit{River}.
 
@@ -159,45 +166,53 @@ The Brain Tumor MRI transfer result is stronger and more informative. Here, CIFA
 \begin{table}[H]
 \centering
 \caption{Brain Tumor MRI downstream results.}
-\begin{tabular}{lcccccc}
+\begin{tabular}{lcccc}
 \toprule
-Model & Setup & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Time \\
+Model & Setup & Acc. & Macro-F1 & Time \\
 \midrule
-CNN & scratch & 82.56\% & 0.8429 & 0.8256 & 0.8230 & 13m 18s \\
-CNN & pretrained + linear probe & 67.31\% & 0.6715 & 0.6715 & 0.6715 & 42m 10s \\
-CNN & pretrained + full fine-tune & 89.38\% & 0.9018 & 0.8938 & 0.8917 & 13m 16s \\
-ViT & scratch & 85.88\% & 0.8629 & 0.8588 & 0.8554 & 47m 47s \\
-ViT & pretrained + linear probe & 76.00\% & 0.7524 & 0.7524 & 0.7524 & 15m 28s \\
-ViT & pretrained + full fine-tune & 93.00\% & 0.9352 & 0.9300 & 0.9279 & 47m 56s \\
+CNN & scratch & 82.56\% & 0.8230 & 13m 18s \\
+CNN & pretrained + linear probe & 67.31\% & 0.6715 & 42m 10s \\
+CNN & pretrained + full fine-tune & 89.38\% & 0.8917 & 13m 16s \\
+DHVT & scratch & 87.88\% & 0.8776 & 2h 57m 00s \\
+DHVT & pretrained + linear probe & 76.88\% & 0.7648 & 59m 24s \\
+DHVT & pretrained + full fine-tune & 94.00\% & 0.9386 & 2h 31m 18s \\
+ViT & scratch & 85.88\% & 0.8554 & 47m 47s \\
+ViT & pretrained + linear probe & 76.00\% & 0.7524 & 15m 28s \\
+ViT & pretrained + full fine-tune & 93.00\% & 0.9279 & 47m 56s \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 The Brain Tumor MRI result is stronger:
 \begin{itemize}
+    \item DHVT full fine-tuning is now the strongest downstream result in the repository at 94.00\%
+    \item CNN also benefits strongly from full fine-tuning: 82.56\% from scratch, 67.31\% with linear probing, and 89.38\% with full fine-tuning
+    \item ViT shows the same pattern: 85.88\% from scratch, 76.00\% with linear probing, and 93.00\% with full fine-tuning
     \item linear probing is much weaker than both scratch and full fine-tuning
-    \item this drop is severe for both models, which indicates that downstream adaptation is necessary rather than optional
+    \item for CNN, linear probing is not even cheaper than full fine-tuning here, since the frozen-backbone run still takes 42 minutes versus 13 minutes for full fine-tuning
+    \item for ViT, linear probing is cheaper, but still loses about 17 accuracy points relative to full fine-tuning
+    \item for DHVT, linear probing cuts training time from 2h 31m to 59m, but loses 17.1 accuracy points
+    \item this drop is severe for both ViT-style models, which indicates that downstream adaptation is necessary rather than optional
     \item full fine-tuning gives a large gain over scratch
-    \item pretrained ViT with full fine-tuning is the strongest downstream result in the repository
 \end{itemize}
 
 This means the project now has a split outcome:
 \begin{itemize}
-    \item CNN is strongest on the source task and on EuroSAT
-    \item pretrained ViT is strongest on Brain Tumor MRI
+    \item DHVT is strongest on the source task and on EuroSAT
+    \item pretrained DHVT is strongest on Brain Tumor MRI
 \end{itemize}
 
 \section{Conclusion}
 The current results support three direct conclusions.
 
 \begin{itemize}
-    \item On CIFAR-10, DHVT is the best clean classifier, while the CNN remains stronger than the vanilla ViT in the low-data regime.
+    \item On CIFAR-10, DHVT is the best clean classifier, while the CNN remains stronger than the vanilla ViT in the lowest-data regime.
     \item On CIFAR-10, the vanilla ViT is much less affected by the texture-modified test set.
     \item For downstream transfer, linear probing is not enough. Full fine-tuning is clearly stronger on both EuroSAT and Brain Tumor MRI.
-    \item CIFAR pretraining matters much more for Brain Tumor MRI than for EuroSAT, and the pretrained ViT with full fine-tuning is currently the best medical downstream model in the repository.
+    \item CIFAR pretraining matters much more for Brain Tumor MRI than for EuroSAT, and the pretrained DHVT with full fine-tuning is currently the best medical downstream model in the repository.
 \end{itemize}
 
-So the present evidence does not support one universal winner. Instead, the results suggest that CNNs, ViTs, and DHVT learn different useful biases, and those differences matter differently across source and downstream tasks.
+So the present evidence does not support one universal winner. Instead, the results suggest that CNNs, ViTs, and DHVT learn different useful biases, and those differences matter differently across source and downstream tasks. The timing results also matter: linear probing can be cheaper for the larger transformer-style models, but the accuracy loss is too large to make it the preferred setting in the current experiments.
 
 \begin{thebibliography}{9}
 
