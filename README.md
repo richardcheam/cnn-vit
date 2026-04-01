@@ -629,6 +629,21 @@ Running the CIFAR source-stage experiment writes artifacts to `outputs/`:
 - `plots/`: per-model training curves, a combined CNN-vs-ViT learning-curve figure, per-model data-fraction learning-curve figures, data-efficiency plots, and robustness plots
 - `interpretability/`: Grad-CAM and ViT attention visualizations
 
+## Canonical Results Export
+
+Because top-level stage summaries can be overwritten by later runs, the safer source of truth is the checkpoint-backed artifacts. The repository includes a small aggregator that rebuilds a canonical table from checkpoints and checkpoint evaluations:
+
+```bash
+uv run python experiments/build_master_results.py
+```
+
+This writes:
+
+- `outputs/master_results/master_results.json`
+- `outputs/master_results/master_results.csv`
+
+Those files are the recommended base for any final reporting table that should survive later reruns.
+
 Checkpoint filenames follow the pattern:
 
 - `outputs/checkpoints/cnn_10pct_best.pt`
