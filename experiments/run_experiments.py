@@ -333,7 +333,7 @@ def _save_training_curves(full_run_results: dict[str, dict], output_dir: Path) -
 
 
 def _save_combined_training_curves(full_run_results: dict[str, dict], output_dir: Path) -> None:
-    """Save a shared CNN-vs-ViT comparison figure for loss and accuracy."""
+    """Save a shared full-data comparison figure for all available architectures."""
     if len(full_run_results) < 2:
         return
     ensure_dir(output_dir)
@@ -399,13 +399,19 @@ def _save_combined_training_curves(full_run_results: dict[str, dict], output_dir
         axes[0].legend(loc="upper right", ncol=2)
         axes[1].legend(loc="lower right", ncol=2)
 
+        model_labels = ", ".join(model_name.upper() for model_name in full_run_results)
+
         figure.suptitle(
-            "CNN vs ViT Learning Curves",
+            f"Full-Data Learning Curves: {model_labels}",
             fontsize=14,
             fontweight="semibold",
             y=1.03,
         )
-        _save_figure(figure, output_dir / "cnn_vit_training_comparison.png")
+        figure.tight_layout(rect=(0, 0, 1, 0.98))
+        figure.savefig(output_dir / "architecture_training_comparison.png", dpi=240)
+        # Keep the older filename as a compatibility alias for existing notebook cells.
+        figure.savefig(output_dir / "cnn_vit_training_comparison.png", dpi=240)
+        plt.close(figure)
 
 
 def _save_fraction_learning_curves(data_efficiency_runs: list[dict], output_dir: Path) -> None:

@@ -1741,15 +1741,7 @@
       "best_val_accuracy": 0.9851851851851852,
       "training_time_seconds": 6859.949348272756
     },
-    "checkpoint_path": "outputs/eurosat_transfer/checkpoints/dhvt_pretrained_full_finetune_eurosat_best.pt",
-    "preload_info": {
-      "checkpoint_path": "outputs/checkpoints/dhvt_100pct_best.pt",
-      "missing_keys": [
-        "head.weight",
-        "head.bias"
-      ],
-      "unexpected_keys": []
-    }
+    "checkpoint_path": "outputs/eurosat_transfer/checkpoints/dhvt_pretrained_full_finetune_eurosat_best.pt"
   },
   {
     "dataset": "EuroSAT",
@@ -2187,15 +2179,7 @@
       "best_val_accuracy": 0.8948148148148148,
       "training_time_seconds": 4227.557703137398
     },
-    "checkpoint_path": "outputs/eurosat_transfer/checkpoints/dhvt_pretrained_linear_probe_eurosat_best.pt",
-    "preload_info": {
-      "checkpoint_path": "outputs/checkpoints/dhvt_100pct_best.pt",
-      "missing_keys": [
-        "head.weight",
-        "head.bias"
-      ],
-      "unexpected_keys": []
-    }
+    "checkpoint_path": "outputs/eurosat_transfer/checkpoints/dhvt_pretrained_linear_probe_eurosat_best.pt"
   },
   {
     "dataset": "EuroSAT",

@@ -20,16 +20,17 @@ def load_cifar_runs_with_histories(output_dir: str | Path) -> list[dict]:
     output_dir = Path(output_dir)
     summary_path = output_dir / "summary.json"
     runs_path = output_dir / "data_efficiency_runs.json"
+    checkpoint_runs = _load_cifar_runs_from_checkpoints(output_dir / "checkpoints")
 
     if runs_path.exists():
-        return load_json(runs_path)
+        return _merge_source_runs(load_json(runs_path), checkpoint_runs)
 
     if summary_path.exists():
         summary = load_json(summary_path)
         if "data_efficiency_runs" in summary:
-            return summary["data_efficiency_runs"]
+            return _merge_source_runs(summary["data_efficiency_runs"], checkpoint_runs)
 
-    return _load_cifar_runs_from_checkpoints(output_dir / "checkpoints")
+    return checkpoint_runs
 
 
 def load_eurosat_runs_with_histories(output_dir: str | Path) -> list[dict]:
@@ -183,6 +184,32 @@ def _transfer_run_key(row: dict) -> tuple:
         row.get("model"),
         row.get("initialization"),
         row.get("adaptation"),
+        row.get("train_size"),
+        row.get("val_size"),
+        row.get("test_size"),
+    )
+
+
+def _merge_source_runs(existing_runs: list[dict], checkpoint_runs: list[dict]) -> list[dict]:
+    merged: dict[tuple, dict] = {}
+    for row in existing_runs:
+        merged[_source_run_key(row)] = row
+    for row in checkpoint_runs:
+        merged[_source_run_key(row)] = row
+    return sorted(
+        merged.values(),
+        key=lambda row: (
+            row.get("model", ""),
+            row.get("train_fraction", 0.0),
+            row.get("train_size", 0),
+        ),
+    )
+
+
+def _source_run_key(row: dict) -> tuple:
+    return (
+        row.get("model"),
+        row.get("train_fraction"),
         row.get("train_size"),
         row.get("val_size"),
         row.get("test_size"),

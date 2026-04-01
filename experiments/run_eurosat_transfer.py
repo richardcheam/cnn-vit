@@ -5,6 +5,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import torch
 from matplotlib.ticker import PercentFormatter
+from matplotlib.lines import Line2D
 from sklearn.metrics import f1_score
 
 from configs.config import ProjectConfig
@@ -62,6 +63,8 @@ TRANSFER_LINESTYLES = {
     "linear_probe": ":",
 }
 
+MODEL_DISPLAY_ORDER = ("cnn", "vit", "dhvt")
+
 
 def _eurosat_run_key(row: dict) -> tuple:
     return (
@@ -110,6 +113,12 @@ def _run_descriptor(row: dict) -> str:
     if adaptation == "linear_probe":
         return "pretrained\nlinear probe"
     return "pretrained\nfull ft"
+
+
+def _curve_mode(row: dict) -> str:
+    if row.get("initialization") == "scratch":
+        return "scratch"
+    return row.get("adaptation", "full_finetune")
 
 
 def _log(message: str) -> None:
@@ -233,49 +242,70 @@ def _save_transfer_accuracy_plot(rows: list[dict], output_dir: Path) -> None:
 def _save_transfer_validation_curves(results: list[dict], output_dir: Path) -> None:
     ensure_dir(output_dir)
     with plt.rc_context(PLOT_STYLE):
-        figure, axes = plt.subplots(1, 2, figsize=(13, 5))
+        model_names = [model for model in MODEL_DISPLAY_ORDER if any(row["model"] == model for row in results)]
+        figure, axes = plt.subplots(2, len(model_names), figsize=(4.6 * len(model_names), 7.2), squeeze=False)
         dataset_name = results[0]["dataset"] if results else "Downstream"
         source_dataset = results[0].get("source_dataset", "source-stage") if results else "source-stage"
-        unique_train_sizes = {row.get("train_size") for row in results}
-        show_train_size = len(unique_train_sizes) > 1
+        style_handles = [
+            Line2D([0], [0], color="#344054", linestyle=TRANSFER_LINESTYLES["scratch"], linewidth=2.2, label="Scratch"),
+            Line2D([0], [0], color="#344054", linestyle=TRANSFER_LINESTYLES["linear_probe"], linewidth=2.2, label="Pretrained + linear probe"),
+            Line2D([0], [0], color="#344054", linestyle=TRANSFER_LINESTYLES["full_finetune"], linewidth=2.2, label="Pretrained + full fine-tune"),
+        ]
 
-        for result in results:
-            history = result["history"]
-            epochs = range(1, len(history["val_loss"]) + 1)
-            color = ARCHITECTURE_COLORS[result["model"]]
-            linestyle = TRANSFER_LINESTYLES[result.get("adaptation", "full_finetune")]
-            label = f"{result['model'].upper()} {_run_descriptor(result).replace(chr(10), ' ')}"
-            if show_train_size and result.get("train_size") is not None:
-                label += f" ({result['train_size']:,})"
+        for column, model_name in enumerate(model_names):
+            model_results = [row for row in results if row["model"] == model_name]
+            color = ARCHITECTURE_COLORS[model_name]
 
-            axes[0].plot(
-                epochs,
-                history["val_loss"],
-                color=color,
-                linestyle=linestyle,
-                linewidth=2.1,
-                label=label,
+            for result in model_results:
+                history = result["history"]
+                epochs = range(1, len(history["val_loss"]) + 1)
+                linestyle = TRANSFER_LINESTYLES[_curve_mode(result)]
+
+                axes[0][column].plot(
+                    epochs,
+                    history["val_loss"],
+                    color=color,
+                    linestyle=linestyle,
+                    linewidth=2.2,
+                )
+                axes[1][column].plot(
+                    epochs,
+                    history["val_accuracy"],
+                    color=color,
+                    linestyle=linestyle,
+                    linewidth=2.2,
+                )
+
+            _style_axis(
+                axes[0][column],
+                f"{model_name.upper()} Loss",
+                "Epoch",
+                "Cross-Entropy Loss" if column == 0 else "",
             )
-            axes[1].plot(
-                epochs,
-                history["val_accuracy"],
-                color=color,
-                linestyle=linestyle,
-                linewidth=2.1,
-                label=label,
+            _style_axis(
+                axes[1][column],
+                f"{model_name.upper()} Accuracy",
+                "Epoch",
+                "Accuracy" if column == 0 else "",
+                percent_y=True,
             )
+            axes[1][column].set_ylim(0.0, 1.0)
 
-        _style_axis(axes[0], f"{dataset_name} Validation Loss", "Epoch", "Cross-Entropy Loss")
-        _style_axis(axes[1], f"{dataset_name} Validation Accuracy", "Epoch", "Accuracy", percent_y=True)
-        axes[1].set_ylim(0.0, 1.0)
-        axes[0].legend(loc="upper right")
-        axes[1].legend(loc="lower right")
         figure.suptitle(
-            f"Scratch vs {source_dataset}-Pretrained Fine-Tuning on {dataset_name}",
+            f"{dataset_name} Validation Dynamics by Model",
             fontsize=14,
             fontweight="semibold",
+            y=0.985,
         )
-        _save_figure(figure, output_dir / "eurosat_transfer_validation_curves.png")
+        figure.legend(
+            handles=style_handles,
+            loc="upper center",
+            bbox_to_anchor=(0.5, 0.94),
+            ncol=3,
+        )
+        figure.tight_layout(rect=(0, 0, 1, 0.9))
+        figure.savefig(output_dir / "eurosat_transfer_validation_curves.png", dpi=240)
+        plt.close(figure)
 
 
 def _save_downstream_checkpoint(

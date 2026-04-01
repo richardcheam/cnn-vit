@@ -1741,15 +1741,7 @@
       "best_val_accuracy": 0.9880952380952381,
       "training_time_seconds": 9078.262316616252
     },
-    "checkpoint_path": "outputs/brain_mri_transfer/checkpoints/dhvt_pretrained_full_finetune_brain_tumor_mri_best.pt",
-    "preload_info": {
-      "checkpoint_path": "outputs/checkpoints/dhvt_100pct_best.pt",
-      "missing_keys": [
-        "head.weight",
-        "head.bias"
-      ],
-      "unexpected_keys": []
-    }
+    "checkpoint_path": "outputs/brain_mri_transfer/checkpoints/dhvt_pretrained_full_finetune_brain_tumor_mri_best.pt"
   },
   {
     "dataset": "Brain Tumor MRI",
@@ -2187,15 +2179,7 @@
       "best_val_accuracy": 0.8404761904761905,
       "training_time_seconds": 3564.4737935326993
     },
-    "checkpoint_path": "outputs/brain_mri_transfer/checkpoints/dhvt_pretrained_linear_probe_brain_tumor_mri_best.pt",
-    "preload_info": {
-      "checkpoint_path": "outputs/checkpoints/dhvt_100pct_best.pt",
-      "missing_keys": [
-        "head.weight",
-        "head.bias"
-      ],
-      "unexpected_keys": []
-    }
+    "checkpoint_path": "outputs/brain_mri_transfer/checkpoints/dhvt_pretrained_linear_probe_brain_tumor_mri_best.pt"
   },
   {
     "dataset": "Brain Tumor MRI",

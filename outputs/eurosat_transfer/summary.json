@@ -1,184 +1,6 @@
 {
-  "config": {
-    "title": "Understanding CNN vs Vision Transformer",
-    "data": {
-      "name": "CIFAR-10",
-      "slug": "cifar10",
-      "data_dir": "data",
-      "image_size": 32,
-      "channels": 3,
-      "num_classes": 10,
-      "batch_size": 128,
-      "num_workers": 2,
-      "val_fraction": 0.1,
-      "mean": [
-        0.4914,
-        0.4822,
-        0.4465
-      ],
-      "std": [
-        0.247,
-        0.2435,
-        0.2616
-      ]
-    },
-    "eurosat": {
-      "name": "EuroSAT",
-      "slug": "eurosat",
-      "data_dir": "data",
-      "image_size": 64,
-      "channels": 3,
-      "num_classes": 10,
-      "batch_size": 64,
-      "num_workers": 2,
-      "val_fraction": 0.1,
-      "test_fraction": 0.1,
-      "train_fraction": 1.0,
-      "mean": [
-        0.485,
-        0.456,
-        0.406
-      ],
-      "std": [
-        0.229,
-        0.224,
-        0.225
-      ]
-    },
-    "brain_mri": {
-      "name": "Brain Tumor MRI",
-      "slug": "brain_tumor_mri",
-      "data_dir": "data/brain_tumor_mri_dataset",
-      "image_size": 128,
-      "channels": 3,
-      "num_classes": 4,
-      "batch_size": 32,
-      "num_workers": 2,
-      "val_fraction": 0.15,
-      "train_fraction": 1.0,
-      "mean": [
-        0.485,
-        0.456,
-        0.406
-      ],
-      "std": [
-        0.229,
-        0.224,
-        0.225
-      ]
-    },
-    "augmentations": {
-      "occlusion_mask_size": 8,
-      "occlusion_fill_value": 0.0,
-      "texture_patch_size": 4,
-      "texture_shuffle_fraction": 0.75,
-      "texture_noise_std": 0.05
-    },
-    "cnn": {
-      "channels": [
-        64,
-        128,
-        256
-      ],
-      "dropout": 0.2
-    },
-    "vit": {
-      "patch_size": 4,
-      "embed_dim": 192,
-      "depth": 4,
-      "num_heads": 6,
-      "mlp_ratio": 4.0,
-      "dropout": 0.1,
-      "attention_dropout": 0.1
-    },
-    "dhvt": {
-      "patch_size": 4,
-      "embed_dim": 192,
-      "depth": 12,
-      "num_heads": 4,
-      "mlp_ratio": 4.0,
-      "dropout": 0.0,
-      "attention_dropout": 0.0,
-      "drop_path_rate": 0.1
-    },
-    "training": {
-      "epochs": 5,
-      "learning_rate": 0.001,
-      "weight_decay": 0.0001,
-      "seed": 42,
-      "device": "auto",
-      "log_interval": 50
-    },
-    "transfer": {
-      "output_dir": "outputs/eurosat_transfer",
-      "checkpoint_dir": "outputs/checkpoints",
-      "cnn_checkpoint": null,
-      "vit_checkpoint": null,
-      "dhvt_checkpoint": null,
-      "model_names": [
-        "dhvt"
-      ],
-      "run_mode": "both",
-      "adaptation_mode": "both",
-      "epochs": 100,
-      "scratch_learning_rate": 0.001,
-      "backbone_learning_rate": 0.0001,
-      "head_learning_rate": 0.001,
-      "weight_decay": 0.0001
-    },
-    "brain_transfer": {
-      "output_dir": "outputs/brain_mri_transfer",
-      "checkpoint_dir": "outputs/checkpoints",
-      "cnn_checkpoint": null,
-      "vit_checkpoint": null,
-      "dhvt_checkpoint": null,
-      "model_names": [
-        "dhvt"
-      ],
-      "run_mode": "both",
-      "adaptation_mode": "both",
-      "epochs": 10,
-      "scratch_learning_rate": 0.001,
-      "backbone_learning_rate": 0.0001,
-      "head_learning_rate": 0.001,
-      "weight_decay": 0.0001
-    },
-    "experiment": {
-      "output_dir": "outputs",
-      "data_fractions": [
-        0.1,
-        0.25,
-        0.5,
-        1.0
-      ],
-      "model_names": [
-        "dhvt"
-      ],
-      "full_run": false,
-      "interpretability_samples": 4
-    }
-  },
   "dataset": "EuroSAT",
   "source_dataset": "CIFAR-10",
-  "protocol": {
-    "dataset_name": "EuroSAT",
-    "dataset_size": 27000,
-    "train_size": 21600,
-    "val_size": 2700,
-    "test_size": 2700,
-    "class_names": [
-      "AnnualCrop",
-      "Forest",
-      "HerbaceousVegetation",
-      "Highway",
-      "Industrial",
-      "Pasture",
-      "PermanentCrop",
-      "Residential",
-      "River",
-      "SeaLake"
-    ]
-  },
   "runs": [
     {
       "dataset": "EuroSAT",
@@ -2142,15 +1964,7 @@
         "best_val_accuracy": 0.9851851851851852,
         "training_time_seconds": 6859.949348272756
       },
-      "checkpoint_path": "outputs/eurosat_transfer/checkpoints/dhvt_pretrained_full_finetune_eurosat_best.pt",
-      "preload_info": {
-        "checkpoint_path": "outputs/checkpoints/dhvt_100pct_best.pt",
-        "missing_keys": [
-          "head.weight",
-          "head.bias"
-        ],
-        "unexpected_keys": []
-      }
+      "checkpoint_path": "outputs/eurosat_transfer/checkpoints/dhvt_pretrained_full_finetune_eurosat_best.pt"
     },
     {
       "dataset": "EuroSAT",
@@ -2588,15 +2402,7 @@
         "best_val_accuracy": 0.8948148148148148,
         "training_time_seconds": 4227.557703137398
       },
-      "checkpoint_path": "outputs/eurosat_transfer/checkpoints/dhvt_pretrained_linear_probe_eurosat_best.pt",
-      "preload_info": {
-        "checkpoint_path": "outputs/checkpoints/dhvt_100pct_best.pt",
-        "missing_keys": [
-          "head.weight",
-          "head.bias"
-        ],
-        "unexpected_keys": []
-      }
+      "checkpoint_path": "outputs/eurosat_transfer/checkpoints/dhvt_pretrained_linear_probe_eurosat_best.pt"
     },
     {
       "dataset": "EuroSAT",

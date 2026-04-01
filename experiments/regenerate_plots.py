@@ -117,14 +117,33 @@ def regenerate_cifar_plots(source_dir: Path, output_dir: Path) -> None:
         }
         for row in detailed_runs
     ]
+    robustness_rows = _load_cifar_robustness_rows(source_dir)
 
     _save_training_curves(full_run_results=full_run_results, output_dir=output_dir)
     if len(full_run_results) >= 2:
         _save_combined_training_curves(full_run_results=full_run_results, output_dir=output_dir)
     _save_fraction_learning_curves(data_efficiency_runs=detailed_runs, output_dir=output_dir)
     _save_data_efficiency_plot(config=config, rows=data_efficiency_rows, output_dir=output_dir)
-    _save_robustness_plot(config=config, rows=summary.get("robustness", []), output_dir=output_dir)
+    _save_robustness_plot(config=config, rows=robustness_rows or summary.get("robustness", []), output_dir=output_dir)
     print(f"Regenerated CIFAR plots in {output_dir}")
+
+
+def _load_cifar_robustness_rows(source_dir: Path) -> list[dict]:
+    evaluation_root = source_dir / "checkpoint_evaluation"
+    rows: list[dict] = []
+    if not evaluation_root.exists():
+        return rows
+
+    for summary_path in sorted(evaluation_root.glob("*/summary.json")):
+        summary = load_json(summary_path)
+        if summary.get("dataset_slug") != "cifar10":
+            continue
+        rows.extend(summary.get("robustness", []))
+
+    merged: dict[tuple, dict] = {}
+    for row in rows:
+        merged[(row.get("model"), row.get("shift"))] = row
+    return sorted(merged.values(), key=lambda row: (row.get("model", ""), row.get("shift", "")))
 
 
 def regenerate_eurosat_plots(source_dir: Path, output_dir: Path) -> None:

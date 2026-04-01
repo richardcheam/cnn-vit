@@ -54,7 +54,13 @@ def _source_fraction_label(train_fraction: float | None) -> str | None:
 
 def _load_checkpoint_evaluations(outputs_dir: Path) -> dict[str, tuple[dict[str, Any], Path]]:
     evaluations: dict[str, tuple[dict[str, Any], Path]] = {}
-    for eval_root in sorted(outputs_dir.glob("checkpoint_evaluation*")):
+    canonical_root = outputs_dir / "checkpoint_evaluation"
+    if canonical_root.is_dir():
+        evaluation_roots = [canonical_root]
+    else:
+        evaluation_roots = sorted(eval_root for eval_root in outputs_dir.glob("checkpoint_evaluation*") if eval_root.is_dir())
+
+    for eval_root in evaluation_roots:
         if not eval_root.is_dir():
             continue
         for summary_path in sorted(eval_root.glob("*/summary.json")):
