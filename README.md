@@ -1,6 +1,6 @@
 # Transfer Learning and Interpretable AI: Understanding CNN vs Vision Transformer
 
-Research-oriented PyTorch project for comparing Convolutional Neural Networks (CNNs) and Vision Transformers (ViTs) on CIFAR-10 with a focus on:
+Research-oriented PyTorch project for comparing Convolutional Neural Networks (CNNs), Vision Transformers (ViTs), and a Dynamic Hybrid Vision Transformer (DHVT) on CIFAR-10 with a focus on:
 
 - texture vs. shape bias
 - robustness to occlusion
@@ -18,7 +18,7 @@ The project studies not only which model is more accurate, but also how each mod
 - How much labeled data is needed before the model learns effectively?
 - What regions or token interactions drive the final prediction?
 
-In practice, this means we train both architectures under the same protocol and compare them across clean accuracy, robustness, data efficiency, and interpretability.
+In practice, this means we train all architectures under the same protocol and compare them across clean accuracy, robustness, data efficiency, and interpretability.
 
 ## Architecture Attribution
 
@@ -26,6 +26,7 @@ The models in this repository are lightweight research baselines, not exact repr
 
 - `CNN`: custom small CNN inspired by LeNet-style convolution/pooling classifiers, VGG-style stacked `3x3` convolutions, and Batch Normalization.
 - `ViT`: compact Vision Transformer inspired by the original ViT design and the standard Transformer encoder.
+- `DHVT`: compact reimplementation inspired by Lu et al., 2022, using convolutional patch embedding, head-token interaction attention, and a dynamic feed-forward block.
 
 Useful architecture references:
 
@@ -39,6 +40,8 @@ Useful architecture references:
   https://arxiv.org/abs/1706.03762
 - Dosovitskiy et al., 2021, `An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale`  
   https://arxiv.org/abs/2010.11929
+- Lu et al., 2022, `Bridging the Gap Between Vision Transformers and Convolutional Neural Networks on Small Datasets`  
+  https://openreview.net/forum?id=bfz-jhJ8wn
 
 The repository now supports three connected stages:
 
@@ -68,6 +71,7 @@ In the current downstream runs, class supports are close to balanced, so `weight
 
 | Model | Accuracy | Macro precision | Macro recall | Macro-F1 | Time |
 | --- | ---: | ---: | ---: | ---: | ---: |
+| DHVT | `88.88%` | `0.8894` | `0.8888` | `0.8888` | `59m 56s` |
 | CNN | `85.70%` | `0.8611` | `0.8570` | `0.8580` | `13m 56s` |
 | ViT | `73.36%` | `0.7330` | `0.7336` | `0.7330` | `15m 46s` |
 
@@ -75,11 +79,13 @@ Robustness on the full-data models:
 
 | Model | Clean accuracy | Occluded accuracy | Texture accuracy |
 | --- | ---: | ---: | ---: |
+| DHVT | `88.88%` | `83.78%` | `41.96%` |
 | CNN | `85.70%` | `80.32%` | `32.98%` |
 | ViT | `73.36%` | `68.81%` | `50.26%` |
 
-- CNN is clearly stronger on standard CIFAR-10 accuracy and data efficiency.
-- ViT is much more robust to the texture-modified test set.
+- DHVT is the strongest source-stage model on clean CIFAR-10 accuracy.
+- DHVT also improves the low-data behavior of vanilla ViT, but it remains more texture-sensitive than the vanilla ViT.
+- ViT is still the most texture-robust of the three source-stage models.
 - Checkpoint-based evaluation shows the hardest source classes are `cat`, `dog`, and `bird`, with strong `cat`/`dog` confusion for both models.
 
 ### EuroSAT transfer
@@ -127,28 +133,37 @@ flowchart TD
     C --> D[Data-efficiency subsets<br/>10% / 25% / 50% / 100%]
     D --> E1[Train CNN with AdamW]
     D --> E2[Train ViT with AdamW]
+    D --> E3[Train DHVT with AdamW]
 
     E1 --> F1[Evaluate on clean test set]
     E2 --> F2[Evaluate on clean test set]
+    E3 --> F3[Evaluate on clean test set]
 
     E1 --> G1[Evaluate on occluded test set]
     E2 --> G2[Evaluate on occluded test set]
+    E3 --> G3[Evaluate on occluded test set]
 
     E1 --> H1[Generate Grad-CAM]
     E2 --> H2[Generate attention rollout]
+    E3 --> H3[Generate DHVT attention rollout]
 
     F1 --> I[Save metrics, CSV files, and plots]
     F2 --> I
+    F3 --> I
     G1 --> I
     G2 --> I
+    G3 --> I
     H1 --> I
     H2 --> I
+    H3 --> I
 
     C --> J[Texture-modified test set]
     J --> K1[Evaluate CNN]
     J --> K2[Evaluate ViT]
+    J --> K3[Evaluate DHVT]
     K1 --> I
     K2 --> I
+    K3 --> I
 ```
 
 ## Experimental Setup
@@ -183,7 +198,7 @@ Normalization uses the CIFAR-10 channel statistics:
 Important design choice:
 
 - Augmentation is applied only to the training split.
-- Validation and test images are kept deterministic so CNN and ViT are compared on the same reference distribution.
+- Validation and test images are kept deterministic so CNN, ViT, and DHVT are compared on the same reference distribution.
 
 ### 3. Dataset splits
 
@@ -224,7 +239,8 @@ That means:
 
 - `4` independent CNN runs
 - `4` independent ViT runs
-- `8` independent training runs in total
+- `4` independent DHVT runs
+- `12` independent training runs in total
 
 The purpose is to measure how quickly each architecture benefits from additional labeled data.
 
@@ -246,6 +262,7 @@ Only the full-data models from the `100%` training runs are reused for the robus
 | --- | --- | --- |
 | CNN | Grad-CAM | Which spatial image regions most influenced the prediction |
 | ViT | Attention rollout | How information flows from image patches toward the class token |
+| DHVT | Attention rollout approximation | Patch-token attention after trimming the extra DHVT head tokens for compatibility with the current visualization pipeline |
 
 Interpretability is also generated from the full-data models so the visualizations reflect the strongest trained version of each architecture.
 
@@ -255,6 +272,7 @@ Interpretability is also generated from the full-data models so the visualizatio
 | --- | --- |
 | CNN | 3 convolutional stages with batch normalization, ReLU, pooling, dropout, and a classifier head |
 | ViT | Patch embedding, learnable class token, positional embeddings, transformer encoder blocks, classifier head |
+| DHVT | Convolutional patch embedding, head-token interaction attention, dynamic feed-forward block, classifier head |
 | Optimizer | AdamW |
 | Learning rate | `1e-3` |
 | Weight decay | `1e-4` |
@@ -270,7 +288,7 @@ Interpretability is also generated from the full-data models so the visualizatio
 | Which model is more robust to partial information loss? | Accuracy drop on occluded test images |
 | Which model is more sensitive to texture corruption? | Accuracy drop on texture-modified test images |
 | Which model learns better from small datasets? | Accuracy as training fraction grows from `10%` to `100%` |
-| What drives the prediction? | Grad-CAM for CNN, attention rollout for ViT |
+| What drives the prediction? | Grad-CAM for CNN, attention rollout for ViT and DHVT |
 
 ## EuroSAT Transfer Setup
 

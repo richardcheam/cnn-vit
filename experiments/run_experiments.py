@@ -11,13 +11,14 @@ from configs.config import ProjectConfig
 from datasets.cifar_loader import DataBundle, build_dataloaders, describe_cifar_protocol
 from evaluation.metrics import model_summary
 from evaluation.robustness import summarize_shift
+from interpretability.dhvt_attention import generate_dhvt_attention_maps
 from interpretability.gradcam import GradCAM, overlay_heatmap
 from interpretability.vit_attention import generate_attention_maps, overlay_attention_map
 from models.cnn import CNN
 from models.dhvt import DHVisionTransformer
 from models.vit import VisionTransformer
 from training.trainer import Trainer
-from utils.helpers import ensure_dir, format_seconds, save_csv, save_json, save_torch_checkpoint
+from utils.helpers import ensure_dir, format_seconds, save_csv, save_json, save_torch_checkpoint, to_numpy_image
 
 
 def _log(message: str) -> None:
@@ -624,15 +625,13 @@ def _save_interpretability_examples(
         plt.close(gradcam_figure)
         interpretability_paths["cnn_gradcam"] = str(gradcam_path)
 
-    for transformer_name in ("vit", "dhvt"):
-        if transformer_name not in models:
-            continue
-        transformer_model = models[transformer_name]
-        transformer_model.eval()
+    if "vit" in models:
+        vit_model = models["vit"]
+        vit_model.eval()
         with torch.no_grad():
-            _log(f"[Interpretability] {transformer_name.upper()} attention rollout running.")
-            transformer_logits, transformer_maps = generate_attention_maps(transformer_model, images)
-            transformer_predictions = transformer_logits.argmax(dim=1)
+            _log("[Interpretability] VIT attention rollout running.")
+            vit_logits, vit_maps = generate_attention_maps(vit_model, images)
+            vit_predictions = vit_logits.argmax(dim=1)
 
         vit_figure, vit_axes = plt.subplots(len(images), 2, figsize=(6, 3 * len(images)))
         if len(images) == 1:
@@ -642,7 +641,7 @@ def _save_interpretability_examples(
             base_image = images[index].detach().cpu()
             vit_overlay = overlay_attention_map(
                 base_image,
-                transformer_maps[index].detach().cpu(),
+                vit_maps[index].detach().cpu(),
                 mean=config.data.mean,
                 std=config.data.std,
             )
@@ -650,15 +649,57 @@ def _save_interpretability_examples(
             vit_axes[index][0].imshow(vit_overlay)
             vit_axes[index][0].set_title(title)
             vit_axes[index][0].axis("off")
-            vit_axes[index][1].imshow(transformer_maps[index].detach().cpu(), cmap="viridis")
-            vit_axes[index][1].set_title(f"pred={class_names[transformer_predictions[index].item()]}")
+            vit_axes[index][1].imshow(vit_maps[index].detach().cpu(), cmap="viridis")
+            vit_axes[index][1].set_title(f"pred={class_names[vit_predictions[index].item()]}")
             vit_axes[index][1].axis("off")
 
         vit_figure.tight_layout()
-        vit_path = output_dir / f"{transformer_name}_attention.png"
+        vit_path = output_dir / "vit_attention.png"
         vit_figure.savefig(vit_path, dpi=200)
         plt.close(vit_figure)
-        interpretability_paths[f"{transformer_name}_attention"] = str(vit_path)
+        interpretability_paths["vit_attention"] = str(vit_path)
+
+    if "dhvt" in models:
+        dhvt_model = models["dhvt"]
+        dhvt_model.eval()
+        with torch.no_grad():
+            _log("[Interpretability] DHVT rollout + head-token influence running.")
+            dhvt_logits, rollout_maps, head_maps = generate_dhvt_attention_maps(dhvt_model, images)
+            dhvt_predictions = dhvt_logits.argmax(dim=1)
+
+        dhvt_figure, dhvt_axes = plt.subplots(len(images), 3, figsize=(9, 3 * len(images)))
+        if len(images) == 1:
+            dhvt_axes = [dhvt_axes]
+
+        for index in range(len(images)):
+            base_image = images[index].detach().cpu()
+            rollout_overlay = overlay_attention_map(
+                base_image,
+                rollout_maps[index].detach().cpu(),
+                mean=config.data.mean,
+                std=config.data.std,
+            )
+            head_overlay = overlay_attention_map(
+                base_image,
+                head_maps[index].detach().cpu(),
+                mean=config.data.mean,
+                std=config.data.std,
+            )
+            dhvt_axes[index][0].imshow(to_numpy_image(base_image, mean=config.data.mean, std=config.data.std))
+            dhvt_axes[index][0].set_title(f"true={class_names[labels[index].item()]}")
+            dhvt_axes[index][0].axis("off")
+            dhvt_axes[index][1].imshow(rollout_overlay)
+            dhvt_axes[index][1].set_title(f"rollout pred={class_names[dhvt_predictions[index].item()]}")
+            dhvt_axes[index][1].axis("off")
+            dhvt_axes[index][2].imshow(head_overlay)
+            dhvt_axes[index][2].set_title("head-token influence")
+            dhvt_axes[index][2].axis("off")
+
+        dhvt_figure.tight_layout()
+        dhvt_path = output_dir / "dhvt_attention.png"
+        dhvt_figure.savefig(dhvt_path, dpi=200)
+        plt.close(dhvt_figure)
+        interpretability_paths["dhvt_attention"] = str(dhvt_path)
 
     return interpretability_paths
 

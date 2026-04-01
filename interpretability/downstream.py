@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import DataLoader
 
+from interpretability.dhvt_attention import generate_dhvt_attention_maps
 from interpretability.gradcam import GradCAM, overlay_heatmap
 from interpretability.vit_attention import generate_attention_maps, overlay_attention_map
 from utils.helpers import ensure_dir, to_numpy_image
@@ -73,7 +74,7 @@ def save_single_model_interpretability(
         plt.close(figure)
         return {"cnn_gradcam": str(path)}
 
-    if model_name in {"vit", "dhvt"}:
+    if model_name == "vit":
         model.eval()
         with torch.no_grad():
             logits, attention_maps = generate_attention_maps(model, images)
@@ -108,5 +109,46 @@ def save_single_model_interpretability(
         figure.savefig(path, dpi=200)
         plt.close(figure)
         return {f"{model_name}_attention": str(path)}
+
+    if model_name == "dhvt":
+        model.eval()
+        with torch.no_grad():
+            logits, rollout_maps, head_maps = generate_dhvt_attention_maps(model, images)
+            predictions = logits.argmax(dim=1)
+
+        figure, axes = plt.subplots(len(images), 3, figsize=(9, 3 * len(images)))
+        if len(images) == 1:
+            axes = [axes]
+
+        for index in range(len(images)):
+            base_image = to_numpy_image(images[index].detach().cpu(), mean=mean, std=std)
+            rollout_overlay = overlay_attention_map(
+                images[index].detach().cpu(),
+                rollout_maps[index].detach().cpu(),
+                mean=mean,
+                std=std,
+            )
+            head_overlay = overlay_attention_map(
+                images[index].detach().cpu(),
+                head_maps[index].detach().cpu(),
+                mean=mean,
+                std=std,
+            )
+            axes[index][0].imshow(base_image)
+            axes[index][0].set_title(f"true={class_names[int(labels[index].detach().cpu().item())]}")
+            axes[index][0].axis("off")
+            axes[index][1].imshow(rollout_overlay)
+            axes[index][1].set_title(f"rollout pred={class_names[int(predictions[index].detach().cpu().item())]}")
+            axes[index][1].axis("off")
+            axes[index][2].imshow(head_overlay)
+            axes[index][2].set_title("head-token influence")
+            axes[index][2].axis("off")
+
+        figure.suptitle(f"{dataset_label} DHVT Attention", fontsize=13, fontweight="semibold")
+        figure.tight_layout()
+        path = output_dir / f"{output_stem}_dhvt_attention.png"
+        figure.savefig(path, dpi=200)
+        plt.close(figure)
+        return {"dhvt_attention": str(path)}
 
     return {}

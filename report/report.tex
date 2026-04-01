@@ -15,11 +15,11 @@ Source and Transfer Results}
 \maketitle
 
 \begin{abstract}
-This report summarizes the current saved results of the project. The study starts with a controlled CIFAR-10 comparison between a lightweight CNN and a lightweight ViT, then transfers both models to EuroSAT and Brain Tumor MRI. The main findings are direct: the CNN is stronger on the source CIFAR-10 task, especially in low-data training, while the ViT is more robust to texture corruption. In downstream transfer, linear probing is clearly weaker than full fine-tuning. Full fine-tuning gives only a small gain on EuroSAT but a strong gain on Brain Tumor MRI. The best downstream result so far is the pretrained ViT with full fine-tuning on Brain Tumor MRI.
+This report summarizes the current saved results of the project. The study starts with a controlled CIFAR-10 comparison between a lightweight CNN, a lightweight ViT, and a DHVT extension baseline, then transfers CNN and ViT to EuroSAT and Brain Tumor MRI. The main findings are direct: DHVT is the strongest source-stage classifier on clean CIFAR-10, the CNN remains strong in low-data training, and the vanilla ViT is the most robust to texture corruption. In downstream transfer, linear probing is clearly weaker than full fine-tuning. Full fine-tuning gives only a small gain on EuroSAT but a strong gain on Brain Tumor MRI. The best downstream result so far is the pretrained ViT with full fine-tuning on Brain Tumor MRI.
 \end{abstract}
 
 \section{Introduction}
-CNNs use locality and weight sharing as inductive biases \cite{lecun1998gradient}. ViTs instead model patch interactions with self-attention \cite{dosovitskiy2021image}. Prior work shows that ViTs usually require more data or stronger training recipes \cite{dosovitskiy2021image,touvron2021training}, while standard CNNs often rely more on local texture cues \cite{geirhos2019imagenet}. This project tests these points in a simple controlled pipeline and then checks whether CIFAR-10 pretraining transfers to two downstream datasets.
+CNNs use locality and weight sharing as inductive biases \cite{lecun1998gradient}. ViTs instead model patch interactions with self-attention \cite{dosovitskiy2021image}. Prior work shows that ViTs usually require more data or stronger training recipes \cite{dosovitskiy2021image,touvron2021training}, while standard CNNs often rely more on local texture cues \cite{geirhos2019imagenet}. DHVT was proposed to bridge this gap on small datasets by combining transformer-style token mixing with stronger convolutional inductive bias \cite{lu2022bridging}. This project tests these points in a simple controlled pipeline and then checks whether CIFAR-10 pretraining transfers to two downstream datasets.
 
 \section{Experimental Setup}
 \subsection{Source stage: CIFAR-10}
@@ -62,7 +62,7 @@ When linear probing is used, the backbone remains frozen during training and onl
 All reported source and downstream results in this document come from 100-epoch runs.
 
 \subsection{Architecture attribution}
-The repository models are lightweight research baselines, not exact reproductions of one published architecture. The CNN is a custom compact model inspired by LeNet-style convolution / pooling classifiers \cite{lecun1998gradient}, VGG-style stacked small convolutions \cite{simonyan2015very}, and Batch Normalization \cite{ioffe2015batch}. The ViT is a compact implementation inspired by the Transformer encoder \cite{vaswani2017attention} and the original Vision Transformer design \cite{dosovitskiy2021image}. This wording is important for attribution: the code is custom, but the architectural ideas are grounded in these standard references.
+The repository models are lightweight research baselines, not exact reproductions of one published architecture. The CNN is a custom compact model inspired by LeNet-style convolution / pooling classifiers \cite{lecun1998gradient}, VGG-style stacked small convolutions \cite{simonyan2015very}, and Batch Normalization \cite{ioffe2015batch}. The ViT is a compact implementation inspired by the Transformer encoder \cite{vaswani2017attention} and the original Vision Transformer design \cite{dosovitskiy2021image}. The DHVT implementation is a compact reimplementation inspired by Lu et al. \cite{lu2022bridging}, using convolutional patch embedding, head-token interaction attention, and a dynamic feed-forward block. This wording is important for attribution: the code is custom, but the architectural ideas are grounded in these standard references.
 
 \subsection{Metrics}
 The project uses standard multiclass classification metrics.
@@ -80,7 +80,7 @@ For the downstream datasets, macro-F1 is reported together with accuracy because
 
 \section{Results}
 \subsection{CIFAR-10 source stage}
-The source-stage result is clear. The CNN is the stronger standard classifier, while the ViT is more robust to texture corruption.
+The source-stage result is now three-way. DHVT is the strongest clean classifier, while the vanilla ViT remains the most robust to texture corruption.
 
 \begin{table}[H]
 \centering
@@ -89,6 +89,7 @@ The source-stage result is clear. The CNN is the stronger standard classifier, w
 \toprule
 Model & Acc. & Macro Prec. & Macro Recall & Macro-F1 & Time \\
 \midrule
+DHVT & 88.88\% & 0.8894 & 0.8888 & 0.8888 & 59m 56s \\
 CNN & 85.70\% & 0.8611 & 0.8570 & 0.8580 & 13m 56s \\
 ViT & 73.36\% & 0.7330 & 0.7336 & 0.7330 & 15m 46s \\
 \bottomrule
@@ -102,19 +103,21 @@ ViT & 73.36\% & 0.7330 & 0.7336 & 0.7330 & 15m 46s \\
 \toprule
 Model & Clean Acc. & Occluded Acc. & Texture Acc. \\
 \midrule
+DHVT & 88.88\% & 83.78\% & 41.96\% \\
 CNN & 85.70\% & 80.32\% & 32.98\% \\
 ViT & 73.36\% & 68.81\% & 50.26\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The CNN also remains ahead across all data budgets:
+Across data budgets, DHVT overtakes the CNN once enough data is available, while the CNN remains ahead of the vanilla ViT throughout:
 \begin{itemize}
+    \item DHVT: 64.42\%, 77.80\%, 82.95\%, 88.88\%
     \item CNN: 65.70\%, 75.08\%, 81.48\%, 85.70\%
     \item ViT: 53.53\%, 60.27\%, 67.03\%, 73.36\%
 \end{itemize}
 
-This confirms the expected pattern from prior work: the CNN is more data-efficient in this small-image, from-scratch setting \cite{dosovitskiy2021image,touvron2021training}. At the same time, the ViT loses much less accuracy under texture modification, which is consistent with the texture-bias literature on CNNs \cite{geirhos2019imagenet}.
+This refines the earlier story. The CNN is still more data-efficient than the vanilla ViT in this small-image, from-scratch setting \cite{dosovitskiy2021image,touvron2021training}. DHVT narrows that gap and becomes the strongest clean classifier at 100\% data, which is qualitatively consistent with its design goal of improving transformer behavior on small datasets \cite{lu2022bridging}. At the same time, the vanilla ViT loses much less accuracy under texture modification, which remains consistent with the texture-bias literature on CNNs \cite{geirhos2019imagenet}.
 
 Checkpoint-based evaluation also shows that the hardest CIFAR-10 classes are \textit{cat}, \textit{dog}, and \textit{bird}, with strong \textit{cat}/\textit{dog} confusion for both models.
 
@@ -188,13 +191,13 @@ This means the project now has a split outcome:
 The current results support three direct conclusions.
 
 \begin{itemize}
-    \item On CIFAR-10, the CNN is the better source-stage model. It is more accurate and more data-efficient.
-    \item On CIFAR-10, the ViT is much less affected by the texture-modified test set.
+    \item On CIFAR-10, DHVT is the best clean classifier, while the CNN remains stronger than the vanilla ViT in the low-data regime.
+    \item On CIFAR-10, the vanilla ViT is much less affected by the texture-modified test set.
     \item For downstream transfer, linear probing is not enough. Full fine-tuning is clearly stronger on both EuroSAT and Brain Tumor MRI.
     \item CIFAR pretraining matters much more for Brain Tumor MRI than for EuroSAT, and the pretrained ViT with full fine-tuning is currently the best medical downstream model in the repository.
 \end{itemize}
 
-So the present evidence does not support one universal winner. Instead, the results suggest that CNNs and ViTs learn different useful biases, and those differences matter differently across source and downstream tasks.
+So the present evidence does not support one universal winner. Instead, the results suggest that CNNs, ViTs, and DHVT learn different useful biases, and those differences matter differently across source and downstream tasks.
 
 \begin{thebibliography}{9}
 
@@ -237,6 +240,11 @@ Hugo Touvron, Matthieu Cord, Matthijs Douze, Francisco Massa, Alexandre Sablayro
 Robert Geirhos, Patricia Rubisch, Claudio Michaelis, Matthias Bethge, Felix A. Wichmann, and Wieland Brendel.
 \newblock ImageNet-trained CNNs are biased towards texture; increasing shape bias improves accuracy and robustness.
 \newblock In \emph{International Conference on Learning Representations}, 2019.
+
+\bibitem{lu2022bridging}
+Zhiying Lu, Hongtao Xie, Chuanbin Liu, and Yongdong Zhang.
+\newblock Bridging the gap between vision transformers and convolutional neural networks on small datasets.
+\newblock In \emph{Advances in Neural Information Processing Systems}, 2022.
 
 \end{thebibliography}
 
