@@ -1,0 +1,115 @@
+{
+  "macro_avg": {
+    "precision": 0.777,
+    "recall": 0.7687,
+    "f1_score": 0.7648
+  },
+  "weighted_avg": {
+    "precision": 0.777,
+    "recall": 0.7688,
+    "f1_score": 0.7648
+  },
+  "confidence": {
+    "mean": 0.793,
+    "mean_correct": 0.8331,
+    "mean_incorrect": 0.6595
+  },
+  "per_class": [
+    {
+      "class_index": 0,
+      "class_name": "glioma",
+      "support": 400,
+      "correct": 230,
+      "accuracy": 0.575,
+      "precision": 0.8394,
+      "recall": 0.575,
+      "f1_score": 0.6825,
+      "predicted_count": 274
+    },
+    {
+      "class_index": 1,
+      "class_name": "meningioma",
+      "support": 400,
+      "correct": 283,
+      "accuracy": 0.7075,
+      "precision": 0.6275,
+      "recall": 0.7075,
+      "f1_score": 0.6651,
+      "predicted_count": 451
+    },
+    {
+      "class_index": 2,
+      "class_name": "notumor",
+      "support": 400,
+      "correct": 375,
+      "accuracy": 0.9375,
+      "precision": 0.8047,
+      "recall": 0.9375,
+      "f1_score": 0.8661,
+      "predicted_count": 466
+    },
+    {
+      "class_index": 3,
+      "class_name": "pituitary",
+      "support": 400,
+      "correct": 342,
+      "accuracy": 0.855,
+      "precision": 0.8362,
+      "recall": 0.855,
+      "f1_score": 0.8455,
+      "predicted_count": 409
+    }
+  ],
+  "top_confusions": [
+    {
+      "true_class": "glioma",
+      "predicted_class": "meningioma",
+      "count": 109
+    },
+    {
+      "true_class": "pituitary",
+      "predicted_class": "meningioma",
+      "count": 47
+    },
+    {
+      "true_class": "meningioma",
+      "predicted_class": "notumor",
+      "count": 46
+    },
+    {
+      "true_class": "meningioma",
+      "predicted_class": "pituitary",
+      "count": 45
+    },
+    {
+      "true_class": "glioma",
+      "predicted_class": "notumor",
+      "count": 41
+    },
+    {
+      "true_class": "meningioma",
+      "predicted_class": "glioma",
+      "count": 26
+    },
+    {
+      "true_class": "glioma",
+      "predicted_class": "pituitary",
+      "count": 20
+    },
+    {
+      "true_class": "notumor",
+      "predicted_class": "meningioma",
+      "count": 12
+    },
+    {
+      "true_class": "notumor",
+      "predicted_class": "glioma",
+      "count": 11
+    },
+    {
+      "true_class": "pituitary",
+      "predicted_class": "glioma",
+      "count": 7
+    }
+  ]
+}

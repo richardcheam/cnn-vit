@@ -134,7 +134,7 @@
     "hardest_classes_examples": "outputs/checkpoint_evaluation/cnn_pretrained_brain_tumor_mri_best/examples/class_diagnostics/hardest_classes.png",
     "easiest_classes_examples": "outputs/checkpoint_evaluation/cnn_pretrained_brain_tumor_mri_best/examples/class_diagnostics/easiest_classes.png"
   },
-  "checkpoint_path": "/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/outputs/brain_mri_transfer/checkpoints/cnn_pretrained_brain_tumor_mri_best.pt",
+  "checkpoint_path": "/home/richard/cnn-vit/outputs/brain_mri_transfer/checkpoints/cnn_pretrained_brain_tumor_mri_best.pt",
   "load_info": {
     "missing_keys": [],
     "unexpected_keys": []

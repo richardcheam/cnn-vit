@@ -123,7 +123,11 @@
       "outputs/checkpoint_evaluation/vit_pretrained_brain_tumor_mri_best/interpretability/vit_attention.png"
     ],
     "misclassified_examples": "outputs/checkpoint_evaluation/vit_pretrained_brain_tumor_mri_best/examples/misclassified_examples.png",
-    "correct_examples": "outputs/checkpoint_evaluation/vit_pretrained_brain_tumor_mri_best/examples/correct_examples.png"
+    "misclassified_interpretability": "outputs/checkpoint_evaluation/vit_pretrained_brain_tumor_mri_best/examples/misclassified_interpretability.png",
+    "correct_examples": "outputs/checkpoint_evaluation/vit_pretrained_brain_tumor_mri_best/examples/correct_examples.png",
+    "class_diagnostics": "outputs/checkpoint_evaluation/vit_pretrained_brain_tumor_mri_best/class_diagnostics.json",
+    "hardest_classes_examples": "outputs/checkpoint_evaluation/vit_pretrained_brain_tumor_mri_best/examples/class_diagnostics/hardest_classes.png",
+    "easiest_classes_examples": "outputs/checkpoint_evaluation/vit_pretrained_brain_tumor_mri_best/examples/class_diagnostics/easiest_classes.png"
   },
   "checkpoint_path": "/home/richard/cnn-vit/outputs/brain_mri_transfer/checkpoints/vit_pretrained_brain_tumor_mri_best.pt",
   "load_info": {

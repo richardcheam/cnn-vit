@@ -38,17 +38,17 @@
         "best_correct": {
           "true_label": "meningioma",
           "predicted_label": "meningioma",
-          "confidence": 0.9999
+          "confidence": 1.0
         },
         "borderline_correct": {
           "true_label": "meningioma",
           "predicted_label": "meningioma",
-          "confidence": 0.5043
+          "confidence": 0.4804
         },
         "hardest_error": {
           "true_label": "meningioma",
-          "predicted_label": "notumor",
-          "confidence": 1.0
+          "predicted_label": "pituitary",
+          "confidence": 0.9958
         }
       }
     },
@@ -61,9 +61,21 @@
       "support": 400,
       "predicted_count": 414,
       "examples": {
-        "best_correct": null,
-        "borderline_correct": null,
-        "hardest_error": null
+        "best_correct": {
+          "true_label": "pituitary",
+          "predicted_label": "pituitary",
+          "confidence": 1.0
+        },
+        "borderline_correct": {
+          "true_label": "pituitary",
+          "predicted_label": "pituitary",
+          "confidence": 0.4669
+        },
+        "hardest_error": {
+          "true_label": "pituitary",
+          "predicted_label": "meningioma",
+          "confidence": 0.9123
+        }
       }
     },
     {
@@ -83,12 +95,12 @@
         "borderline_correct": {
           "true_label": "notumor",
           "predicted_label": "notumor",
-          "confidence": 0.7991
+          "confidence": 0.5734
         },
         "hardest_error": {
           "true_label": "notumor",
-          "predicted_label": "pituitary",
-          "confidence": 0.9997
+          "predicted_label": "meningioma",
+          "confidence": 0.8086
         }
       }
     }
@@ -111,12 +123,12 @@
         "borderline_correct": {
           "true_label": "notumor",
           "predicted_label": "notumor",
-          "confidence": 0.7991
+          "confidence": 0.5734
         },
         "hardest_error": {
           "true_label": "notumor",
-          "predicted_label": "pituitary",
-          "confidence": 0.9997
+          "predicted_label": "meningioma",
+          "confidence": 0.8086
         }
       }
     },
@@ -129,9 +141,21 @@
       "support": 400,
       "predicted_count": 414,
       "examples": {
-        "best_correct": null,
-        "borderline_correct": null,
-        "hardest_error": null
+        "best_correct": {
+          "true_label": "pituitary",
+          "predicted_label": "pituitary",
+          "confidence": 1.0
+        },
+        "borderline_correct": {
+          "true_label": "pituitary",
+          "predicted_label": "pituitary",
+          "confidence": 0.4669
+        },
+        "hardest_error": {
+          "true_label": "pituitary",
+          "predicted_label": "meningioma",
+          "confidence": 0.9123
+        }
       }
     },
     {
@@ -146,17 +170,17 @@
         "best_correct": {
           "true_label": "meningioma",
           "predicted_label": "meningioma",
-          "confidence": 0.9999
+          "confidence": 1.0
         },
         "borderline_correct": {
           "true_label": "meningioma",
           "predicted_label": "meningioma",
-          "confidence": 0.5043
+          "confidence": 0.4804
         },
         "hardest_error": {
           "true_label": "meningioma",
-          "predicted_label": "notumor",
-          "confidence": 1.0
+          "predicted_label": "pituitary",
+          "confidence": 0.9958
         }
       }
     },

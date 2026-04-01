@@ -73,8 +73,8 @@
         },
         "hardest_error": {
           "true_label": "pituitary",
-          "predicted_label": "notumor",
-          "confidence": 0.9997
+          "predicted_label": "meningioma",
+          "confidence": 0.9919
         }
       }
     },
@@ -145,8 +145,8 @@
         },
         "hardest_error": {
           "true_label": "pituitary",
-          "predicted_label": "notumor",
-          "confidence": 0.9997
+          "predicted_label": "meningioma",
+          "confidence": 0.9919
         }
       }
     },
