@@ -292,7 +292,7 @@ def _save_transfer_validation_curves(results: list[dict], output_dir: Path) -> N
             axes[1][column].set_ylim(0.0, 1.0)
 
         figure.suptitle(
-            f"{dataset_name} Validation Dynamics by Model",
+            f"{dataset_name} Validation Dynamics by Model ({source_dataset} initialization)",
             fontsize=14,
             fontweight="semibold",
             y=0.985,
@@ -300,10 +300,10 @@ def _save_transfer_validation_curves(results: list[dict], output_dir: Path) -> N
         figure.legend(
             handles=style_handles,
             loc="upper center",
-            bbox_to_anchor=(0.5, 0.94),
+            bbox_to_anchor=(0.5, 0.955),
             ncol=3,
         )
-        figure.tight_layout(rect=(0, 0, 1, 0.9))
+        figure.tight_layout(rect=(0, 0, 1, 0.92))
         figure.savefig(output_dir / "eurosat_transfer_validation_curves.png", dpi=240)
         plt.close(figure)
 
