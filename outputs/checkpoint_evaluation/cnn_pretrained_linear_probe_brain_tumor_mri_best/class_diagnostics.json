@@ -1,0 +1,194 @@
+{
+  "hardest_classes": [
+    {
+      "class_name": "meningioma",
+      "accuracy": 0.5675,
+      "precision": 0.5431,
+      "recall": 0.5675,
+      "f1_score": 0.555,
+      "support": 400,
+      "predicted_count": 418,
+      "examples": {
+        "best_correct": {
+          "true_label": "meningioma",
+          "predicted_label": "meningioma",
+          "confidence": 0.9522
+        },
+        "borderline_correct": {
+          "true_label": "meningioma",
+          "predicted_label": "meningioma",
+          "confidence": 0.3936
+        },
+        "hardest_error": {
+          "true_label": "meningioma",
+          "predicted_label": "notumor",
+          "confidence": 0.9977
+        }
+      }
+    },
+    {
+      "class_name": "glioma",
+      "accuracy": 0.6225,
+      "precision": 0.6468,
+      "recall": 0.6225,
+      "f1_score": 0.6344,
+      "support": 400,
+      "predicted_count": 385,
+      "examples": {
+        "best_correct": {
+          "true_label": "glioma",
+          "predicted_label": "glioma",
+          "confidence": 0.8839
+        },
+        "borderline_correct": {
+          "true_label": "glioma",
+          "predicted_label": "glioma",
+          "confidence": 0.2587
+        },
+        "hardest_error": {
+          "true_label": "glioma",
+          "predicted_label": "notumor",
+          "confidence": 1.0
+        }
+      }
+    },
+    {
+      "class_name": "pituitary",
+      "accuracy": 0.6375,
+      "precision": 0.7635,
+      "recall": 0.6375,
+      "f1_score": 0.6948,
+      "support": 400,
+      "predicted_count": 334,
+      "examples": {
+        "best_correct": null,
+        "borderline_correct": null,
+        "hardest_error": null
+      }
+    },
+    {
+      "class_name": "notumor",
+      "accuracy": 0.865,
+      "precision": 0.7473,
+      "recall": 0.865,
+      "f1_score": 0.8019,
+      "support": 400,
+      "predicted_count": 463,
+      "examples": {
+        "best_correct": {
+          "true_label": "notumor",
+          "predicted_label": "notumor",
+          "confidence": 1.0
+        },
+        "borderline_correct": {
+          "true_label": "notumor",
+          "predicted_label": "notumor",
+          "confidence": 0.469
+        },
+        "hardest_error": {
+          "true_label": "notumor",
+          "predicted_label": "meningioma",
+          "confidence": 0.5101
+        }
+      }
+    }
+  ],
+  "easiest_classes": [
+    {
+      "class_name": "notumor",
+      "accuracy": 0.865,
+      "precision": 0.7473,
+      "recall": 0.865,
+      "f1_score": 0.8019,
+      "support": 400,
+      "predicted_count": 463,
+      "examples": {
+        "best_correct": {
+          "true_label": "notumor",
+          "predicted_label": "notumor",
+          "confidence": 1.0
+        },
+        "borderline_correct": {
+          "true_label": "notumor",
+          "predicted_label": "notumor",
+          "confidence": 0.469
+        },
+        "hardest_error": {
+          "true_label": "notumor",
+          "predicted_label": "meningioma",
+          "confidence": 0.5101
+        }
+      }
+    },
+    {
+      "class_name": "pituitary",
+      "accuracy": 0.6375,
+      "precision": 0.7635,
+      "recall": 0.6375,
+      "f1_score": 0.6948,
+      "support": 400,
+      "predicted_count": 334,
+      "examples": {
+        "best_correct": null,
+        "borderline_correct": null,
+        "hardest_error": null
+      }
+    },
+    {
+      "class_name": "glioma",
+      "accuracy": 0.6225,
+      "precision": 0.6468,
+      "recall": 0.6225,
+      "f1_score": 0.6344,
+      "support": 400,
+      "predicted_count": 385,
+      "examples": {
+        "best_correct": {
+          "true_label": "glioma",
+          "predicted_label": "glioma",
+          "confidence": 0.8839
+        },
+        "borderline_correct": {
+          "true_label": "glioma",
+          "predicted_label": "glioma",
+          "confidence": 0.2587
+        },
+        "hardest_error": {
+          "true_label": "glioma",
+          "predicted_label": "notumor",
+          "confidence": 1.0
+        }
+      }
+    },
+    {
+      "class_name": "meningioma",
+      "accuracy": 0.5675,
+      "precision": 0.5431,
+      "recall": 0.5675,
+      "f1_score": 0.555,
+      "support": 400,
+      "predicted_count": 418,
+      "examples": {
+        "best_correct": {
+          "true_label": "meningioma",
+          "predicted_label": "meningioma",
+          "confidence": 0.9522
+        },
+        "borderline_correct": {
+          "true_label": "meningioma",
+          "predicted_label": "meningioma",
+          "confidence": 0.3936
+        },
+        "hardest_error": {
+          "true_label": "meningioma",
+          "predicted_label": "notumor",
+          "confidence": 0.9977
+        }
+      }
+    }
+  ],
+  "artifacts": {
+    "hardest_classes": "outputs/checkpoint_evaluation/cnn_pretrained_linear_probe_brain_tumor_mri_best/examples/class_diagnostics/hardest_classes.png",
+    "easiest_classes": "outputs/checkpoint_evaluation/cnn_pretrained_linear_probe_brain_tumor_mri_best/examples/class_diagnostics/easiest_classes.png"
+  }
+}

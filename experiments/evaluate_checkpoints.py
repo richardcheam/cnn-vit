@@ -540,6 +540,282 @@ def _save_example_grid(
     return str(output_path)
 
 
+@torch.no_grad()
+def _collect_prediction_records(
+    model: torch.nn.Module,
+    dataset,
+    device: torch.device,
+    class_names: list[str],
+    mean: tuple[float, float, float],
+    std: tuple[float, float, float],
+) -> list[dict[str, Any]]:
+    loader = DataLoader(dataset, batch_size=64, shuffle=False)
+    records: list[dict[str, Any]] = []
+
+    for images, labels in loader:
+        images = images.to(device, non_blocking=device.type != "cpu")
+        labels = labels.to(device, non_blocking=device.type != "cpu")
+        logits = model(images)
+        probabilities = torch.softmax(logits, dim=1)
+        predictions = probabilities.argmax(dim=1)
+        confidences = probabilities.max(dim=1).values
+        images_cpu = images.detach().cpu()
+
+        for image, label_index, prediction_index, confidence in zip(
+            images_cpu,
+            labels.detach().cpu().tolist(),
+            predictions.detach().cpu().tolist(),
+            confidences.detach().cpu().tolist(),
+        ):
+            records.append(
+                {
+                    "image_tensor": image.clone(),
+                    "image": to_numpy_image(image, mean=mean, std=std),
+                    "true_index": label_index,
+                    "predicted_index": prediction_index,
+                    "true_label": _class_name(label_index, class_names),
+                    "predicted_label": _class_name(prediction_index, class_names),
+                    "confidence": float(confidence),
+                    "is_correct": label_index == prediction_index,
+                }
+            )
+
+    return records
+
+
+def _save_misclassified_interpretability(
+    *,
+    model_name: str,
+    model: torch.nn.Module,
+    records: list[dict[str, Any]],
+    class_names: list[str],
+    device: torch.device,
+    mean: tuple[float, float, float],
+    std: tuple[float, float, float],
+    output_path: Path,
+    plot_style: dict,
+    max_examples: int = 6,
+) -> str | None:
+    misclassified = [row for row in records if not row["is_correct"]]
+    if not misclassified:
+        return None
+
+    selected = sorted(misclassified, key=lambda row: row["confidence"], reverse=True)[:max_examples]
+    images = torch.stack([row["image_tensor"] for row in selected], dim=0).to(device)
+    predictions = [row["predicted_index"] for row in selected]
+    targets = [row["true_index"] for row in selected]
+    confidences = [row["confidence"] for row in selected]
+
+    if model_name == "cnn":
+        images = images.requires_grad_(True)
+        gradcam = GradCAM(model, model.conv3)
+        heatmaps = gradcam.generate(images, target_classes=torch.tensor(predictions, device=device))
+        gradcam.close()
+        overlays = [
+            overlay_heatmap(images[index].detach().cpu(), heatmaps[index].detach().cpu(), mean=mean, std=std)
+            for index in range(len(selected))
+        ]
+        raw_maps = [heatmaps[index].detach().cpu() for index in range(len(selected))]
+        map_titles = ["Grad-CAM overlay", "Grad-CAM heatmap"]
+        raw_cmap = "inferno"
+    elif model_name == "vit":
+        logits, attention_maps = generate_attention_maps(model, images)
+        overlays = [
+            overlay_attention_map(images[index].detach().cpu(), attention_maps[index].detach().cpu(), mean=mean, std=std)
+            for index in range(len(selected))
+        ]
+        raw_maps = [attention_maps[index].detach().cpu() for index in range(len(selected))]
+        map_titles = ["Attention rollout overlay", "Attention rollout map"]
+        raw_cmap = "viridis"
+    else:
+        logits, rollout_maps, head_maps = generate_dhvt_attention_maps(model, images)
+        overlays = [
+            overlay_attention_map(images[index].detach().cpu(), rollout_maps[index].detach().cpu(), mean=mean, std=std)
+            for index in range(len(selected))
+        ]
+        raw_maps = [head_maps[index].detach().cpu() for index in range(len(selected))]
+        map_titles = ["Rollout overlay", "Head-token influence"]
+        raw_cmap = "viridis"
+
+    with plt.rc_context(plot_style):
+        figure, axes = plt.subplots(len(selected), 3, figsize=(10, 3.3 * len(selected)))
+        if len(selected) == 1:
+            axes = [axes]
+
+        for index, axis_row in enumerate(axes):
+            base_image = to_numpy_image(images[index].detach().cpu(), mean=mean, std=std)
+            axis_row[0].imshow(base_image, interpolation="nearest")
+            axis_row[0].set_title(
+                f"true={_class_name(targets[index], class_names)}\n"
+                f"pred={_class_name(predictions[index], class_names)} ({confidences[index]:.2f})",
+                fontsize=9,
+            )
+            axis_row[0].axis("off")
+            axis_row[1].imshow(overlays[index], interpolation="nearest")
+            axis_row[1].set_title(map_titles[0], fontsize=9)
+            axis_row[1].axis("off")
+            axis_row[2].imshow(raw_maps[index], cmap=raw_cmap)
+            axis_row[2].set_title(map_titles[1], fontsize=9)
+            axis_row[2].axis("off")
+
+        figure.suptitle(
+            f"High-confidence misclassifications: where the {model_name.upper()} looked",
+            fontsize=13,
+            fontweight="semibold",
+        )
+        figure.tight_layout(rect=(0, 0, 1, 0.97))
+        figure.savefig(output_path, dpi=220)
+        plt.close(figure)
+    return str(output_path)
+
+
+def _save_class_diagnostics(
+    *,
+    records: list[dict[str, Any]],
+    per_class_metrics: list[dict[str, Any]],
+    class_names: list[str],
+    output_dir: Path,
+    title_prefix: str,
+    plot_style: dict,
+    num_classes: int = 4,
+) -> dict[str, Any]:
+    if not records or not per_class_metrics:
+        return {
+            "hardest_classes": [],
+            "easiest_classes": [],
+            "artifacts": {},
+        }
+
+    metrics_by_name = {row["class_name"]: row for row in per_class_metrics}
+    ordered = sorted(
+        per_class_metrics,
+        key=lambda row: (row["accuracy"], row["f1_score"], row["support"]),
+    )
+    hardest = ordered[: min(num_classes, len(ordered))]
+    easiest = list(reversed(ordered[-min(num_classes, len(ordered)) :]))
+
+    def _select_examples(class_name: str) -> dict[str, dict[str, Any] | None]:
+        class_records = [row for row in records if row["true_label"] == class_name]
+        correct = [row for row in class_records if row["is_correct"]]
+        incorrect = [row for row in class_records if not row["is_correct"]]
+
+        best_correct = max(correct, key=lambda row: row["confidence"], default=None)
+        borderline_correct = min(correct, key=lambda row: row["confidence"], default=None)
+        hardest_error = max(incorrect, key=lambda row: row["confidence"], default=None)
+
+        return {
+            "best_correct": best_correct,
+            "borderline_correct": borderline_correct,
+            "hardest_error": hardest_error,
+        }
+
+    def _save_panel(panel_classes: list[dict[str, Any]], panel_title: str, output_path: Path) -> str | None:
+        if not panel_classes:
+            return None
+
+        with plt.rc_context(plot_style):
+            figure, axes = plt.subplots(len(panel_classes), 3, figsize=(10, 3.2 * len(panel_classes)))
+            if len(panel_classes) == 1:
+                axes = [axes]
+
+            for row_axes, class_row in zip(axes, panel_classes):
+                class_name = class_row["class_name"]
+                selected = _select_examples(class_name)
+                metric = metrics_by_name[class_name]
+
+                row_titles = [
+                    f"{class_name}\nbest correct",
+                    f"{class_name}\nborderline correct",
+                    f"{class_name}\nhigh-conf error",
+                ]
+                row_examples = [
+                    selected["best_correct"],
+                    selected["borderline_correct"],
+                    selected["hardest_error"],
+                ]
+
+                for axis, subtitle, example in zip(row_axes, row_titles, row_examples):
+                    if example is None:
+                        axis.text(0.5, 0.5, "No example", ha="center", va="center", fontsize=11)
+                        axis.set_facecolor("#f8fafc")
+                    else:
+                        axis.imshow(example["image"], interpolation="nearest")
+                        axis.set_title(
+                            f"{subtitle}\n"
+                            f"pred={example['predicted_label']} ({example['confidence']:.2f})",
+                            fontsize=9,
+                        )
+                    axis.axis("off")
+
+                row_axes[0].text(
+                    -0.08,
+                    0.5,
+                    (
+                        f"acc={metric['accuracy']:.2f}\n"
+                        f"f1={metric['f1_score']:.2f}\n"
+                        f"support={metric['support']}"
+                    ),
+                    transform=row_axes[0].transAxes,
+                    ha="right",
+                    va="center",
+                    fontsize=9,
+                )
+
+            figure.suptitle(panel_title, fontsize=13, fontweight="semibold")
+            figure.tight_layout(rect=(0.03, 0, 1, 0.97))
+            figure.savefig(output_path, dpi=220)
+            plt.close(figure)
+        return str(output_path)
+
+    output_dir = ensure_dir(output_dir)
+    hardest_path = _save_panel(
+        hardest,
+        f"{title_prefix}: hardest classes",
+        output_dir / "hardest_classes.png",
+    )
+    easiest_path = _save_panel(
+        easiest,
+        f"{title_prefix}: easiest classes",
+        output_dir / "easiest_classes.png",
+    )
+
+    def _serialize(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        serialized = []
+        for row in rows:
+            selected = _select_examples(row["class_name"])
+            serialized.append(
+                {
+                    "class_name": row["class_name"],
+                    "accuracy": row["accuracy"],
+                    "precision": row["precision"],
+                    "recall": row["recall"],
+                    "f1_score": row["f1_score"],
+                    "support": row["support"],
+                    "predicted_count": row["predicted_count"],
+                    "examples": {
+                        key: {
+                            "true_label": example["true_label"],
+                            "predicted_label": example["predicted_label"],
+                            "confidence": round(example["confidence"], 4),
+                        }
+                        if example is not None
+                        else None
+                        for key, example in selected.items()
+                    },
+                }
+            )
+        return serialized
+
+    return {
+        "hardest_classes": _serialize(hardest),
+        "easiest_classes": _serialize(easiest),
+        "artifacts": {
+            "hardest_classes": hardest_path,
+            "easiest_classes": easiest_path,
+        },
+    }
+
+
 def _save_interpretability(
     model_name: str,
     model: torch.nn.Module,
@@ -562,6 +838,7 @@ def _save_interpretability(
     )
 
     if model_name == "cnn":
+        images = images.requires_grad_(True)
         gradcam = GradCAM(model, model.conv3)
         heatmaps = gradcam.generate(images)
         gradcam.close()
@@ -761,6 +1038,34 @@ def _evaluate_source_checkpoint(
         title=f"{config.data.name} Correct Predictions",
         plot_style=SOURCE_PLOT_STYLE,
     )
+    diagnostic_records = _collect_prediction_records(
+        model=model,
+        dataset=clean_bundle.test_dataset,
+        device=device,
+        class_names=class_names,
+        mean=config.data.mean,
+        std=config.data.std,
+    )
+    class_diagnostics = _save_class_diagnostics(
+        records=diagnostic_records,
+        per_class_metrics=analysis["per_class"],
+        class_names=class_names,
+        output_dir=example_dir / "class_diagnostics",
+        title_prefix=config.data.name,
+        plot_style=SOURCE_PLOT_STYLE,
+    )
+    misclassified_interpretability_path = _save_misclassified_interpretability(
+        model_name=checkpoint["model_name"],
+        model=model,
+        records=diagnostic_records,
+        class_names=class_names,
+        device=device,
+        mean=config.data.mean,
+        std=config.data.std,
+        output_path=example_dir / "misclassified_interpretability.png",
+        plot_style=SOURCE_PLOT_STYLE,
+    )
+    save_json(class_diagnostics, output_dir / "class_diagnostics.json")
 
     summary = {
         "dataset": config.data.name,
@@ -802,7 +1107,11 @@ def _evaluate_source_checkpoint(
             "confusion_matrix_normalized": str(output_dir / "confusion_matrix_normalized.png"),
             "interpretability": interpretability_paths,
             "misclassified_examples": misclassified_examples_path,
+            "misclassified_interpretability": misclassified_interpretability_path,
             "correct_examples": correct_examples_path,
+            "class_diagnostics": str(output_dir / "class_diagnostics.json"),
+            "hardest_classes_examples": class_diagnostics["artifacts"].get("hardest_classes"),
+            "easiest_classes_examples": class_diagnostics["artifacts"].get("easiest_classes"),
         },
     }
     return summary
@@ -910,6 +1219,34 @@ def _evaluate_downstream_checkpoint(
         title=f"{dataset_name} Correct Predictions",
         plot_style=plot_style,
     )
+    diagnostic_records = _collect_prediction_records(
+        model=model,
+        dataset=data_bundle.test_dataset,
+        device=device,
+        class_names=class_names,
+        mean=mean,
+        std=std,
+    )
+    class_diagnostics = _save_class_diagnostics(
+        records=diagnostic_records,
+        per_class_metrics=analysis["per_class"],
+        class_names=class_names,
+        output_dir=example_dir / "class_diagnostics",
+        title_prefix=dataset_name,
+        plot_style=plot_style,
+    )
+    misclassified_interpretability_path = _save_misclassified_interpretability(
+        model_name=checkpoint["model_name"],
+        model=model,
+        records=diagnostic_records,
+        class_names=class_names,
+        device=device,
+        mean=mean,
+        std=std,
+        output_path=example_dir / "misclassified_interpretability.png",
+        plot_style=plot_style,
+    )
+    save_json(class_diagnostics, output_dir / "class_diagnostics.json")
 
     summary = {
         "dataset": dataset_name,
@@ -930,7 +1267,11 @@ def _evaluate_downstream_checkpoint(
             "confusion_matrix_normalized": str(output_dir / "confusion_matrix_normalized.png"),
             "interpretability": interpretability_paths,
             "misclassified_examples": misclassified_examples_path,
+            "misclassified_interpretability": misclassified_interpretability_path,
             "correct_examples": correct_examples_path,
+            "class_diagnostics": str(output_dir / "class_diagnostics.json"),
+            "hardest_classes_examples": class_diagnostics["artifacts"].get("hardest_classes"),
+            "easiest_classes_examples": class_diagnostics["artifacts"].get("easiest_classes"),
         },
     }
     return summary

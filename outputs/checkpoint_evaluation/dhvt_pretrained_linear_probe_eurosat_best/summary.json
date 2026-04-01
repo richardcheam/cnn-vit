@@ -1,0 +1,213 @@
+{
+  "dataset": "EuroSAT",
+  "dataset_slug": "eurosat",
+  "source_dataset": "CIFAR-10",
+  "model": "dhvt",
+  "initialization": "pretrained",
+  "parameter_count": 5991280,
+  "classification": {
+    "macro_avg": {
+      "precision": 0.8682,
+      "recall": 0.8696,
+      "f1_score": 0.8682
+    },
+    "weighted_avg": {
+      "precision": 0.8746,
+      "recall": 0.8752,
+      "f1_score": 0.8742
+    },
+    "confidence": {
+      "mean": 0.8767,
+      "mean_correct": 0.9078,
+      "mean_incorrect": 0.6588
+    },
+    "per_class": [
+      {
+        "class_index": 0,
+        "class_name": "AnnualCrop",
+        "support": 300,
+        "correct": 278,
+        "accuracy": 0.9267,
+        "precision": 0.8688,
+        "recall": 0.9267,
+        "f1_score": 0.8968,
+        "predicted_count": 320
+      },
+      {
+        "class_index": 1,
+        "class_name": "Forest",
+        "support": 300,
+        "correct": 292,
+        "accuracy": 0.9733,
+        "precision": 0.9701,
+        "recall": 0.9733,
+        "f1_score": 0.9717,
+        "predicted_count": 301
+      },
+      {
+        "class_index": 2,
+        "class_name": "HerbaceousVegetation",
+        "support": 300,
+        "correct": 244,
+        "accuracy": 0.8133,
+        "precision": 0.8938,
+        "recall": 0.8133,
+        "f1_score": 0.8517,
+        "predicted_count": 273
+      },
+      {
+        "class_index": 3,
+        "class_name": "Highway",
+        "support": 250,
+        "correct": 173,
+        "accuracy": 0.692,
+        "precision": 0.7555,
+        "recall": 0.692,
+        "f1_score": 0.7223,
+        "predicted_count": 229
+      },
+      {
+        "class_index": 4,
+        "class_name": "Industrial",
+        "support": 250,
+        "correct": 232,
+        "accuracy": 0.928,
+        "precision": 0.928,
+        "recall": 0.928,
+        "f1_score": 0.928,
+        "predicted_count": 250
+      },
+      {
+        "class_index": 5,
+        "class_name": "Pasture",
+        "support": 200,
+        "correct": 177,
+        "accuracy": 0.885,
+        "precision": 0.8349,
+        "recall": 0.885,
+        "f1_score": 0.8592,
+        "predicted_count": 212
+      },
+      {
+        "class_index": 6,
+        "class_name": "PermanentCrop",
+        "support": 250,
+        "correct": 206,
+        "accuracy": 0.824,
+        "precision": 0.7574,
+        "recall": 0.824,
+        "f1_score": 0.7893,
+        "predicted_count": 272
+      },
+      {
+        "class_index": 7,
+        "class_name": "Residential",
+        "support": 300,
+        "correct": 295,
+        "accuracy": 0.9833,
+        "precision": 0.9516,
+        "recall": 0.9833,
+        "f1_score": 0.9672,
+        "predicted_count": 310
+      },
+      {
+        "class_index": 8,
+        "class_name": "River",
+        "support": 250,
+        "correct": 176,
+        "accuracy": 0.704,
+        "precision": 0.7521,
+        "recall": 0.704,
+        "f1_score": 0.7273,
+        "predicted_count": 234
+      },
+      {
+        "class_index": 9,
+        "class_name": "SeaLake",
+        "support": 300,
+        "correct": 290,
+        "accuracy": 0.9667,
+        "precision": 0.9699,
+        "recall": 0.9667,
+        "f1_score": 0.9683,
+        "predicted_count": 299
+      }
+    ],
+    "top_confusions": [
+      {
+        "true_class": "HerbaceousVegetation",
+        "predicted_class": "PermanentCrop",
+        "count": 32
+      },
+      {
+        "true_class": "River",
+        "predicted_class": "Highway",
+        "count": 32
+      },
+      {
+        "true_class": "Highway",
+        "predicted_class": "River",
+        "count": 29
+      },
+      {
+        "true_class": "Highway",
+        "predicted_class": "PermanentCrop",
+        "count": 19
+      },
+      {
+        "true_class": "River",
+        "predicted_class": "AnnualCrop",
+        "count": 18
+      },
+      {
+        "true_class": "PermanentCrop",
+        "predicted_class": "HerbaceousVegetation",
+        "count": 14
+      },
+      {
+        "true_class": "River",
+        "predicted_class": "Pasture",
+        "count": 11
+      },
+      {
+        "true_class": "Highway",
+        "predicted_class": "AnnualCrop",
+        "count": 8
+      },
+      {
+        "true_class": "PermanentCrop",
+        "predicted_class": "Highway",
+        "count": 8
+      },
+      {
+        "true_class": "Highway",
+        "predicted_class": "Industrial",
+        "count": 7
+      }
+    ]
+  },
+  "test": {
+    "loss": 0.3725,
+    "accuracy": 0.8752
+  },
+  "artifacts": {
+    "classification_report": "outputs/checkpoint_evaluation/dhvt_pretrained_linear_probe_eurosat_best/classification_report.json",
+    "prediction_analysis": "outputs/checkpoint_evaluation/dhvt_pretrained_linear_probe_eurosat_best/prediction_analysis.json",
+    "confusion_matrix": "outputs/checkpoint_evaluation/dhvt_pretrained_linear_probe_eurosat_best/confusion_matrix.png",
+    "confusion_matrix_normalized": "outputs/checkpoint_evaluation/dhvt_pretrained_linear_probe_eurosat_best/confusion_matrix_normalized.png",
+    "interpretability": [
+      "outputs/checkpoint_evaluation/dhvt_pretrained_linear_probe_eurosat_best/interpretability/dhvt_attention.png"
+    ],
+    "misclassified_examples": "outputs/checkpoint_evaluation/dhvt_pretrained_linear_probe_eurosat_best/examples/misclassified_examples.png",
+    "misclassified_interpretability": "outputs/checkpoint_evaluation/dhvt_pretrained_linear_probe_eurosat_best/examples/misclassified_interpretability.png",
+    "correct_examples": "outputs/checkpoint_evaluation/dhvt_pretrained_linear_probe_eurosat_best/examples/correct_examples.png",
+    "class_diagnostics": "outputs/checkpoint_evaluation/dhvt_pretrained_linear_probe_eurosat_best/class_diagnostics.json",
+    "hardest_classes_examples": "outputs/checkpoint_evaluation/dhvt_pretrained_linear_probe_eurosat_best/examples/class_diagnostics/hardest_classes.png",
+    "easiest_classes_examples": "outputs/checkpoint_evaluation/dhvt_pretrained_linear_probe_eurosat_best/examples/class_diagnostics/easiest_classes.png"
+  },
+  "checkpoint_path": "/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/outputs/eurosat_transfer/checkpoints/dhvt_pretrained_linear_probe_eurosat_best.pt",
+  "load_info": {
+    "missing_keys": [],
+    "unexpected_keys": []
+  }
+}

@@ -222,7 +222,11 @@
       "outputs/checkpoint_evaluation/cnn_25pct_best/interpretability/cnn_gradcam.png"
     ],
     "misclassified_examples": "outputs/checkpoint_evaluation/cnn_25pct_best/examples/misclassified_examples.png",
-    "correct_examples": "outputs/checkpoint_evaluation/cnn_25pct_best/examples/correct_examples.png"
+    "misclassified_interpretability": "outputs/checkpoint_evaluation/cnn_25pct_best/examples/misclassified_interpretability.png",
+    "correct_examples": "outputs/checkpoint_evaluation/cnn_25pct_best/examples/correct_examples.png",
+    "class_diagnostics": "outputs/checkpoint_evaluation/cnn_25pct_best/class_diagnostics.json",
+    "hardest_classes_examples": "outputs/checkpoint_evaluation/cnn_25pct_best/examples/class_diagnostics/hardest_classes.png",
+    "easiest_classes_examples": "outputs/checkpoint_evaluation/cnn_25pct_best/examples/class_diagnostics/easiest_classes.png"
   },
   "checkpoint_path": "/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/outputs/checkpoints/cnn_25pct_best.pt",
   "load_info": {

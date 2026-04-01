@@ -1,0 +1,218 @@
+{
+  "hardest_classes": [
+    {
+      "class_name": "cat",
+      "accuracy": 0.454,
+      "precision": 0.5322,
+      "recall": 0.454,
+      "f1_score": 0.49,
+      "support": 1000,
+      "predicted_count": 853,
+      "examples": {
+        "best_correct": {
+          "true_label": "cat",
+          "predicted_label": "cat",
+          "confidence": 0.996
+        },
+        "borderline_correct": {
+          "true_label": "cat",
+          "predicted_label": "cat",
+          "confidence": 0.2818
+        },
+        "hardest_error": {
+          "true_label": "cat",
+          "predicted_label": "ship",
+          "confidence": 0.9995
+        }
+      }
+    },
+    {
+      "class_name": "bird",
+      "accuracy": 0.526,
+      "precision": 0.6053,
+      "recall": 0.526,
+      "f1_score": 0.5629,
+      "support": 1000,
+      "predicted_count": 869,
+      "examples": {
+        "best_correct": {
+          "true_label": "bird",
+          "predicted_label": "bird",
+          "confidence": 0.9999
+        },
+        "borderline_correct": {
+          "true_label": "bird",
+          "predicted_label": "bird",
+          "confidence": 0.3606
+        },
+        "hardest_error": {
+          "true_label": "bird",
+          "predicted_label": "frog",
+          "confidence": 0.9958
+        }
+      }
+    },
+    {
+      "class_name": "dog",
+      "accuracy": 0.599,
+      "precision": 0.581,
+      "recall": 0.599,
+      "f1_score": 0.5899,
+      "support": 1000,
+      "predicted_count": 1031,
+      "examples": {
+        "best_correct": {
+          "true_label": "dog",
+          "predicted_label": "dog",
+          "confidence": 1.0
+        },
+        "borderline_correct": {
+          "true_label": "dog",
+          "predicted_label": "dog",
+          "confidence": 0.3499
+        },
+        "hardest_error": {
+          "true_label": "dog",
+          "predicted_label": "horse",
+          "confidence": 0.9962
+        }
+      }
+    },
+    {
+      "class_name": "horse",
+      "accuracy": 0.66,
+      "precision": 0.7612,
+      "recall": 0.66,
+      "f1_score": 0.707,
+      "support": 1000,
+      "predicted_count": 867,
+      "examples": {
+        "best_correct": {
+          "true_label": "horse",
+          "predicted_label": "horse",
+          "confidence": 0.999
+        },
+        "borderline_correct": {
+          "true_label": "horse",
+          "predicted_label": "horse",
+          "confidence": 0.3614
+        },
+        "hardest_error": {
+          "true_label": "horse",
+          "predicted_label": "airplane",
+          "confidence": 0.9909
+        }
+      }
+    }
+  ],
+  "easiest_classes": [
+    {
+      "class_name": "ship",
+      "accuracy": 0.845,
+      "precision": 0.738,
+      "recall": 0.845,
+      "f1_score": 0.7879,
+      "support": 1000,
+      "predicted_count": 1145,
+      "examples": {
+        "best_correct": {
+          "true_label": "ship",
+          "predicted_label": "ship",
+          "confidence": 1.0
+        },
+        "borderline_correct": {
+          "true_label": "ship",
+          "predicted_label": "ship",
+          "confidence": 0.4314
+        },
+        "hardest_error": {
+          "true_label": "ship",
+          "predicted_label": "bird",
+          "confidence": 0.9072
+        }
+      }
+    },
+    {
+      "class_name": "frog",
+      "accuracy": 0.825,
+      "precision": 0.6279,
+      "recall": 0.825,
+      "f1_score": 0.7131,
+      "support": 1000,
+      "predicted_count": 1314,
+      "examples": {
+        "best_correct": {
+          "true_label": "frog",
+          "predicted_label": "frog",
+          "confidence": 0.9998
+        },
+        "borderline_correct": {
+          "true_label": "frog",
+          "predicted_label": "frog",
+          "confidence": 0.4787
+        },
+        "hardest_error": {
+          "true_label": "frog",
+          "predicted_label": "ship",
+          "confidence": 0.9999
+        }
+      }
+    },
+    {
+      "class_name": "airplane",
+      "accuracy": 0.729,
+      "precision": 0.6682,
+      "recall": 0.729,
+      "f1_score": 0.6973,
+      "support": 1000,
+      "predicted_count": 1091,
+      "examples": {
+        "best_correct": {
+          "true_label": "airplane",
+          "predicted_label": "airplane",
+          "confidence": 0.9996
+        },
+        "borderline_correct": {
+          "true_label": "airplane",
+          "predicted_label": "airplane",
+          "confidence": 0.2688
+        },
+        "hardest_error": {
+          "true_label": "airplane",
+          "predicted_label": "ship",
+          "confidence": 1.0
+        }
+      }
+    },
+    {
+      "class_name": "automobile",
+      "accuracy": 0.708,
+      "precision": 0.8213,
+      "recall": 0.708,
+      "f1_score": 0.7605,
+      "support": 1000,
+      "predicted_count": 862,
+      "examples": {
+        "best_correct": {
+          "true_label": "automobile",
+          "predicted_label": "automobile",
+          "confidence": 0.9988
+        },
+        "borderline_correct": {
+          "true_label": "automobile",
+          "predicted_label": "automobile",
+          "confidence": 0.345
+        },
+        "hardest_error": {
+          "true_label": "automobile",
+          "predicted_label": "frog",
+          "confidence": 0.9996
+        }
+      }
+    }
+  ],
+  "artifacts": {
+    "hardest_classes": "outputs/checkpoint_evaluation/vit_50pct_best/examples/class_diagnostics/hardest_classes.png",
+    "easiest_classes": "outputs/checkpoint_evaluation/vit_50pct_best/examples/class_diagnostics/easiest_classes.png"
+  }
+}

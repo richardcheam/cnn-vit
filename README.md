@@ -1,6 +1,6 @@
-# Transfer Learning and Interpretable AI: Understanding CNN vs Vision Transformer
+# Interpretable Source and Transfer Learning with CNNs, ViTs, and DHVT
 
-Research-oriented PyTorch project for comparing Convolutional Neural Networks (CNNs), Vision Transformers (ViTs), and a Dynamic Hybrid Vision Transformer (DHVT) on CIFAR-10 with a focus on:
+Research-oriented PyTorch project for comparing Convolutional Neural Networks (CNNs), Vision Transformers (ViTs), and a Dynamic Hybrid Vision Transformer (DHVT) across a controlled CIFAR-10 source stage and two downstream transfer benchmarks with a focus on:
 
 - texture vs. shape bias
 - robustness to occlusion
@@ -11,14 +11,19 @@ The implementation is intentionally lightweight so it can run on a single GPU or
 
 ## Research Goal
 
-The project studies not only which model is more accurate, but also how each model behaves under controlled shifts and limited data:
+The project has two linked goals:
 
-- Does the model rely more on local texture cues or on larger global structure?
-- How much performance drops when part of the image is hidden?
-- How much labeled data is needed before the model learns effectively?
-- What regions or token interactions drive the final prediction?
+1. Measure how CNN, ViT, and DHVT behave on a controlled source task using CIFAR-10.
+2. Test how those learned representations transfer to EuroSAT and Brain Tumor MRI under scratch training, linear probing, and full fine-tuning.
 
-In practice, this means we train all architectures under the same protocol and compare them across clean accuracy, robustness, data efficiency, and interpretability.
+The comparison is not limited to top-line accuracy. It asks:
+
+- Which architecture is most data-efficient on the source task?
+- Which one is most robust to occlusion and texture disruption?
+- How much does frozen-backbone transfer lose relative to full fine-tuning?
+- What image regions or token interactions drive the prediction?
+
+In practice, the repository studies architectural behavior at the source stage, then follows the same models into downstream transfer to see which biases remain useful under domain shift.
 
 ## Architecture Attribution
 
@@ -141,44 +146,62 @@ Robustness on the full-data models:
 
 ```mermaid
 flowchart TD
-    A[CIFAR-10<br/>50,000 train / 10,000 test]
-    A --> B[Hold out 10% of train set for validation]
-    B --> C[Train pool = 45,000 images<br/>Validation = 5,000 images]
+    A[CIFAR-10 source stage<br/>50,000 train / 10,000 test]
+    A --> B[Split source data<br/>45,000 train pool / 5,000 val]
+    B --> C[Run source study<br/>10% / 25% / 50% / 100%]
 
-    C --> D[Data-efficiency subsets<br/>10% / 25% / 50% / 100%]
-    D --> E1[Train CNN with AdamW]
-    D --> E2[Train ViT with AdamW]
-    D --> E3[Train DHVT with AdamW]
+    C --> D1[Train CNN]
+    C --> D2[Train ViT]
+    C --> D3[Train DHVT]
 
-    E1 --> F1[Evaluate on clean test set]
-    E2 --> F2[Evaluate on clean test set]
-    E3 --> F3[Evaluate on clean test set]
+    D1 --> E1[Clean / occluded / texture test]
+    D2 --> E2[Clean / occluded / texture test]
+    D3 --> E3[Clean / occluded / texture test]
 
-    E1 --> G1[Evaluate on occluded test set]
-    E2 --> G2[Evaluate on occluded test set]
-    E3 --> G3[Evaluate on occluded test set]
+    D1 --> F1[Grad-CAM]
+    D2 --> F2[Attention rollout]
+    D3 --> F3[Rollout + head-token influence]
 
-    E1 --> H1[Generate Grad-CAM]
-    E2 --> H2[Generate attention rollout]
-    E3 --> H3[Generate DHVT attention rollout]
+    E1 --> G[Save source checkpoints<br/>plots / summaries / interpretability]
+    E2 --> G
+    E3 --> G
+    F1 --> G
+    F2 --> G
+    F3 --> G
 
-    F1 --> I[Save metrics, CSV files, and plots]
-    F2 --> I
-    F3 --> I
-    G1 --> I
-    G2 --> I
-    G3 --> I
-    H1 --> I
-    H2 --> I
-    H3 --> I
+    G --> H[CIFAR checkpoints become transfer initialization]
 
-    C --> J[Texture-modified test set]
-    J --> K1[Evaluate CNN]
-    J --> K2[Evaluate ViT]
-    J --> K3[Evaluate DHVT]
-    K1 --> I
-    K2 --> I
-    K3 --> I
+    H --> I1[EuroSAT downstream stage<br/>64 x 64 x 3]
+    H --> I2[Brain Tumor MRI downstream stage<br/>128 x 128 x 3]
+
+    I1 --> J1[Scratch]
+    I1 --> J2[Pretrained + linear probe]
+    I1 --> J3[Pretrained + full fine-tune]
+
+    I2 --> K1[Scratch]
+    I2 --> K2[Pretrained + linear probe]
+    I2 --> K3[Pretrained + full fine-tune]
+
+    J1 --> L[Save downstream checkpoints<br/>metrics / plots / evaluation artifacts]
+    J2 --> L
+    J3 --> L
+    K1 --> L
+    K2 --> L
+    K3 --> L
+
+    L --> M[Checkpoint evaluation<br/>confusion matrices / class diagnostics / error interpretability]
+
+    classDef source fill:#e8f1ff,stroke:#3563a9,stroke-width:1.5px,color:#12243d;
+    classDef model fill:#eef7ec,stroke:#2f855a,stroke-width:1.5px,color:#17351f;
+    classDef eval fill:#fff4de,stroke:#b7791f,stroke-width:1.5px,color:#4a2a02;
+    classDef transfer fill:#f7ebff,stroke:#7b3fa0,stroke-width:1.5px,color:#34144d;
+    classDef artifact fill:#f4f4f5,stroke:#52525b,stroke-width:1.5px,color:#18181b;
+
+    class A,B,C source;
+    class D1,D2,D3,J1,J2,J3,K1,K2,K3 model;
+    class E1,E2,E3,F1,F2,F3,M eval;
+    class I1,I2 transfer;
+    class G,H,L artifact;
 ```
 
 ## Experimental Setup
@@ -574,7 +597,7 @@ uv run python experiments/evaluate_checkpoints.py --checkpoint-paths outputs/che
 ```
 
 This checkpoint-only workflow saves per-checkpoint summaries, classification reports, confusion matrices, and Grad-CAM or ViT attention figures into `outputs/checkpoint_evaluation/`.
-It also saves normalized confusion matrices, class-wise prediction analysis, and grids of correct and misclassified examples so you can inspect behavior from pulled weights before deciding whether retraining is necessary.
+It also saves normalized confusion matrices, class-wise prediction analysis, grids of correct and misclassified examples, class-diagnostic panels for the easiest and hardest classes, and misclassification-interpretability panels that show where the model was looking when it made a wrong prediction.
 
 ## CLI Execution Flow
 

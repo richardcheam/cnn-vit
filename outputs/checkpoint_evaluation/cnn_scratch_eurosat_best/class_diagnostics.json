@@ -1,0 +1,214 @@
+{
+  "hardest_classes": [
+    {
+      "class_name": "PermanentCrop",
+      "accuracy": 0.916,
+      "precision": 0.9424,
+      "recall": 0.916,
+      "f1_score": 0.929,
+      "support": 250,
+      "predicted_count": 243,
+      "examples": {
+        "best_correct": {
+          "true_label": "PermanentCrop",
+          "predicted_label": "PermanentCrop",
+          "confidence": 1.0
+        },
+        "borderline_correct": {
+          "true_label": "PermanentCrop",
+          "predicted_label": "PermanentCrop",
+          "confidence": 0.4259
+        },
+        "hardest_error": {
+          "true_label": "PermanentCrop",
+          "predicted_label": "AnnualCrop",
+          "confidence": 0.9604
+        }
+      }
+    },
+    {
+      "class_name": "HerbaceousVegetation",
+      "accuracy": 0.9267,
+      "precision": 0.9619,
+      "recall": 0.9267,
+      "f1_score": 0.944,
+      "support": 300,
+      "predicted_count": 289,
+      "examples": {
+        "best_correct": {
+          "true_label": "HerbaceousVegetation",
+          "predicted_label": "HerbaceousVegetation",
+          "confidence": 1.0
+        },
+        "borderline_correct": {
+          "true_label": "HerbaceousVegetation",
+          "predicted_label": "HerbaceousVegetation",
+          "confidence": 0.4144
+        },
+        "hardest_error": {
+          "true_label": "HerbaceousVegetation",
+          "predicted_label": "Industrial",
+          "confidence": 1.0
+        }
+      }
+    },
+    {
+      "class_name": "Industrial",
+      "accuracy": 0.94,
+      "precision": 0.9792,
+      "recall": 0.94,
+      "f1_score": 0.9592,
+      "support": 250,
+      "predicted_count": 240,
+      "examples": {
+        "best_correct": {
+          "true_label": "Industrial",
+          "predicted_label": "Industrial",
+          "confidence": 1.0
+        },
+        "borderline_correct": {
+          "true_label": "Industrial",
+          "predicted_label": "Industrial",
+          "confidence": 0.4784
+        },
+        "hardest_error": {
+          "true_label": "Industrial",
+          "predicted_label": "Highway",
+          "confidence": 1.0
+        }
+      }
+    },
+    {
+      "class_name": "River",
+      "accuracy": 0.952,
+      "precision": 0.9558,
+      "recall": 0.952,
+      "f1_score": 0.9539,
+      "support": 250,
+      "predicted_count": 249,
+      "examples": {
+        "best_correct": {
+          "true_label": "River",
+          "predicted_label": "River",
+          "confidence": 1.0
+        },
+        "borderline_correct": {
+          "true_label": "River",
+          "predicted_label": "River",
+          "confidence": 0.5164
+        },
+        "hardest_error": {
+          "true_label": "River",
+          "predicted_label": "Highway",
+          "confidence": 0.9679
+        }
+      }
+    }
+  ],
+  "easiest_classes": [
+    {
+      "class_name": "Forest",
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 300,
+      "predicted_count": 300,
+      "examples": {
+        "best_correct": {
+          "true_label": "Forest",
+          "predicted_label": "Forest",
+          "confidence": 1.0
+        },
+        "borderline_correct": {
+          "true_label": "Forest",
+          "predicted_label": "Forest",
+          "confidence": 0.7744
+        },
+        "hardest_error": {
+          "true_label": "Forest",
+          "predicted_label": "Residential",
+          "confidence": 1.0
+        }
+      }
+    },
+    {
+      "class_name": "SeaLake",
+      "accuracy": 0.9933,
+      "precision": 0.9868,
+      "recall": 0.9933,
+      "f1_score": 0.99,
+      "support": 300,
+      "predicted_count": 302,
+      "examples": {
+        "best_correct": {
+          "true_label": "SeaLake",
+          "predicted_label": "SeaLake",
+          "confidence": 1.0
+        },
+        "borderline_correct": {
+          "true_label": "SeaLake",
+          "predicted_label": "SeaLake",
+          "confidence": 0.8809
+        },
+        "hardest_error": {
+          "true_label": "SeaLake",
+          "predicted_label": "Highway",
+          "confidence": 0.9996
+        }
+      }
+    },
+    {
+      "class_name": "Residential",
+      "accuracy": 0.99,
+      "precision": 0.955,
+      "recall": 0.99,
+      "f1_score": 0.9722,
+      "support": 300,
+      "predicted_count": 311,
+      "examples": {
+        "best_correct": {
+          "true_label": "Residential",
+          "predicted_label": "Residential",
+          "confidence": 1.0
+        },
+        "borderline_correct": {
+          "true_label": "Residential",
+          "predicted_label": "Residential",
+          "confidence": 0.9607
+        },
+        "hardest_error": null
+      }
+    },
+    {
+      "class_name": "Highway",
+      "accuracy": 0.98,
+      "precision": 0.9496,
+      "recall": 0.98,
+      "f1_score": 0.9646,
+      "support": 250,
+      "predicted_count": 258,
+      "examples": {
+        "best_correct": {
+          "true_label": "Highway",
+          "predicted_label": "Highway",
+          "confidence": 1.0
+        },
+        "borderline_correct": {
+          "true_label": "Highway",
+          "predicted_label": "Highway",
+          "confidence": 0.3691
+        },
+        "hardest_error": {
+          "true_label": "Highway",
+          "predicted_label": "Forest",
+          "confidence": 0.9995
+        }
+      }
+    }
+  ],
+  "artifacts": {
+    "hardest_classes": "outputs/checkpoint_evaluation/cnn_scratch_eurosat_best/examples/class_diagnostics/hardest_classes.png",
+    "easiest_classes": "outputs/checkpoint_evaluation/cnn_scratch_eurosat_best/examples/class_diagnostics/easiest_classes.png"
+  }
+}

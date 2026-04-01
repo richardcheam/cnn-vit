@@ -1,0 +1,137 @@
+{
+  "dataset": "Brain Tumor MRI",
+  "dataset_slug": "brain_tumor_mri",
+  "source_dataset": "CIFAR-10",
+  "model": "dhvt",
+  "initialization": "pretrained",
+  "parameter_count": 5990122,
+  "classification": {
+    "macro_avg": {
+      "precision": 0.9432,
+      "recall": 0.94,
+      "f1_score": 0.9386
+    },
+    "weighted_avg": {
+      "precision": 0.9432,
+      "recall": 0.94,
+      "f1_score": 0.9386
+    },
+    "confidence": {
+      "mean": 0.9897,
+      "mean_correct": 0.9953,
+      "mean_incorrect": 0.9028
+    },
+    "per_class": [
+      {
+        "class_index": 0,
+        "class_name": "glioma",
+        "support": 400,
+        "correct": 322,
+        "accuracy": 0.805,
+        "precision": 0.9817,
+        "recall": 0.805,
+        "f1_score": 0.8846,
+        "predicted_count": 328
+      },
+      {
+        "class_index": 1,
+        "class_name": "meningioma",
+        "support": 400,
+        "correct": 386,
+        "accuracy": 0.965,
+        "precision": 0.8977,
+        "recall": 0.965,
+        "f1_score": 0.9301,
+        "predicted_count": 430
+      },
+      {
+        "class_index": 2,
+        "class_name": "notumor",
+        "support": 400,
+        "correct": 400,
+        "accuracy": 1.0,
+        "precision": 0.9132,
+        "recall": 1.0,
+        "f1_score": 0.9547,
+        "predicted_count": 438
+      },
+      {
+        "class_index": 3,
+        "class_name": "pituitary",
+        "support": 400,
+        "correct": 396,
+        "accuracy": 0.99,
+        "precision": 0.9802,
+        "recall": 0.99,
+        "f1_score": 0.9851,
+        "predicted_count": 404
+      }
+    ],
+    "top_confusions": [
+      {
+        "true_class": "glioma",
+        "predicted_class": "meningioma",
+        "count": 41
+      },
+      {
+        "true_class": "glioma",
+        "predicted_class": "notumor",
+        "count": 36
+      },
+      {
+        "true_class": "meningioma",
+        "predicted_class": "pituitary",
+        "count": 7
+      },
+      {
+        "true_class": "meningioma",
+        "predicted_class": "glioma",
+        "count": 5
+      },
+      {
+        "true_class": "pituitary",
+        "predicted_class": "meningioma",
+        "count": 3
+      },
+      {
+        "true_class": "meningioma",
+        "predicted_class": "notumor",
+        "count": 2
+      },
+      {
+        "true_class": "glioma",
+        "predicted_class": "pituitary",
+        "count": 1
+      },
+      {
+        "true_class": "pituitary",
+        "predicted_class": "glioma",
+        "count": 1
+      }
+    ]
+  },
+  "test": {
+    "loss": 0.6487,
+    "accuracy": 0.94
+  },
+  "artifacts": {
+    "classification_report": "outputs/checkpoint_evaluation/dhvt_pretrained_full_finetune_brain_tumor_mri_best/classification_report.json",
+    "prediction_analysis": "outputs/checkpoint_evaluation/dhvt_pretrained_full_finetune_brain_tumor_mri_best/prediction_analysis.json",
+    "confusion_matrix": "outputs/checkpoint_evaluation/dhvt_pretrained_full_finetune_brain_tumor_mri_best/confusion_matrix.png",
+    "confusion_matrix_normalized": "outputs/checkpoint_evaluation/dhvt_pretrained_full_finetune_brain_tumor_mri_best/confusion_matrix_normalized.png",
+    "interpretability": [
+      "outputs/checkpoint_evaluation/dhvt_pretrained_full_finetune_brain_tumor_mri_best/interpretability/dhvt_attention.png"
+    ],
+    "misclassified_examples": "outputs/checkpoint_evaluation/dhvt_pretrained_full_finetune_brain_tumor_mri_best/examples/misclassified_examples.png",
+    "misclassified_interpretability": "outputs/checkpoint_evaluation/dhvt_pretrained_full_finetune_brain_tumor_mri_best/examples/misclassified_interpretability.png",
+    "correct_examples": "outputs/checkpoint_evaluation/dhvt_pretrained_full_finetune_brain_tumor_mri_best/examples/correct_examples.png",
+    "class_diagnostics": "outputs/checkpoint_evaluation/dhvt_pretrained_full_finetune_brain_tumor_mri_best/class_diagnostics.json",
+    "hardest_classes_examples": "outputs/checkpoint_evaluation/dhvt_pretrained_full_finetune_brain_tumor_mri_best/examples/class_diagnostics/hardest_classes.png",
+    "easiest_classes_examples": "outputs/checkpoint_evaluation/dhvt_pretrained_full_finetune_brain_tumor_mri_best/examples/class_diagnostics/easiest_classes.png"
+  },
+  "checkpoint_path": "/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/outputs/brain_mri_transfer/checkpoints/dhvt_pretrained_full_finetune_brain_tumor_mri_best.pt",
+  "load_info": {
+    "missing_keys": [],
+    "unexpected_keys": []
+  }
+}
