@@ -1,6 +1,6 @@
 # Interpretable Source and Transfer Learning with CNNs, ViTs, and DHVT
 
-Research-oriented PyTorch project for comparing Convolutional Neural Networks (CNNs), Vision Transformers (ViTs), and a Dynamic Hybrid Vision Transformer (DHVT) across:
+Research-oriented PyTorch project for explainable and budget-aware visual learning. The repository compares Convolutional Neural Networks (CNNs), Vision Transformers (ViTs), and a Dynamic Hybrid Vision Transformer (DHVT) across:
 
 - a controlled CIFAR-10 source stage
 - downstream transfer to EuroSAT
@@ -9,38 +9,41 @@ Research-oriented PyTorch project for comparing Convolutional Neural Networks (C
 
 The study is organized around a checkpoint-first workflow: train source models, reuse those checkpoints downstream, evaluate saved models directly, and aggregate final reporting from checkpoint-backed artifacts in `outputs/master_results/`.
 
-The analysis focuses on:
+The project combines four themes in one pipeline:
 
-- texture vs. shape bias
-- robustness to occlusion
-- data efficiency
-- interpretability through Grad-CAM and attention visualization
+- architecture comparison: how CNN, ViT, and DHVT differ under the same protocol
+- frugal learning: how well each model works under limited data or cheaper transfer modes such as linear probing
+- transfer learning: how source-stage CIFAR-10 representations behave under domain shift
+- explainable AI: where the models look, what they confuse, and whether the explanation matches the decision
 
-The implementation is intentionally lightweight so it can run on a single GPU or CPU, while still following a modular setup.
+The implementation is intentionally lightweight so it can run on a single GPU or CPU while still supporting training, checkpoint evaluation, error analysis, and report-ready outputs.
 
 ## Research Goal
 
-The project has two linked goals:
+The project has one central goal: compare how different vision architectures learn, transfer, and explain their predictions under realistic resource constraints.
+
+This is studied in two linked stages:
 
 1. Measure how CNN, ViT, and DHVT behave on a controlled source task using CIFAR-10.
 2. Test how those learned representations transfer to EuroSAT and Brain Tumor MRI under scratch training, linear probing, and full fine-tuning.
 
-The comparison is not limited to top-line accuracy. It asks:
+The comparison is intentionally broader than top-line accuracy. It asks:
 
-- Which architecture is most data-efficient on the source task?
-- Which one is most robust to occlusion and texture disruption?
-- How much does frozen-backbone transfer lose relative to full fine-tuning?
-- What image regions or token interactions drive the prediction?
+- Which architecture is strongest when training data is limited?
+- Which one is more robust to occlusion and texture disruption?
+- How much performance is lost when we choose cheaper transfer strategies such as frozen-backbone linear probing instead of full fine-tuning?
+- Do the saved explanations suggest that the model looked at the right region for the right reason?
+- Which architectural biases remain useful after domain shift?
 
-In practice, the repository studies architectural behavior at the source stage, then follows the same models into downstream transfer to see which biases remain useful under domain shift.
+In practice, the repository studies source-stage behavior, downstream transfer behavior, and explanation quality together. The result is not only an architecture comparison, but also a small-scale study of frugal learning and explainable AI in visual classification.
 
 ## Architecture Attribution
 
 The models in this repository are lightweight research baselines, not exact reproductions of one published architecture.
 
-- `CNN`: implemented in [models/cnn.py](/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/models/cnn.py) as a custom compact baseline inspired by [LeNet-5](https://ieeexplore.ieee.org/document/726791), [VGG](https://arxiv.org/abs/1409.1556), and [Batch Normalization](https://arxiv.org/abs/1502.03167).
-- `ViT`: implemented in [models/vit.py](/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/models/vit.py) as a compact custom Vision Transformer inspired by the [Transformer encoder](https://arxiv.org/abs/1706.03762) and the original [Vision Transformer](https://arxiv.org/abs/2010.11929).
-- `DHVT`: implemented in [models/dhvt.py](/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/models/dhvt.py) as a compact adaptation of [DHVT](https://openreview.net/forum?id=bfz-jhJ8wn), following the paper and the [official repository](https://github.com/ArieSeirack/DHVT) for components such as convolutional patch embedding, head-token interaction attention, and the dynamic adaptive feed-forward block.
+- `CNN`: implemented in `models/cnn.py` as a custom compact baseline inspired by [LeNet-5](https://ieeexplore.ieee.org/document/726791), [VGG](https://arxiv.org/abs/1409.1556), and [Batch Normalization](https://arxiv.org/abs/1502.03167).
+- `ViT`: implemented in `models/vit.py` as a compact custom Vision Transformer inspired by the [Transformer encoder](https://arxiv.org/abs/1706.03762) and the original [Vision Transformer](https://arxiv.org/abs/2010.11929).
+- `DHVT`: implemented in `models/dhvt.py` as a compact adaptation of [DHVT](https://openreview.net/forum?id=bfz-jhJ8wn), following the paper and the [official repository](https://github.com/ArieSeirack/DHVT) for components such as convolutional patch embedding, head-token interaction attention, and the dynamic adaptive feed-forward block.
 
 So the code in this repository is ours, but the architectural ideas are grounded in the references below. For `DHVT`, the closest implementation source is the official repository that we used as the adaptation reference, not a Kaggle notebook.
 
@@ -167,7 +170,7 @@ These composite panels are built from the saved artifacts under `outputs/` and c
 
 ### Source-stage overview
 
-![Source-stage overview](https://raw.githubusercontent.com/richardcheam/cnn-vit/main/assets/readme/source_overview.png)
+![Source-stage overview](https://raw.githubusercontent.com/richardcheam/xai-vision-transfer/main/assets/readme/source_overview.png)
 
 ### Downstream learning dynamics
 
@@ -175,13 +178,13 @@ Top row: EuroSAT validation dynamics. Bottom row: Brain Tumor MRI validation dyn
 Within each row, the columns are `CNN`, `ViT`, and `DHVT`.  
 Inside each model panel, solid lines show `scratch`, dotted lines show `pretrained + linear probe`, and dashed lines show `pretrained + full fine-tune`.
 
-![Downstream learning dynamics](https://raw.githubusercontent.com/richardcheam/cnn-vit/main/assets/readme/downstream_dynamics.png)
+![Downstream learning dynamics](https://raw.githubusercontent.com/richardcheam/xai-vision-transfer/main/assets/readme/downstream_dynamics.png)
 
 ### Interpretability overview
 
 This panel shows the source-stage CIFAR-10 interpretability outputs, ordered left to right as `CNN`, `ViT`, and `DHVT`.
 
-![Interpretability overview](https://raw.githubusercontent.com/richardcheam/cnn-vit/main/assets/readme/interpretability_overview.png)
+![Interpretability overview](https://raw.githubusercontent.com/richardcheam/xai-vision-transfer/main/assets/readme/interpretability_overview.png)
 
 ### Downstream interpretability overview
 
@@ -189,11 +192,11 @@ These examples use the pretrained full fine-tune checkpoints.
 Top row: EuroSAT. Bottom row: Brain Tumor MRI.  
 Within each row, the columns are `CNN` (Grad-CAM), `ViT` (Attention rollout), and `DHVT` (Head token influence), each model consists of 3 columns (original img, overlay, where model looks).
 
-![Downstream full fine-tune interpretability overview](https://raw.githubusercontent.com/richardcheam/cnn-vit/main/assets/readme/downstream_interpretability_overview.png)
+![Downstream full fine-tune interpretability overview](https://raw.githubusercontent.com/richardcheam/xai-vision-transfer/main/assets/readme/downstream_interpretability_overview.png)
 
 ### Error-analysis overview
 
-![Error-analysis overview](https://raw.githubusercontent.com/richardcheam/cnn-vit/main/assets/readme/error_analysis_overview.png)
+![Error-analysis overview](https://raw.githubusercontent.com/richardcheam/xai-vision-transfer/main/assets/readme/error_analysis_overview.png)
 
 ## Pipeline Overview
 
