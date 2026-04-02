@@ -148,19 +148,27 @@ These composite panels are built from the saved artifacts under `outputs/` and c
 
 ### Source-stage overview
 
-![Source-stage overview](https://github.com/richardcheam/cnn-vit/blob/main/assets/readme/source_overview.png?raw=true)
+<p align="center">
+  <img src="https://github.com/richardcheam/cnn-vit/blob/main/assets/readme/source_overview.png?raw=true" alt="Source-stage overview" width="900" />
+</p>
 
 ### Downstream learning dynamics
 
-![Downstream learning dynamics](https://github.com/richardcheam/cnn-vit/blob/main/assets/readme/downstream_dynamics.png?raw=true)
+<p align="center">
+  <img src="https://github.com/richardcheam/cnn-vit/blob/main/assets/readme/downstream_dynamics.png?raw=true" alt="Downstream learning dynamics" width="900" />
+</p>
 
 ### Interpretability overview
 
-![Interpretability overview](https://github.com/richardcheam/cnn-vit/blob/main/assets/readme/interpretability_overview.png?raw=true)
+<p align="center">
+  <img src="https://github.com/richardcheam/cnn-vit/blob/main/assets/readme/interpretability_overview.png?raw=true" alt="Interpretability overview" width="820" />
+</p>
 
 ### Error-analysis overview
 
-![Error-analysis overview](https://github.com/richardcheam/cnn-vit/blob/main/assets/readme/error_analysis_overview.png?raw=true)
+<p align="center">
+  <img src="https://github.com/richardcheam/cnn-vit/blob/main/assets/readme/error_analysis_overview.png?raw=true" alt="Error-analysis overview" width="820" />
+</p>
 
 ## Pipeline Overview
 
