@@ -167,9 +167,7 @@ These composite panels are built from the saved artifacts under `outputs/` and c
 
 ### Source-stage overview
 
-<p align="center">
-  <img src="assets/readme/source_overview.png" alt="Source-stage overview" width="820" />
-</p>
+![Source-stage overview](assets/readme/source_overview.png)
 
 ### Downstream learning dynamics
 
@@ -177,17 +175,13 @@ Top row: EuroSAT validation dynamics. Bottom row: Brain Tumor MRI validation dyn
 Within each row, the columns are `CNN`, `ViT`, and `DHVT`.  
 Inside each model panel, solid lines show `scratch`, dotted lines show `pretrained + linear probe`, and dashed lines show `pretrained + full fine-tune`.
 
-<p align="center">
-  <img src="assets/readme/downstream_dynamics.png" alt="Downstream learning dynamics" width="820" />
-</p>
+![Downstream learning dynamics](assets/readme/downstream_dynamics.png)
 
 ### Interpretability overview
 
 This panel shows the source-stage CIFAR-10 interpretability outputs, ordered left to right as `CNN`, `ViT`, and `DHVT`.
 
-<p align="center">
-  <img src="assets/readme/interpretability_overview.png" alt="Interpretability overview" width="920" />
-</p>
+![Interpretability overview](assets/readme/interpretability_overview.png)
 
 ### Downstream interpretability overview
 
@@ -195,15 +189,11 @@ These examples use the pretrained full fine-tune checkpoints.
 Top row: EuroSAT. Bottom row: Brain Tumor MRI.  
 Within each row, the columns are `CNN` (Grad-CAM), `ViT` (Attention rollout), and `DHVT` (Head token influence), each model consists of 3 columns (original img, overlay, where model looks).
 
-<p align="center">
-  <img src="assets/readme/downstream_interpretability_overview.png" alt="Downstream full fine-tune interpretability overview" width="700" />
-</p>
+![Downstream full fine-tune interpretability overview](assets/readme/downstream_interpretability_overview.png)
 
 ### Error-analysis overview
 
-<p align="center">
-  <img src="assets/readme/error_analysis_overview.png" alt="Error-analysis overview" width="920" />
-</p>
+![Error-analysis overview](assets/readme/error_analysis_overview.png)
 
 ## Pipeline Overview
 
