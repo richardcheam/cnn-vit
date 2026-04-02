@@ -149,19 +149,19 @@ These composite panels are built from the saved artifacts under `outputs/` and c
 ### Source-stage overview
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/richardcheam/cnn-vit/main/assets/readme/source_overview.png" alt="Source-stage overview" width="820" />
+  <img src="assets/readme/source_overview.png" alt="Source-stage overview" width="820" />
 </p>
 
 ### Downstream learning dynamics
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/richardcheam/cnn-vit/main/assets/readme/downstream_dynamics.png" alt="Downstream learning dynamics" width="820" />
+  <img src="assets/readme/downstream_dynamics.png" alt="Downstream learning dynamics" width="820" />
 </p>
 
 ### Interpretability overview
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/richardcheam/cnn-vit/main/assets/readme/interpretability_overview.png" alt="Interpretability overview" width="760" />
+  <img src="assets/readme/interpretability_overview.png" alt="Interpretability overview" width="760" />
 </p>
 
 ### Downstream interpretability overview
@@ -169,13 +169,13 @@ These composite panels are built from the saved artifacts under `outputs/` and c
 These examples use the pretrained full fine-tune checkpoints for EuroSAT and Brain Tumor MRI.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/richardcheam/cnn-vit/main/assets/readme/downstream_interpretability_overview.png" alt="Downstream full fine-tune interpretability overview" width="760" />
+  <img src="assets/readme/downstream_interpretability_overview.png" alt="Downstream full fine-tune interpretability overview" width="760" />
 </p>
 
 ### Error-analysis overview
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/richardcheam/cnn-vit/main/assets/readme/error_analysis_overview.png" alt="Error-analysis overview" width="760" />
+  <img src="assets/readme/error_analysis_overview.png" alt="Error-analysis overview" width="760" />
 </p>
 
 ## Pipeline Overview
