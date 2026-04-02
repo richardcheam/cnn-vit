@@ -1,6 +1,15 @@
 # Interpretable Source and Transfer Learning with CNNs, ViTs, and DHVT
 
-Research-oriented PyTorch project for comparing Convolutional Neural Networks (CNNs), Vision Transformers (ViTs), and a Dynamic Hybrid Vision Transformer (DHVT) across a controlled CIFAR-10 source stage and two downstream transfer benchmarks with a focus on:
+Research-oriented PyTorch project for comparing Convolutional Neural Networks (CNNs), Vision Transformers (ViTs), and a Dynamic Hybrid Vision Transformer (DHVT) across:
+
+- a controlled CIFAR-10 source stage
+- downstream transfer to EuroSAT
+- downstream transfer to Brain Tumor MRI
+- scratch, linear-probe, and full-fine-tune adaptation modes
+
+The study is organized around a checkpoint-first workflow: train source models, reuse those checkpoints downstream, evaluate saved models directly, and aggregate final reporting from checkpoint-backed artifacts in `outputs/master_results/`.
+
+The analysis focuses on:
 
 - texture vs. shape bias
 - robustness to occlusion
@@ -29,9 +38,11 @@ In practice, the repository studies architectural behavior at the source stage, 
 
 The models in this repository are lightweight research baselines, not exact reproductions of one published architecture.
 
-- `CNN`: custom small CNN inspired by LeNet-style convolution/pooling classifiers, VGG-style stacked `3x3` convolutions, and Batch Normalization.
-- `ViT`: compact Vision Transformer inspired by the original ViT design and the standard Transformer encoder.
-- `DHVT`: compact reimplementation inspired by Lu et al., 2022, using convolutional patch embedding, head-token interaction attention, and a dynamic feed-forward block.
+- `CNN`: implemented in [models/cnn.py](/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/models/cnn.py) as a custom compact baseline inspired by [LeNet-5](https://ieeexplore.ieee.org/document/726791), [VGG](https://arxiv.org/abs/1409.1556), and [Batch Normalization](https://arxiv.org/abs/1502.03167).
+- `ViT`: implemented in [models/vit.py](/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/models/vit.py) as a compact custom Vision Transformer inspired by the [Transformer encoder](https://arxiv.org/abs/1706.03762) and the original [Vision Transformer](https://arxiv.org/abs/2010.11929).
+- `DHVT`: implemented in [models/dhvt.py](/Users/macbookpro/Desktop/M2MIASD/S6/deep-learning/cnn-vit/models/dhvt.py) as a compact adaptation of [DHVT](https://openreview.net/forum?id=bfz-jhJ8wn), following the paper and the [official repository](https://github.com/ArieSeirack/DHVT) for components such as convolutional patch embedding, head-token interaction attention, and the dynamic adaptive feed-forward block.
+
+So the code in this repository is ours, but the architectural ideas are grounded in the references below. For `DHVT`, the closest implementation source is the official repository that we used as the adaptation reference, not a Kaggle notebook.
 
 Useful architecture references:
 
@@ -47,6 +58,8 @@ Useful architecture references:
   https://arxiv.org/abs/2010.11929
 - Lu et al., 2022, `Bridging the Gap Between Vision Transformers and Convolutional Neural Networks on Small Datasets`  
   https://openreview.net/forum?id=bfz-jhJ8wn
+- Official DHVT repository  
+  https://github.com/ArieSeirack/DHVT
 
 The repository now supports three connected stages:
 
@@ -56,7 +69,7 @@ The repository now supports three connected stages:
 
 ## Current Results
 
-These are the currently saved results in `outputs/`.
+These are the current saved results reflected in `outputs/master_results/master_results.csv` and the checkpoint-backed evaluation artifacts under `outputs/checkpoint_evaluation/`.
 All reported source and downstream results below were trained for `100` epochs per run.
 
 ### Metrics used
@@ -71,6 +84,12 @@ All reported source and downstream results below were trained for `100` epochs p
 
 In single-label multiclass classification, `macro-F1` is especially useful when class balance matters, because it does not let large classes dominate the summary.
 In the current downstream runs, class supports are close to balanced, so `weighted-F1` is almost identical to `macro-F1`. For that reason, the main tables report `macro-F1` only.
+
+How these are used in this repository:
+
+- Source-stage checkpoint evaluation computes `precision`, `recall`, `F1-score`, `macro avg`, `weighted avg`, and `support` with `sklearn.metrics.classification_report`.
+- Downstream transfer summaries store `test_accuracy`, `macro_f1`, and `weighted_f1` directly.
+- The per-class `accuracy` shown in `class_diagnostics.json` is `correct / support`, which is effectively class-wise recall in this single-label multiclass setting.
 
 ### CIFAR-10 source study
 
@@ -643,37 +662,6 @@ uv run python experiments/evaluate_checkpoints.py --checkpoint-paths outputs/che
 This checkpoint-only workflow saves per-checkpoint summaries, classification reports, confusion matrices, and Grad-CAM or ViT attention figures into `outputs/checkpoint_evaluation/`.
 It also saves normalized confusion matrices, class-wise prediction analysis, grids of correct and misclassified examples, class-diagnostic panels for the easiest and hardest classes, and misclassification-interpretability panels that show where the model was looking when it made a wrong prediction.
 
-## CLI Execution Flow
-
-When you run `uv run python main.py`, the project executes the following stages:
-
-1. Load the project configuration and apply any command-line overrides.
-2. Set the random seed for reproducibility.
-3. Detect whether the run will use CPU, CUDA, or MPS.
-4. Print the runtime diagnostics and planned dataset protocol.
-5. Train the CNN on each training fraction: `10%`, `25%`, `50%`, `100%`.
-6. Train the ViT on the same training fractions.
-7. Keep the full-data runs for downstream robustness and interpretability analysis.
-8. Evaluate the full-data CNN and ViT on:
-   - the clean test set
-   - the occluded test set
-   - the texture-modified test set
-9. Generate Grad-CAM for the CNN and attention maps for the ViT.
-10. Save summaries, CSV files, plots, and interpretability figures to `outputs/`.
-
-When you run `uv run python main.py --experiment eurosat`, the project executes the following stages:
-
-1. Load EuroSAT with a stratified train / validation / test split.
-2. Build one CNN and one ViT for EuroSAT resolution.
-3. Run the requested initialization modes:
-   - scratch
-   - pretrained from CIFAR checkpoints
-4. For pretrained runs, load only the transferable backbone weights and keep a fresh EuroSAT classifier head.
-5. Fine-tune on the EuroSAT training split and select the best validation checkpoint in memory.
-6. Save EuroSAT checkpoints, plots, CSV summaries, and `summary.json` into `outputs/eurosat_transfer/`.
-
-The EuroSAT summary rows also include `macro_f1` and `weighted_f1`, so the downstream stage is not limited to accuracy alone.
-
 ## Why The Train Split Grows From 10% To 100%
 
 The increasing training split is the core of the data-efficiency experiment.
@@ -686,15 +674,21 @@ If a model performs strongly even at `10%`, it is more data-efficient. If it nee
 
 ## Outputs
 
-Running the CIFAR source-stage experiment writes artifacts to `outputs/`:
+The repository now produces three main layers of artifacts:
 
-- `summary.json`: experiment summary
-- `data_efficiency_runs.json`: detailed per-run metadata with saved training histories
-- `data_efficiency.csv`: accuracy across data fractions
-- `robustness.csv`: robustness drops for occlusion and texture shifts
+- stage summaries and plots in `outputs/`, `outputs/eurosat_transfer/`, and `outputs/brain_mri_transfer/`
+- checkpoint-specific evaluations in `outputs/checkpoint_evaluation/`
+- canonical reporting tables in `outputs/master_results/`
+
+Source-stage artifacts in `outputs/` include:
+
+- `summary.json`: latest source-stage aggregate summary
+- `data_efficiency_runs.json`: detailed source runs with saved histories
+- `data_efficiency.csv`: accuracy across CIFAR training fractions
+- `robustness.csv`: occlusion and texture robustness summaries
 - `checkpoints/`: saved best-model checkpoints for each architecture and training fraction
-- `plots/`: per-model training curves, a combined CNN-vs-ViT learning-curve figure, per-model data-fraction learning-curve figures, data-efficiency plots, and robustness plots
-- `interpretability/`: Grad-CAM and ViT attention visualizations
+- `plots/`: training curves, data-efficiency plots, robustness plots, and downstream comparison figures
+- `interpretability/`: source-stage Grad-CAM and attention-based visualizations
 
 ## Canonical Results Export
 
@@ -728,6 +722,25 @@ Running the EuroSAT transfer stage writes artifacts to `outputs/eurosat_transfer
 - `checkpoints/`: saved best EuroSAT models for each run
 - `plots/eurosat_transfer_accuracy.png`: final test-accuracy comparison
 - `plots/eurosat_transfer_validation_curves.png`: validation learning curves across transfer runs
+
+Running the Brain Tumor MRI transfer stage writes the analogous set of artifacts to `outputs/brain_mri_transfer/`:
+
+- `summary.json`
+- `transfer_runs.json`
+- `brain_mri_transfer_results.csv`
+- `checkpoints/`
+- `plots/brain_mri_transfer_accuracy.png`
+- `plots/brain_mri_transfer_validation_curves.png`
+
+Checkpoint evaluation artifacts in `outputs/checkpoint_evaluation/` include:
+
+- `summary.json` per checkpoint
+- `classification_report.json`
+- `prediction_analysis.json`
+- confusion matrices
+- class-diagnostic panels for easiest and hardest classes
+- misclassified-example panels
+- interpretability panels showing where the model looked
 
 ## Notes
 

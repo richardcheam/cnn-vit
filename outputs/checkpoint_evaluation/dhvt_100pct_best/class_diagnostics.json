@@ -10,16 +10,19 @@
       "predicted_count": 1066,
       "examples": {
         "best_correct": {
+          "dataset_index": 77,
           "true_label": "cat",
           "predicted_label": "cat",
           "confidence": 1.0
         },
         "borderline_correct": {
+          "dataset_index": 3752,
           "true_label": "cat",
           "predicted_label": "cat",
           "confidence": 0.305
         },
         "hardest_error": {
+          "dataset_index": 3977,
           "true_label": "cat",
           "predicted_label": "frog",
           "confidence": 1.0
@@ -36,16 +39,19 @@
       "predicted_count": 980,
       "examples": {
         "best_correct": {
+          "dataset_index": 207,
           "true_label": "dog",
           "predicted_label": "dog",
           "confidence": 1.0
         },
         "borderline_correct": {
+          "dataset_index": 5112,
           "true_label": "dog",
           "predicted_label": "dog",
           "confidence": 0.4117
         },
         "hardest_error": {
+          "dataset_index": 7168,
           "true_label": "dog",
           "predicted_label": "cat",
           "confidence": 1.0
@@ -62,16 +68,19 @@
       "predicted_count": 915,
       "examples": {
         "best_correct": {
+          "dataset_index": 854,
           "true_label": "airplane",
           "predicted_label": "airplane",
           "confidence": 1.0
         },
         "borderline_correct": {
+          "dataset_index": 4269,
           "true_label": "airplane",
           "predicted_label": "airplane",
           "confidence": 0.4733
         },
         "hardest_error": {
+          "dataset_index": 258,
           "true_label": "airplane",
           "predicted_label": "ship",
           "confidence": 1.0
@@ -88,16 +97,19 @@
       "predicted_count": 964,
       "examples": {
         "best_correct": {
+          "dataset_index": 159,
           "true_label": "deer",
           "predicted_label": "deer",
           "confidence": 1.0
         },
         "borderline_correct": {
+          "dataset_index": 3439,
           "true_label": "deer",
           "predicted_label": "deer",
           "confidence": 0.2819
         },
         "hardest_error": {
+          "dataset_index": 2128,
           "true_label": "deer",
           "predicted_label": "frog",
           "confidence": 1.0
@@ -116,16 +128,19 @@
       "predicted_count": 1041,
       "examples": {
         "best_correct": {
+          "dataset_index": 185,
           "true_label": "ship",
           "predicted_label": "ship",
           "confidence": 1.0
         },
         "borderline_correct": {
+          "dataset_index": 2159,
           "true_label": "ship",
           "predicted_label": "ship",
           "confidence": 0.3406
         },
         "hardest_error": {
+          "dataset_index": 5548,
           "true_label": "ship",
           "predicted_label": "airplane",
           "confidence": 0.9999
@@ -142,16 +157,19 @@
       "predicted_count": 1051,
       "examples": {
         "best_correct": {
+          "dataset_index": 34,
           "true_label": "truck",
           "predicted_label": "truck",
           "confidence": 1.0
         },
         "borderline_correct": {
+          "dataset_index": 2129,
           "true_label": "truck",
           "predicted_label": "truck",
           "confidence": 0.3518
         },
         "hardest_error": {
+          "dataset_index": 4590,
           "true_label": "truck",
           "predicted_label": "bird",
           "confidence": 1.0
@@ -168,16 +186,19 @@
       "predicted_count": 1026,
       "examples": {
         "best_correct": {
+          "dataset_index": 93,
           "true_label": "frog",
           "predicted_label": "frog",
           "confidence": 1.0
         },
         "borderline_correct": {
+          "dataset_index": 893,
           "true_label": "frog",
           "predicted_label": "frog",
           "confidence": 0.3841
         },
         "hardest_error": {
+          "dataset_index": 1147,
           "true_label": "frog",
           "predicted_label": "truck",
           "confidence": 0.9999
@@ -194,16 +215,19 @@
       "predicted_count": 962,
       "examples": {
         "best_correct": {
+          "dataset_index": 105,
           "true_label": "automobile",
           "predicted_label": "automobile",
           "confidence": 1.0
         },
         "borderline_correct": {
+          "dataset_index": 2454,
           "true_label": "automobile",
           "predicted_label": "automobile",
           "confidence": 0.4134
         },
         "hardest_error": {
+          "dataset_index": 9227,
           "true_label": "automobile",
           "predicted_label": "truck",
           "confidence": 1.0
