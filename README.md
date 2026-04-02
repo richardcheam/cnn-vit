@@ -174,7 +174,7 @@ This panel shows the source-stage CIFAR-10 interpretability outputs, ordered lef
 
 These examples use the pretrained full fine-tune checkpoints.  
 Top row: EuroSAT. Bottom row: Brain Tumor MRI.  
-Within each row, the columns are `CNN`, `ViT`, and `DHVT`.
+Within each row, the columns are `CNN` (Grad-CAM), `ViT` (Attention rollout), and `DHVT` (Head token influence), each model consists of 3 columns (original img, overlay, where model looks).
 
 <p align="center">
   <img src="assets/readme/downstream_interpretability_overview.png" alt="Downstream full fine-tune interpretability overview" width="700" />
