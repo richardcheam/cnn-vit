@@ -142,6 +142,43 @@ Robustness on the full-data models:
 - Brain MRI is the clearest case where CIFAR pretraining matters for DHVT.
 - Full class-wise precision, recall, F1, and support remain available in the saved `classification_report.json` artifacts.
 
+## Visual Results
+
+These previews use the saved artifacts under `outputs/`. They render locally as long as the generated figures are present.
+
+### Source-stage distribution shifts
+
+![CIFAR-10 clean, occluded, and texture-modified example](outputs/plots/cifar_shift_examples.png)
+
+### Learning dynamics
+
+![Full-data source-stage learning curves](outputs/plots/architecture_training_comparison.png)
+
+![EuroSAT validation dynamics by model](outputs/plots/eurosat_transfer_validation_curves.png)
+
+![Brain Tumor MRI validation dynamics by model](outputs/plots/brain_mri_transfer_validation_curves.png)
+
+### Robustness and data efficiency
+
+![CIFAR-10 data efficiency](outputs/plots/data_efficiency.png)
+
+![CIFAR-10 robustness drop](outputs/plots/robustness_drop.png)
+
+### Source-stage interpretability examples
+
+<p align="center">
+  <img src="outputs/interpretability/cnn_gradcam.png" alt="CNN Grad-CAM" width="31%" />
+  <img src="outputs/interpretability/vit_attention.png" alt="ViT attention rollout" width="31%" />
+  <img src="outputs/interpretability/dhvt_attention.png" alt="DHVT attention and head-token influence" width="31%" />
+</p>
+
+### Error analysis examples
+
+<p align="center">
+  <img src="outputs/checkpoint_evaluation/cnn_100pct_best/examples/class_diagnostics/hardest_classes.png" alt="CNN hardest CIFAR-10 classes" width="48%" />
+  <img src="outputs/checkpoint_evaluation/dhvt_100pct_best/examples/misclassified_interpretability.png" alt="DHVT misclassified interpretability" width="48%" />
+</p>
+
 ## Pipeline Overview
 
 ```mermaid
