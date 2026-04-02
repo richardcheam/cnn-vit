@@ -593,6 +593,7 @@ def _save_interpretability_examples(
     )
 
     interpretability_paths: dict[str, str] = {}
+    label_indices = labels.detach().cpu().tolist()
 
     if "cnn" in models:
         cnn_model = models["cnn"]
@@ -604,6 +605,7 @@ def _save_interpretability_examples(
 
         with torch.no_grad():
             cnn_predictions = cnn_model(images).argmax(dim=1)
+        cnn_prediction_indices = cnn_predictions.detach().cpu().tolist()
 
         gradcam_figure, gradcam_axes = plt.subplots(len(images), 2, figsize=(6, 3 * len(images)))
         if len(images) == 1:
@@ -617,12 +619,12 @@ def _save_interpretability_examples(
                 mean=config.data.mean,
                 std=config.data.std,
             )
-            title = f"true={class_names[labels[index].item()]}"
+            title = f"true={class_names[label_indices[index]]}"
             gradcam_axes[index][0].imshow(gradcam_overlay)
             gradcam_axes[index][0].set_title(title)
             gradcam_axes[index][0].axis("off")
             gradcam_axes[index][1].imshow(gradcam_maps[index].detach().cpu(), cmap="inferno")
-            gradcam_axes[index][1].set_title(f"pred={class_names[cnn_predictions[index].item()]}")
+            gradcam_axes[index][1].set_title(f"pred={class_names[cnn_prediction_indices[index]]}")
             gradcam_axes[index][1].axis("off")
 
         gradcam_figure.tight_layout()
@@ -638,6 +640,7 @@ def _save_interpretability_examples(
             _log("[Interpretability] VIT attention rollout running.")
             vit_logits, vit_maps = generate_attention_maps(vit_model, images)
             vit_predictions = vit_logits.argmax(dim=1)
+        vit_prediction_indices = vit_predictions.detach().cpu().tolist()
 
         vit_figure, vit_axes = plt.subplots(len(images), 2, figsize=(6, 3 * len(images)))
         if len(images) == 1:
@@ -651,12 +654,12 @@ def _save_interpretability_examples(
                 mean=config.data.mean,
                 std=config.data.std,
             )
-            title = f"true={class_names[labels[index].item()]}"
+            title = f"true={class_names[label_indices[index]]}"
             vit_axes[index][0].imshow(vit_overlay)
             vit_axes[index][0].set_title(title)
             vit_axes[index][0].axis("off")
             vit_axes[index][1].imshow(vit_maps[index].detach().cpu(), cmap="viridis")
-            vit_axes[index][1].set_title(f"pred={class_names[vit_predictions[index].item()]}")
+            vit_axes[index][1].set_title(f"pred={class_names[vit_prediction_indices[index]]}")
             vit_axes[index][1].axis("off")
 
         vit_figure.tight_layout()
@@ -672,6 +675,7 @@ def _save_interpretability_examples(
             _log("[Interpretability] DHVT rollout + head-token influence running.")
             dhvt_logits, rollout_maps, head_maps = generate_dhvt_attention_maps(dhvt_model, images)
             dhvt_predictions = dhvt_logits.argmax(dim=1)
+        dhvt_prediction_indices = dhvt_predictions.detach().cpu().tolist()
 
         dhvt_figure, dhvt_axes = plt.subplots(len(images), 3, figsize=(9, 3 * len(images)))
         if len(images) == 1:
@@ -692,10 +696,10 @@ def _save_interpretability_examples(
                 std=config.data.std,
             )
             dhvt_axes[index][0].imshow(to_numpy_image(base_image, mean=config.data.mean, std=config.data.std))
-            dhvt_axes[index][0].set_title(f"true={class_names[labels[index].item()]}")
+            dhvt_axes[index][0].set_title(f"true={class_names[label_indices[index]]}")
             dhvt_axes[index][0].axis("off")
             dhvt_axes[index][1].imshow(rollout_overlay)
-            dhvt_axes[index][1].set_title(f"rollout pred={class_names[dhvt_predictions[index].item()]}")
+            dhvt_axes[index][1].set_title(f"rollout pred={class_names[dhvt_prediction_indices[index]]}")
             dhvt_axes[index][1].axis("off")
             dhvt_axes[index][2].imshow(head_overlay)
             dhvt_axes[index][2].set_title("head-token influence")

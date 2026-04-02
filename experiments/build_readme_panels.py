@@ -72,11 +72,29 @@ def build_panels() -> list[Path]:
     cnn_interp = _open_image(PROJECT_ROOT / "outputs/interpretability/cnn_gradcam.png")
     vit_interp = _open_image(PROJECT_ROOT / "outputs/interpretability/vit_attention.png")
     dhvt_interp = _open_image(PROJECT_ROOT / "outputs/interpretability/dhvt_attention.png")
+    eurosat_cnn_interp = _open_image(
+        PROJECT_ROOT / "outputs/checkpoint_evaluation/cnn_pretrained_eurosat_best/interpretability/cnn_gradcam.png"
+    )
+    eurosat_vit_interp = _open_image(
+        PROJECT_ROOT / "outputs/checkpoint_evaluation/vit_pretrained_eurosat_best/interpretability/vit_attention.png"
+    )
+    eurosat_dhvt_interp = _open_image(
+        PROJECT_ROOT / "outputs/checkpoint_evaluation/dhvt_pretrained_full_finetune_eurosat_best/interpretability/dhvt_attention.png"
+    )
+    brain_cnn_interp = _open_image(
+        PROJECT_ROOT / "outputs/checkpoint_evaluation/cnn_pretrained_brain_tumor_mri_best/interpretability/cnn_gradcam.png"
+    )
+    brain_vit_interp = _open_image(
+        PROJECT_ROOT / "outputs/checkpoint_evaluation/vit_pretrained_brain_tumor_mri_best/interpretability/vit_attention.png"
+    )
+    brain_dhvt_interp = _open_image(
+        PROJECT_ROOT / "outputs/checkpoint_evaluation/dhvt_pretrained_full_finetune_brain_tumor_mri_best/interpretability/dhvt_attention.png"
+    )
     hardest_classes = _open_image(
         PROJECT_ROOT / "outputs/checkpoint_evaluation/cnn_100pct_best/examples/class_diagnostics/hardest_classes.png"
     )
     misclassified_interp = _open_image(
-        PROJECT_ROOT / "outputs/checkpoint_evaluation/dhvt_100pct_best/examples/misclassified_interpretability.png"
+        PROJECT_ROOT / "outputs/checkpoint_evaluation/cnn_100pct_best/examples/misclassified_interpretability.png"
     )
 
     source_panel = _vstack(
@@ -88,12 +106,19 @@ def build_panels() -> list[Path]:
     )
     downstream_panel = _vstack([eurosat_curves, brain_curves])
     interpretability_panel = _vstack([cnn_interp, vit_interp, dhvt_interp])
+    downstream_interpretability_panel = _vstack(
+        [
+            _hstack([eurosat_cnn_interp, eurosat_vit_interp, eurosat_dhvt_interp]),
+            _hstack([brain_cnn_interp, brain_vit_interp, brain_dhvt_interp]),
+        ]
+    )
     error_panel = _vstack([hardest_classes, misclassified_interp])
 
     panels = {
         "source_overview.png": _add_margin(source_panel),
         "downstream_dynamics.png": _add_margin(downstream_panel),
         "interpretability_overview.png": _add_margin(interpretability_panel),
+        "downstream_interpretability_overview.png": _add_margin(downstream_interpretability_panel),
         "error_analysis_overview.png": _add_margin(error_panel),
     }
 

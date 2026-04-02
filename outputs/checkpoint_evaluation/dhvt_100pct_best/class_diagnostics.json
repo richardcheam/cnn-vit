@@ -17,11 +17,11 @@
         "borderline_correct": {
           "true_label": "cat",
           "predicted_label": "cat",
-          "confidence": 0.4229
+          "confidence": 0.305
         },
         "hardest_error": {
           "true_label": "cat",
-          "predicted_label": "horse",
+          "predicted_label": "frog",
           "confidence": 1.0
         }
       }
@@ -73,7 +73,7 @@
         },
         "hardest_error": {
           "true_label": "airplane",
-          "predicted_label": "bird",
+          "predicted_label": "ship",
           "confidence": 1.0
         }
       }
@@ -99,7 +99,7 @@
         },
         "hardest_error": {
           "true_label": "deer",
-          "predicted_label": "ship",
+          "predicted_label": "frog",
           "confidence": 1.0
         }
       }
@@ -128,7 +128,7 @@
         "hardest_error": {
           "true_label": "ship",
           "predicted_label": "airplane",
-          "confidence": 1.0
+          "confidence": 0.9999
         }
       }
     },
@@ -179,8 +179,8 @@
         },
         "hardest_error": {
           "true_label": "frog",
-          "predicted_label": "airplane",
-          "confidence": 0.9987
+          "predicted_label": "truck",
+          "confidence": 0.9999
         }
       }
     },
@@ -205,7 +205,7 @@
         },
         "hardest_error": {
           "true_label": "automobile",
-          "predicted_label": "horse",
+          "predicted_label": "truck",
           "confidence": 1.0
         }
       }
