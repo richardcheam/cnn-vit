@@ -154,28 +154,36 @@ These composite panels are built from the saved artifacts under `outputs/` and c
 
 ### Downstream learning dynamics
 
+Top row: EuroSAT validation dynamics. Bottom row: Brain Tumor MRI validation dynamics.  
+Within each row, the columns are `CNN`, `ViT`, and `DHVT`.  
+Inside each model panel, solid lines show `scratch`, dotted lines show `pretrained + linear probe`, and dashed lines show `pretrained + full fine-tune`.
+
 <p align="center">
   <img src="assets/readme/downstream_dynamics.png" alt="Downstream learning dynamics" width="820" />
 </p>
 
 ### Interpretability overview
 
+This panel shows the source-stage CIFAR-10 interpretability outputs, ordered left to right as `CNN`, `ViT`, and `DHVT`.
+
 <p align="center">
-  <img src="assets/readme/interpretability_overview.png" alt="Interpretability overview" width="760" />
+  <img src="assets/readme/interpretability_overview.png" alt="Interpretability overview" width="920" />
 </p>
 
 ### Downstream interpretability overview
 
-These examples use the pretrained full fine-tune checkpoints for EuroSAT and Brain Tumor MRI.
+These examples use the pretrained full fine-tune checkpoints.  
+Top row: EuroSAT. Bottom row: Brain Tumor MRI.  
+Within each row, the columns are `CNN`, `ViT`, and `DHVT`.
 
 <p align="center">
-  <img src="assets/readme/downstream_interpretability_overview.png" alt="Downstream full fine-tune interpretability overview" width="760" />
+  <img src="assets/readme/downstream_interpretability_overview.png" alt="Downstream full fine-tune interpretability overview" width="700" />
 </p>
 
 ### Error-analysis overview
 
 <p align="center">
-  <img src="assets/readme/error_analysis_overview.png" alt="Error-analysis overview" width="760" />
+  <img src="assets/readme/error_analysis_overview.png" alt="Error-analysis overview" width="920" />
 </p>
 
 ## Pipeline Overview

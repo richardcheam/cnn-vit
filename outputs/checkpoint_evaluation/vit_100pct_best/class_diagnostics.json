@@ -10,19 +10,22 @@
       "predicted_count": 1004,
       "examples": {
         "best_correct": {
+          "dataset_index": 5368,
           "true_label": "cat",
           "predicted_label": "cat",
-          "confidence": 0.9992
+          "confidence": 1.0
         },
         "borderline_correct": {
+          "dataset_index": 932,
           "true_label": "cat",
           "predicted_label": "cat",
-          "confidence": 0.3298
+          "confidence": 0.2915
         },
         "hardest_error": {
+          "dataset_index": 4754,
           "true_label": "cat",
-          "predicted_label": "truck",
-          "confidence": 1.0
+          "predicted_label": "ship",
+          "confidence": 0.9999
         }
       }
     },
@@ -36,19 +39,22 @@
       "predicted_count": 951,
       "examples": {
         "best_correct": {
+          "dataset_index": 4323,
           "true_label": "dog",
           "predicted_label": "dog",
-          "confidence": 0.9903
+          "confidence": 1.0
         },
         "borderline_correct": {
+          "dataset_index": 6756,
           "true_label": "dog",
           "predicted_label": "dog",
-          "confidence": 0.5553
+          "confidence": 0.2861
         },
         "hardest_error": {
+          "dataset_index": 9305,
           "true_label": "dog",
-          "predicted_label": "automobile",
-          "confidence": 0.994
+          "predicted_label": "horse",
+          "confidence": 0.9986
         }
       }
     },
@@ -62,19 +68,22 @@
       "predicted_count": 990,
       "examples": {
         "best_correct": {
+          "dataset_index": 8040,
           "true_label": "bird",
           "predicted_label": "bird",
           "confidence": 1.0
         },
         "borderline_correct": {
+          "dataset_index": 8454,
           "true_label": "bird",
           "predicted_label": "bird",
-          "confidence": 0.5057
+          "confidence": 0.2787
         },
         "hardest_error": {
+          "dataset_index": 2226,
           "true_label": "bird",
-          "predicted_label": "automobile",
-          "confidence": 0.9999
+          "predicted_label": "frog",
+          "confidence": 0.9996
         }
       }
     },
@@ -88,19 +97,22 @@
       "predicted_count": 988,
       "examples": {
         "best_correct": {
+          "dataset_index": 7550,
           "true_label": "deer",
           "predicted_label": "deer",
-          "confidence": 0.9995
+          "confidence": 1.0
         },
         "borderline_correct": {
+          "dataset_index": 1393,
           "true_label": "deer",
           "predicted_label": "deer",
-          "confidence": 0.4798
+          "confidence": 0.2709
         },
         "hardest_error": {
+          "dataset_index": 3443,
           "true_label": "deer",
-          "predicted_label": "ship",
-          "confidence": 1.0
+          "predicted_label": "bird",
+          "confidence": 0.9992
         }
       }
     }
@@ -116,19 +128,22 @@
       "predicted_count": 1043,
       "examples": {
         "best_correct": {
+          "dataset_index": 694,
           "true_label": "ship",
           "predicted_label": "ship",
           "confidence": 1.0
         },
         "borderline_correct": {
+          "dataset_index": 6961,
           "true_label": "ship",
           "predicted_label": "ship",
-          "confidence": 0.5653
+          "confidence": 0.2977
         },
         "hardest_error": {
+          "dataset_index": 6569,
           "true_label": "ship",
-          "predicted_label": "frog",
-          "confidence": 1.0
+          "predicted_label": "truck",
+          "confidence": 0.9975
         }
       }
     },
@@ -142,19 +157,22 @@
       "predicted_count": 1036,
       "examples": {
         "best_correct": {
+          "dataset_index": 8032,
           "true_label": "automobile",
           "predicted_label": "automobile",
-          "confidence": 0.9998
+          "confidence": 1.0
         },
         "borderline_correct": {
+          "dataset_index": 9601,
           "true_label": "automobile",
           "predicted_label": "automobile",
-          "confidence": 0.4223
+          "confidence": 0.3806
         },
         "hardest_error": {
+          "dataset_index": 7892,
           "true_label": "automobile",
-          "predicted_label": "ship",
-          "confidence": 1.0
+          "predicted_label": "truck",
+          "confidence": 0.9985
         }
       }
     },
@@ -168,19 +186,22 @@
       "predicted_count": 1052,
       "examples": {
         "best_correct": {
+          "dataset_index": 2802,
           "true_label": "frog",
           "predicted_label": "frog",
           "confidence": 1.0
         },
         "borderline_correct": {
+          "dataset_index": 8036,
           "true_label": "frog",
           "predicted_label": "frog",
-          "confidence": 0.3968
+          "confidence": 0.324
         },
         "hardest_error": {
+          "dataset_index": 7091,
           "true_label": "frog",
-          "predicted_label": "deer",
-          "confidence": 0.7179
+          "predicted_label": "cat",
+          "confidence": 0.9898
         }
       }
     },
@@ -194,19 +215,22 @@
       "predicted_count": 991,
       "examples": {
         "best_correct": {
+          "dataset_index": 4723,
           "true_label": "truck",
           "predicted_label": "truck",
           "confidence": 1.0
         },
         "borderline_correct": {
+          "dataset_index": 2714,
           "true_label": "truck",
           "predicted_label": "truck",
-          "confidence": 0.5259
+          "confidence": 0.3554
         },
         "hardest_error": {
+          "dataset_index": 577,
           "true_label": "truck",
-          "predicted_label": "deer",
-          "confidence": 0.993
+          "predicted_label": "ship",
+          "confidence": 0.9999
         }
       }
     }

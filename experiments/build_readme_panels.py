@@ -105,14 +105,14 @@ def build_panels() -> list[Path]:
         ]
     )
     downstream_panel = _vstack([eurosat_curves, brain_curves])
-    interpretability_panel = _vstack([cnn_interp, vit_interp, dhvt_interp])
+    interpretability_panel = _hstack([cnn_interp, vit_interp, dhvt_interp])
     downstream_interpretability_panel = _vstack(
         [
             _hstack([eurosat_cnn_interp, eurosat_vit_interp, eurosat_dhvt_interp]),
             _hstack([brain_cnn_interp, brain_vit_interp, brain_dhvt_interp]),
         ]
     )
-    error_panel = _vstack([hardest_classes, misclassified_interp])
+    error_panel = _hstack([hardest_classes, misclassified_interp])
 
     panels = {
         "source_overview.png": _add_margin(source_panel),

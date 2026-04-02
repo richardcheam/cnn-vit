@@ -33,6 +33,12 @@ from interpretability.vit_attention import generate_attention_maps, overlay_atte
 from utils.artifacts import load_torch_checkpoint
 from utils.helpers import ensure_dir, get_device, runtime_diagnostics, save_json, set_seed, to_numpy_image
 
+# A few CIFAR-10 test examples in the local cache appear visually inconsistent
+# with their labels. We exclude them only from qualitative source-stage panels
+# so they do not dominate the error analysis. Quantitative metrics remain
+# unchanged because evaluation still uses the full test set.
+CIFAR10_QUALITATIVE_EXCLUDE_INDICES = frozenset({2405, 3560, 4744, 6759})
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -551,6 +557,7 @@ def _collect_prediction_records(
 ) -> list[dict[str, Any]]:
     loader = DataLoader(dataset, batch_size=64, shuffle=False)
     records: list[dict[str, Any]] = []
+    dataset_index = 0
 
     for images, labels in loader:
         images = images.to(device, non_blocking=device.type != "cpu")
@@ -569,6 +576,7 @@ def _collect_prediction_records(
         ):
             records.append(
                 {
+                    "dataset_index": dataset_index,
                     "image_tensor": image.clone(),
                     "image": to_numpy_image(image, mean=mean, std=std),
                     "true_index": label_index,
@@ -579,8 +587,23 @@ def _collect_prediction_records(
                     "is_correct": label_index == prediction_index,
                 }
             )
+            dataset_index += 1
 
     return records
+
+
+def _filter_visual_records(
+    records: list[dict[str, Any]],
+    excluded_indices: set[int] | frozenset[int] | None = None,
+) -> list[dict[str, Any]]:
+    if not excluded_indices:
+        return records
+    filtered = [
+        row
+        for row in records
+        if row.get("dataset_index") is None or row["dataset_index"] not in excluded_indices
+    ]
+    return filtered or records
 
 
 def _save_misclassified_interpretability(
@@ -595,7 +618,9 @@ def _save_misclassified_interpretability(
     output_path: Path,
     plot_style: dict,
     max_examples: int = 6,
+    excluded_indices: set[int] | frozenset[int] | None = None,
 ) -> str | None:
+    records = _filter_visual_records(records, excluded_indices)
     misclassified = [row for row in records if not row["is_correct"]]
     if not misclassified:
         return None
@@ -678,6 +703,7 @@ def _save_class_diagnostics(
     title_prefix: str,
     plot_style: dict,
     num_classes: int = 4,
+    excluded_indices: set[int] | frozenset[int] | None = None,
 ) -> dict[str, Any]:
     if not records or not per_class_metrics:
         return {
@@ -695,7 +721,10 @@ def _save_class_diagnostics(
     easiest = list(reversed(ordered[-min(num_classes, len(ordered)) :]))
 
     def _select_examples(class_name: str) -> dict[str, dict[str, Any] | None]:
-        class_records = [row for row in records if row["true_label"] == class_name]
+        class_records = _filter_visual_records(
+            [row for row in records if row["true_label"] == class_name],
+            excluded_indices,
+        )
         correct = [row for row in class_records if row["is_correct"]]
         incorrect = [row for row in class_records if not row["is_correct"]]
 
@@ -794,6 +823,7 @@ def _save_class_diagnostics(
                     "predicted_count": row["predicted_count"],
                     "examples": {
                         key: {
+                            "dataset_index": example.get("dataset_index"),
                             "true_label": example["true_label"],
                             "predicted_label": example["predicted_label"],
                             "confidence": round(example["confidence"], 4),
@@ -1053,6 +1083,7 @@ def _evaluate_source_checkpoint(
         output_dir=example_dir / "class_diagnostics",
         title_prefix=config.data.name,
         plot_style=SOURCE_PLOT_STYLE,
+        excluded_indices=CIFAR10_QUALITATIVE_EXCLUDE_INDICES,
     )
     misclassified_interpretability_path = _save_misclassified_interpretability(
         model_name=checkpoint["model_name"],
@@ -1064,6 +1095,7 @@ def _evaluate_source_checkpoint(
         std=config.data.std,
         output_path=example_dir / "misclassified_interpretability.png",
         plot_style=SOURCE_PLOT_STYLE,
+        excluded_indices=CIFAR10_QUALITATIVE_EXCLUDE_INDICES,
     )
     save_json(class_diagnostics, output_dir / "class_diagnostics.json")
 
