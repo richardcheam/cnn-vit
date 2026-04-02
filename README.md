@@ -144,7 +144,7 @@ Robustness on the full-data models:
 
 ## Visual Results
 
-These previews use the saved artifacts under `outputs/`. They render locally as long as the generated figures are present.
+These previews use the saved artifacts under `outputs/`. The section uses plain Markdown image embeds so it renders more reliably across viewers.
 
 ### Source-stage distribution shifts
 
@@ -166,18 +166,17 @@ These previews use the saved artifacts under `outputs/`. They render locally as 
 
 ### Source-stage interpretability examples
 
-<p align="center">
-  <img src="outputs/interpretability/cnn_gradcam.png" alt="CNN Grad-CAM" width="31%" />
-  <img src="outputs/interpretability/vit_attention.png" alt="ViT attention rollout" width="31%" />
-  <img src="outputs/interpretability/dhvt_attention.png" alt="DHVT attention and head-token influence" width="31%" />
-</p>
+![CNN Grad-CAM](outputs/interpretability/cnn_gradcam.png)
+
+![ViT attention rollout](outputs/interpretability/vit_attention.png)
+
+![DHVT rollout and head-token influence](outputs/interpretability/dhvt_attention.png)
 
 ### Error analysis examples
 
-<p align="center">
-  <img src="outputs/checkpoint_evaluation/cnn_100pct_best/examples/class_diagnostics/hardest_classes.png" alt="CNN hardest CIFAR-10 classes" width="48%" />
-  <img src="outputs/checkpoint_evaluation/dhvt_100pct_best/examples/misclassified_interpretability.png" alt="DHVT misclassified interpretability" width="48%" />
-</p>
+![CNN hardest CIFAR-10 classes](outputs/checkpoint_evaluation/cnn_100pct_best/examples/class_diagnostics/hardest_classes.png)
+
+![DHVT misclassified interpretability](outputs/checkpoint_evaluation/dhvt_100pct_best/examples/misclassified_interpretability.png)
 
 ## Pipeline Overview
 
