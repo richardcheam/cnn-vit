@@ -144,39 +144,23 @@ Robustness on the full-data models:
 
 ## Visual Results
 
-These previews use the saved artifacts under `outputs/`. The section uses plain Markdown image embeds so it renders more reliably across viewers.
+These composite panels are built from the saved artifacts under `outputs/` and copied into `assets/readme/` for stable rendering.
 
-### Source-stage distribution shifts
+### Source-stage overview
 
-![CIFAR-10 clean, occluded, and texture-modified example](outputs/plots/cifar_shift_examples.png)
+![Source-stage overview](assets/readme/source_overview.png)
 
-### Learning dynamics
+### Downstream learning dynamics
 
-![Full-data source-stage learning curves](outputs/plots/architecture_training_comparison.png)
+![Downstream learning dynamics](assets/readme/downstream_dynamics.png)
 
-![EuroSAT validation dynamics by model](outputs/plots/eurosat_transfer_validation_curves.png)
+### Interpretability overview
 
-![Brain Tumor MRI validation dynamics by model](outputs/plots/brain_mri_transfer_validation_curves.png)
+![Interpretability overview](assets/readme/interpretability_overview.png)
 
-### Robustness and data efficiency
+### Error-analysis overview
 
-![CIFAR-10 data efficiency](outputs/plots/data_efficiency.png)
-
-![CIFAR-10 robustness drop](outputs/plots/robustness_drop.png)
-
-### Source-stage interpretability examples
-
-![CNN Grad-CAM](outputs/interpretability/cnn_gradcam.png)
-
-![ViT attention rollout](outputs/interpretability/vit_attention.png)
-
-![DHVT rollout and head-token influence](outputs/interpretability/dhvt_attention.png)
-
-### Error analysis examples
-
-![CNN hardest CIFAR-10 classes](outputs/checkpoint_evaluation/cnn_100pct_best/examples/class_diagnostics/hardest_classes.png)
-
-![DHVT misclassified interpretability](outputs/checkpoint_evaluation/dhvt_100pct_best/examples/misclassified_interpretability.png)
+![Error-analysis overview](assets/readme/error_analysis_overview.png)
 
 ## Pipeline Overview
 
