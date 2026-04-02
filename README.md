@@ -170,7 +170,7 @@ These composite panels are built from the saved artifacts under `outputs/` and c
 
 ### Source-stage overview
 
-![Source-stage overview](assets/readme/source_overview.png)
+![Source-stage overview](https://github.com/richardcheam/xai-vision-transfer/blob/main/assets/readme/source_overview.png?raw=1)
 
 ### Downstream learning dynamics
 
@@ -178,13 +178,13 @@ Top row: EuroSAT validation dynamics. Bottom row: Brain Tumor MRI validation dyn
 Within each row, the columns are `CNN`, `ViT`, and `DHVT`.  
 Inside each model panel, solid lines show `scratch`, dotted lines show `pretrained + linear probe`, and dashed lines show `pretrained + full fine-tune`.
 
-![Downstream learning dynamics](assets/readme/downstream_dynamics.png)
+![Downstream learning dynamics](https://github.com/richardcheam/xai-vision-transfer/blob/main/assets/readme/downstream_dynamics.png?raw=1)
 
 ### Interpretability overview
 
 This panel shows the source-stage CIFAR-10 interpretability outputs, ordered left to right as `CNN`, `ViT`, and `DHVT`.
 
-![Interpretability overview](assets/readme/interpretability_overview.png)
+![Interpretability overview](https://github.com/richardcheam/xai-vision-transfer/blob/main/assets/readme/interpretability_overview.png?raw=1)
 
 ### Downstream interpretability overview
 
@@ -192,11 +192,11 @@ These examples use the pretrained full fine-tune checkpoints.
 Top row: EuroSAT. Bottom row: Brain Tumor MRI.  
 Within each row, the columns are `CNN` (Grad-CAM), `ViT` (Attention rollout), and `DHVT` (Head token influence), each model consists of 3 columns (original img, overlay, where model looks).
 
-![Downstream full fine-tune interpretability overview](assets/readme/downstream_interpretability_overview.png)
+![Downstream full fine-tune interpretability overview](https://github.com/richardcheam/xai-vision-transfer/blob/main/assets/readme/downstream_interpretability_overview.png?raw=1)
 
 ### Error-analysis overview
 
-![Error-analysis overview](assets/readme/error_analysis_overview.png)
+![Error-analysis overview](https://github.com/richardcheam/xai-vision-transfer/blob/main/assets/readme/error_analysis_overview.png?raw=1)
 
 ## Pipeline Overview
 
