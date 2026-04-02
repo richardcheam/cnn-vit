@@ -148,19 +148,19 @@ These composite panels are built from the saved artifacts under `outputs/` and c
 
 ### Source-stage overview
 
-![Source-stage overview](assets/readme/source_overview.png)
+![Source-stage overview](https://github.com/richardcheam/cnn-vit/blob/main/assets/readme/source_overview.png?raw=true)
 
 ### Downstream learning dynamics
 
-![Downstream learning dynamics](assets/readme/downstream_dynamics.png)
+![Downstream learning dynamics](https://github.com/richardcheam/cnn-vit/blob/main/assets/readme/downstream_dynamics.png?raw=true)
 
 ### Interpretability overview
 
-![Interpretability overview](assets/readme/interpretability_overview.png)
+![Interpretability overview](https://github.com/richardcheam/cnn-vit/blob/main/assets/readme/interpretability_overview.png?raw=true)
 
 ### Error-analysis overview
 
-![Error-analysis overview](assets/readme/error_analysis_overview.png)
+![Error-analysis overview](https://github.com/richardcheam/cnn-vit/blob/main/assets/readme/error_analysis_overview.png?raw=true)
 
 ## Pipeline Overview
 
